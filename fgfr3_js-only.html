@@ -50,7 +50,7 @@
     .topbar-inner{
       display:flex; align-items:center; justify-content:space-between; gap:12px;
       padding:12px 16px;
-      max-width:1600px; margin:0 auto;
+      max-width:1850px; margin:0 auto;
       min-height: var(--topbarH);
     }
     .brand {
@@ -1162,7 +1162,7 @@
           </div>
 
           <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end;">
-            <div class="summaryRight" style="margin-top: 20%;">expanded</div>
+            <div class="summaryRight" style="margin-top: 20%;">▾ collapse</div>
           </div>
         </summary>
 
@@ -1171,14 +1171,14 @@
         </div>
       </details>
 
-      <details class="matrixCard" id="matrixDetails" aria-label="Condition x Significance matrix">
+      <details class="matrixCard" id="matrixDetails" open aria-label="Condition x Significance matrix">
         <summary class="matrixHead">
           <div>
             <h2>Condition × Clinical significance</h2>
           </div>
           <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end;">
             <!-- <div class="help mono" id="matrixMeta">—</div> -->
-            <div class="summaryRight" style="margin-top: 20%;">collapsed</div>
+            <div class="summaryRight" style="margin-top: 20%;">▾ collapse</div>
           </div>
         </summary>
         <div class="matrixWrap">
@@ -1205,7 +1205,7 @@
       <details class="mainTableDetails" id="mainDetails">
         <summary>
           <span>Full variant table</span>
-          <span class="summaryRight">collapsed</span>
+          <span class="summaryRight">▸ expand</span>
         </summary>
         <div class="tablewrap" aria-label="results table container">
           <table id="tbl" aria-label="results table">
@@ -1887,17 +1887,17 @@
 
       const summaryRightTable = mainDetails.querySelector(".summaryRight");
       if (summaryRightTable){
-        summaryRightTable.textContent = mainDetails.open ? "expanded" : "collapsed";
+        summaryRightTable.textContent = mainDetails.open ? "▾ collapse" : "▸ expand"
       }
 
       const summaryRightMatrix = matrixDetails.querySelector(".summaryRight");
       if (summaryRightMatrix){
-        summaryRightMatrix.textContent = matrixDetails.open ? "expanded" : "collapsed";
+        summaryRightMatrix.textContent = matrixDetails.open ? "▾ collapse" : "▸ expand"
       }
 
       const summaryRightChart = chartDetails.querySelector(".summaryRight");
       if (summaryRightChart){
-        summaryRightChart.textContent = chartDetails.open ? "expanded" : "collapsed";
+        summaryRightChart.textContent = chartDetails.open ? "▾ collapse" : "▸ expand"
       }
     }
 
@@ -2913,18 +2913,18 @@
 
     mainDetails.addEventListener("toggle", () => {
       const summaryRight = mainDetails.querySelector(".summaryRight");
-      if (summaryRight) summaryRight.textContent = mainDetails.open ? "expanded" : "collapsed";
+      if (summaryRight) summaryRight.textContent = mainDetails.open ? "▾ collapse" : "▸ expand";
     });
 
     matrixDetails.addEventListener("toggle", () => {
       const summaryRight = matrixDetails.querySelector(".summaryRight");
-      if (summaryRight) summaryRight.textContent = matrixDetails.open ? "expanded" : "collapsed";
+      if (summaryRight) summaryRight.textContent = matrixDetails.open ? "▾ collapse" : "▸ expand"
     });
 
     chartDetails.addEventListener("toggle", () => {
       const summaryRight = chartDetails.querySelector(".summaryRight");
       if (summaryRight) {
-        summaryRight.textContent = chartDetails.open ? "expanded" : "collapsed";
+        summaryRight.textContent = chartDetails.open ? "▾ collapse" : "▸ expand"
         if (chartDetails.open) renderTimelineChart(lastFilteredRows);
       }
     });
