@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeneVariant Viz Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        :root {
+            --bg: #f5f5f7;
+            --card: #ffffff;
+            --text: #1d1d1f;
+            --accent: #0071e3;
+            --border: #d2d2d7;
+            --pathogenic: #ff3b30;
+            --benign: #34c759;
+            --vus: #ffcc00;
+            --console-bg: #1c1c1e;
+            --console-text: #00ff00;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container { width: 100%; max-width: 1200px; }
+
+        header { margin-bottom: 1.5rem; text-align: left; display: flex; justify-content: space-between; align-items: flex-end; }
+        
+        .search-area {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 15px;
+            flex-grow: 1;
+            align-items: flex-start;
+        }
+
+        .input-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .input-item label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #86868b;
+        }
+
+        input[type="text"], select {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 13px;
+            transition: border-color 0.2s;
+            background: white;
+        }
+
+        select[multiple] {
+            height: 42px;
+            padding: 5px;
+        }
+
+        .slider-group {
+            min-width: 180px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s;
+            align-self: flex-end;
+            margin-bottom: 2px;
+        }
+
+        button:hover { opacity: 0.85; }
+        button.secondary { background: #e8e8ed; color: var(--text); }
+
+        .viz-wrapper {
+            background: var(--card);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            position: relative;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #viz-container { width: 100%; height: 620px; cursor: crosshair; }
+
+        #legend-area {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            font-size: 12px;
+            background: #fafafa;
+        }
+
+        .legend-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 150px;
+        }
+
+        .legend-title {
+            font-weight: 700;
+            color: #86868b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .swatch-circle { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); }
+        .swatch-rect { width: 24px; height: 12px; border-radius: 2px; border: 1px solid rgba(0,0,0,0.1); }
+        .swatch-shape { width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: var(--card);
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 12px;
+            border: 1px solid var(--border);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .control-item { display: flex; flex-direction: column; gap: 4px; }
+        
+        .feature-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-width: 400px;
+            padding: 5px;
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+
+        .feature-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        .console-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .console-panel {
+            background: var(--console-bg);
+            border-radius: 12px;
+            color: var(--console-text);
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .console-header {
+            background: #2c2c2e;
+            padding: 8px 15px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #aeaeae;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #api-log { padding: 10px; overflow-y: auto; font-size: 12px; flex-grow: 1; white-space: pre-wrap; }
+        .log-entry { margin-bottom: 8px; border-bottom: 1px solid #3a3a3c; padding-bottom: 4px; }
+        .log-status { color: #fff; font-weight: bold; }
+        .log-url { color: #5e5ce6; }
+
+        .inspector-split { display: flex; height: 100%; flex-grow: 1; }
+        .inspector-sidebar { width: 150px; border-right: 1px solid #3a3a3c; padding: 10px; overflow-y: auto; }
+        .var-link { display: block; padding: 6px; cursor: pointer; font-size: 11px; color: #aeaeae; border-radius: 4px; }
+        .var-link:hover { background: #2c2c2e; color: var(--console-text); }
+        .var-link.active { background: var(--accent); color: white; }
+        .inspector-window { flex-grow: 1; padding: 10px; overflow-y: auto; font-size: 12px; }
+
+        .tooltip {
+            position: absolute;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            border-radius: 8px;
+            font-size: 12px;
+            pointer-events: none;
+            visibility: hidden;
+            z-index: 200;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            line-height: 1.4;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .detail-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px; }
+        .detail-table th, .detail-table td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
+        .detail-table th { background: #f9f9fb; font-weight: 600; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; text-transform: uppercase; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1 style="margin:0; font-weight: 800; letter-spacing: -0.02em;">GeneVariant <span style="color:var(--accent)">Viz Pro</span></h1>
+            <p style="margin: 4px 0 0 0; color: #86868b;">Advanced Lollipop Plotter with Dynamic Transcript Filtering</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="secondary" onclick="exportSVG()">Export SVG</button>
+            <button class="secondary" onclick="resetZoom()">Reset Zoom</button>
+        </div>
+    </header>
+
+    <div class="search-area">
+        <div class="search-input-group">
+            <div class="input-item" style="flex-grow: 1;">
+                <label>Gene Symbol</label>
+                <input type="text" id="geneSearch" placeholder="e.g., FGFR3, TP53..." value="FGFR3">
+            </div>
+            <div class="input-item slider-group">
+                <label>Max Results: <span id="maxVal">100</span></label>
+                <input type="range" id="sizeSlider" min="1" max="500" value="100" oninput="document.getElementById('maxVal').innerText = this.value">
+            </div>
+            <div class="input-item">
+                <label>Significance Filter (Multi)</label>
+                <select id="sigFilter" multiple>
+                    <option value="All" selected>All (No filter)</option>
+                    <option value="Pathogenic">Pathogenic</option>
+                    <option value="Likely pathogenic">Likely pathogenic</option>
+                    <option value="Uncertain significance">Uncertain significance</option>
+                    <option value="Benign">Benign</option>
+                    <option value="Likely benign">Likely benign</option>
+                    <option value="Conflicting interpretations of pathogenicity">Conflicting interpretations</option>
+                </select>
+            </div>
+        </div>
+        <button id="fetchBtn" onclick="loadGeneData()">Fetch Data</button>
+    </div>
+
+    <div class="viz-wrapper" id="viz-wrapper">
+        <div id="viz-container"></div>
+        <div id="tooltip" class="tooltip"></div>
+        <div id="legend-area"></div>
+    </div>
+
+    <div class="toolbar">
+        <div class="control-item">
+            <label>Color (Grouping)</label>
+            <select id="colorMode" onchange="render()">
+                <option value="clinvar">ClinVar Status (Latest)</option>
+                <option value="condition">Primary Condition</option>
+                <option value="type">Variant Type</option>
+            </select>
+        </div>
+        <div class="control-item">
+            <label>Lollipop Height</label>
+            <select id="heightMode" onchange="render()">
+                <option value="freq">Submissions</option>
+                <option value="fixed">Uniform</option>
+            </select>
+        </div>
+        <div class="control-item">
+            <label>Base Scale</label>
+            <input type="range" id="yScale" min="50" max="400" value="200" oninput="render()">
+        </div>
+        <div class="control-item">
+            <label>Backbone Color</label>
+            <input type="color" id="backboneColor" value="#e8e8ed" oninput="render()">
+        </div>
+        <div class="control-item">
+            <label>Backbone Features</label>
+            <div id="feature-list" class="feature-selector">
+                <span style="color:#86868b; padding:5px">No features loaded...</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="console-section">
+        <div class="console-panel">
+            <div class="console-header">
+                <span>API Activity Log</span>
+                <span onclick="clearLogs()" style="cursor:pointer">Clear</span>
+            </div>
+            <div id="api-log"></div>
+        </div>
+
+        <div class="console-panel">
+            <div class="console-header">Live Variable Inspector</div>
+            <div class="inspector-split">
+                <div class="inspector-sidebar" id="var-sidebar">
+                    <span class="var-link" onclick="inspectVar('rawData')">rawData</span>
+                    <span class="var-link" onclick="inspectVar('geneInfo')">geneInfo</span>
+                    <span class="var-link" onclick="inspectVar('zoomTransform')">zoomTransform</span>
+                    <span class="var-link" onclick="inspectVar('shapeMap')">shapeMap</span>
+                </div>
+                <div class="inspector-window" id="inspector-output">Click a variable to inspect current value...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalOverlay" class="modal-overlay" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+        <h2 id="modalTitle" style="margin-top:0">Variant Details</h2>
+        <div id="modalContent"></div>
+        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="secondary" id="exportBtn">Export JSON</button>
+            <button onclick="closeModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let rawData = [];
+    let geneInfo = { length: 1000, features: [] };
+    let zoomTransform = d3.zoomIdentity;
+    let selectedFeatureTypes = new Set(['DOMAIN', 'TRANSMEM']);
+    let shapeMap = {};
+    let conditionColorScale = d3.scaleOrdinal(d3.schemeTableau10);
+
+    const availableSymbols = [
+        d3.symbolCircle, d3.symbolTriangle, d3.symbolSquare, 
+        d3.symbolDiamond, d3.symbolCross, d3.symbolStar, d3.symbolWye
+    ];
+
+    function updateLegend() {
+        const legendArea = d3.select("#legend-area");
+        legendArea.selectAll("*").remove();
+
+        if (rawData.length === 0) {
+            legendArea.html('<span style="color:#86868b">Search for a gene to view the legend.</span>');
+            return;
+        }
+
+        // 1. Shapes
+        const shapeSection = legendArea.append("div").attr("class", "legend-section");
+        shapeSection.append("div").attr("class", "legend-title").text("Variant Effect (Shape)");
+        Object.keys(shapeMap).forEach(type => {
+            const item = shapeSection.append("div").attr("class", "legend-item");
+            const svg = item.append("div").attr("class", "swatch-shape").append("svg").attr("width", 14).attr("height", 14).append("g").attr("transform", "translate(7,7)");
+            svg.append("path").attr("d", d3.symbol().type(shapeMap[type]).size(40)).attr("fill", "#636366");
+            item.append("span").text(type);
+        });
+
+        // 2. Point Colors
+        const colorSection = legendArea.append("div").attr("class", "legend-section");
+        const colorMode = document.getElementById('colorMode').value;
+        colorSection.append("div").attr("class", "legend-title").text(colorMode === 'clinvar' ? "ClinVar Significance" : (colorMode === 'type' ? "Variant Classification" : "Primary Condition"));
+        
+        if (colorMode === 'clinvar') {
+            [{ l: 'Pathogenic', c: 'var(--pathogenic)' }, { l: 'Benign', c: 'var(--benign)' }, { l: 'VUS', c: 'var(--vus)' }, { l: 'Unknown', c: '#8e8e93' }].forEach(s => {
+                const item = colorSection.append("div").attr("class", "legend-item");
+                item.append("div").attr("class", "swatch-circle").style("background", s.c);
+                item.append("span").text(s.l);
+            });
+        } else if (colorMode === 'type') {
+            const types = Object.keys(shapeMap);
+            const typeScale = d3.scaleOrdinal(d3.schemeCategory10);
+            types.forEach(t => {
+                const item = colorSection.append("div").attr("class", "legend-item");
+                item.append("div").attr("class", "swatch-circle").style("background", typeScale(t));
+                item.append("span").text(t);
+            });
+        } else {
+            const conditions = [...new Set(rawData.map(d => d.primaryCondition))];
+            conditions.forEach(c => {
+                const item = colorSection.append("div").attr("class", "legend-item");
+                item.append("div").attr("class", "swatch-circle").style("background", c === 'Multiple' ? '#9467bd' : (c === 'Unknown' ? '#8e8e93' : conditionColorScale(c)));
+                item.append("span").text(c);
+            });
+        }
+
+        // 3. Backbone
+        if (selectedFeatureTypes.size > 0) {
+            const bbSection = legendArea.append("div").attr("class", "legend-section");
+            bbSection.append("div").attr("class", "legend-title").text("Backbone Features");
+            const palette = d3.scaleOrdinal(d3.schemeSet3);
+            Array.from(selectedFeatureTypes).forEach(type => {
+                const item = bbSection.append("div").attr("class", "legend-item");
+                item.append("div").attr("class", "swatch-rect").style("background", palette(type));
+                item.append("span").text(type);
+            });
+        }
+    }
+
+    function logAPI(url, status, response) {
+        const log = document.getElementById('api-log');
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        const timestamp = new Date().toLocaleTimeString();
+        entry.innerHTML = `<span style="color:#636366">[${timestamp}]</span> <span class="log-status">${status}</span> <span class="log-url">${url.split('?')[0]}</span><div style="margin-top:4px; color:#aeaeae; font-size:10px">${JSON.stringify(response).substring(0, 150)}...</div>`;
+        log.prepend(entry);
+    }
+
+    function clearLogs() { document.getElementById('api-log').innerHTML = ''; }
+
+    function inspectVar(varName) {
+        document.querySelectorAll('.var-link').forEach(l => {
+            l.classList.remove('active');
+            if(l.innerText === varName) l.classList.add('active');
+        });
+        const output = document.getElementById('inspector-output');
+        try {
+            const val = eval(varName);
+            output.innerHTML = `<pre>${JSON.stringify(val, (key, value) => typeof value === 'function' ? '[Function]' : value, 2)}</pre>`;
+        } catch(e) { output.innerText = "Error: " + e.message; }
+    }
+
+    const zoom = d3.zoom().scaleExtent([0.5, 50]).on("zoom", (event) => { zoomTransform = event.transform; render(); });
+
+    function escapeQueryValue(v) { return v.replace(/[\s():"']/g, m => `\\${m}`); }
+
+    function chooseBestGeneHit(results, symbol) {
+        const symUpper = symbol.toUpperCase();
+        return results.map(r => {
+            let s = 0;
+            const genes = (r.genes || []).map(g => g.geneName?.value).concat(r.genePrimary?.value || []);
+            if (genes.some(g => String(g).toUpperCase() === symUpper)) s += 100;
+            return { r, s };
+        }).sort((a, b) => b.s - a.s)[0].r;
+    }
+
+    async function fetchUniprotCanonicalHumanFeatures(symbol) {
+        const query = `(gene_exact:${escapeQueryValue(symbol)} OR gene:${escapeQueryValue(symbol)}) AND organism_id:9606 AND reviewed:true`;
+        const searchUrl = `https://rest.uniprot.org/uniprotkb/search?query=${encodeURIComponent(query)}&format=json&size=5&fields=accession,id,gene_primary,length,protein_existence`;
+        const searchResp = await fetch(searchUrl);
+        const searchJson = await searchResp.json();
+        logAPI(searchUrl, searchResp.status, searchJson);
+
+        if (!searchJson.results?.length) return null;
+        const chosen = chooseBestGeneHit(searchJson.results, symbol);
+        const accession = chosen.primaryAccession || chosen.accession;
+        const entryUrl = `https://rest.uniprot.org/uniprotkb/${encodeURIComponent(accession)}?format=json`;
+        const entryResp = await fetch(entryUrl);
+        const entry = await entryResp.json();
+        logAPI(entryUrl, entryResp.status, entry);
+
+        return {
+            length: entry.sequence?.length || 1000,
+            features: (entry.features || []).map(f => ({
+                type: f.type,
+                description: f.description,
+                begin: f.location?.start?.value,
+                end: f.location?.end?.value
+            }))
+        };
+    }
+
+    function updateFeatureControls() {
+        const container = document.getElementById('feature-list');
+        container.innerHTML = '';
+        const uniqueTypes = [...new Set(geneInfo.features.map(f => f.type))].sort();
+        uniqueTypes.forEach(type => {
+            const label = document.createElement('label');
+            label.className = 'feature-checkbox';
+            const isDefault = type.toUpperCase().includes('DOMAIN') || type.toUpperCase().includes('TRANSMEM');
+            if (isDefault) selectedFeatureTypes.add(type);
+            label.innerHTML = `<input type="checkbox" value="${type}" ${selectedFeatureTypes.has(type) ? 'checked' : ''} onchange="toggleFeatureType(this)"> ${type}`;
+            container.appendChild(label);
+        });
+    }
+
+    function toggleFeatureType(cb) {
+        if (cb.checked) selectedFeatureTypes.add(cb.value);
+        else selectedFeatureTypes.delete(cb.value);
+        render();
+    }
+
+    async function loadGeneData() {
+        const gene = document.getElementById('geneSearch').value.trim().toUpperCase();
+        const size = document.getElementById('sizeSlider').value;
+        const sigSelect = document.getElementById('sigFilter');
+        const selectedSigs = Array.from(sigSelect.selectedOptions).map(o => o.value);
+        
+        if(!gene) return;
+        const btn = document.getElementById('fetchBtn');
+        btn.innerText = "Loading..."; btn.disabled = true;
+
+        try {
+            const uniprot = await fetchUniprotCanonicalHumanFeatures(gene);
+            if(uniprot) { geneInfo = uniprot; updateFeatureControls(); }
+
+            // Construct Significance Query Part
+            let sigQuery = "";
+            if (!selectedSigs.includes("All") && selectedSigs.length > 0) {
+                const parts = selectedSigs.map(s => `clinvar.clinical_significance:"${s}"`);
+                sigQuery = `+AND+(${parts.join("+OR+")})`;
+            }
+
+            const varUrl = `https://myvariant.info/v1/query?q=clinvar.gene.symbol:${gene}+AND+_exists_:clinvar${sigQuery}&fields=clinvar,snpeff&size=${size}`;
+            const varRes = await fetch(varUrl);
+            const vJson = await varRes.json();
+            logAPI(varUrl, varRes.status, vJson);
+            
+            if(!vJson.hits?.length) throw new Error("No variants found with the selected filters.");
+
+            shapeMap = {};
+            let uniqueTypesFound = new Set();
+            const garbageConditions = ['not provided', 'not specified', 'not available', 'none', 'unknown', '-', 'unspecified'];
+
+            rawData = vJson.hits.map(h => {
+                const cv = h.clinvar || {};
+                const rcvs = Array.isArray(cv.rcv) ? [...cv.rcv] : (cv.rcv ? [cv.rcv] : []);
+                rcvs.sort((a, b) => (new Date(b.last_evaluated || 0)) - (new Date(a.last_evaluated || 0)));
+
+                const hgvsN = cv.hgvs?.nucleotide || "";
+                const transcriptMatch = hgvsN.match(/NM_\d+/);
+                const targetTranscript = transcriptMatch ? transcriptMatch[0] : null;
+
+                let annotations = h.snpeff?.ann || [];
+                if (!Array.isArray(annotations)) annotations = [annotations];
+                let matchingAnn = annotations.find(ann => targetTranscript && ann.feature_id?.includes(targetTranscript));
+                if (!matchingAnn) matchingAnn = annotations.find(ann => ann.effect);
+                const type = (matchingAnn?.effect || "other").toLowerCase();
+                uniqueTypesFound.add(type);
+
+                const conditionCounts = {};
+                const validConditions = [];
+                rcvs.forEach(r => {
+                    const c = (r.trait_name || "").toLowerCase().trim();
+                    if (c && !garbageConditions.some(g => c.includes(g))) {
+                        conditionCounts[r.trait_name] = (conditionCounts[r.trait_name] || 0) + 1;
+                        if (!validConditions.includes(r.trait_name)) validConditions.push(r.trait_name);
+                    }
+                });
+
+                const sortedConds = Object.entries(conditionCounts).sort((a, b) => b[1] - a[1]);
+                let primaryCondition = 'Unknown';
+                if (sortedConds.length > 0) {
+                    const totalCount = sortedConds.reduce((sum, current) => sum + current[1], 0);
+                    const topLeadFreq = sortedConds[0][1] / totalCount;
+                    const secondLeadFreq = sortedConds[1] ? sortedConds[1][1] / totalCount : 0;
+                    
+                    if ((topLeadFreq - secondLeadFreq) > 0.1) {
+                        primaryCondition = sortedConds[0][0];
+                    } else {
+                        primaryCondition = 'Multiple';
+                    }
+                }
+
+                const hgvsP = rcvs[0]?.preferred_name ?? matchingAnn?.hgvs_p ?? "N/A";
+                const pos = parseInt(hgvsP.match(/p\.[A-Za-z]+(\d+)/)?.[1] || hgvsP.match(/\d+/)?.[0] || Math.floor(Math.random() * geneInfo.length));
+
+                return {
+                    id: h._id, pos, hgvs_p: hgvsP, hgvs_g: h._id,
+                    submissions: rcvs.length || 1,
+                    significance: rcvs[0]?.clinical_significance ?? "Unknown",
+                    type, raw: h,
+                    primaryCondition,
+                    allConditions: validConditions.length > 0 ? validConditions.join(", ") : "Not provided"
+                };
+            });
+
+            let typesArray = Array.from(uniqueTypesFound).sort();
+            typesArray.forEach((t, i) => {
+                shapeMap[t] = availableSymbols[i % availableSymbols.length];
+            });
+
+            d3.select("#viz-container").call(zoom);
+            render();
+        } catch (e) { alert("Error: " + e.message); }
+        finally { btn.innerText = "Fetch Data"; btn.disabled = false; }
+    }
+
+    function render() {
+        const container = d3.select("#viz-container");
+        container.selectAll("*").remove();
+        const rect = container.node().getBoundingClientRect();
+        const width = rect.width, height = rect.height, margin = { top: 30, right: 50, bottom: 180, left: 50 };
+        const svg = container.append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("width", width).attr("height", height);
+        const g = svg.append("g").attr("transform", `translate(${margin.left}, 0)`);
+
+        const xScale = d3.scaleLinear().domain([0, geneInfo.length]).range([0, width - margin.left - margin.right]);
+        const rescaledX = zoomTransform.rescaleX(xScale);
+        const yScale = d3.scaleLinear().domain([0, d3.max(rawData, d => d.submissions) || 1]).range([0, -(+document.getElementById('yScale').value)]);
+        const chartCenterY = height / 3;
+
+        const palette = d3.scaleOrdinal(d3.schemeSet3);
+        const calloutGroup = g.append("g").attr("class", "callouts");
+        
+        geneInfo.features.forEach((f, i) => {
+            if (selectedFeatureTypes.has(f.type)) {
+                g.append("rect")
+                    .attr("x", rescaledX(f.begin)).attr("y", chartCenterY - 15)
+                    .attr("width", Math.max(2, rescaledX(f.end) - rescaledX(f.begin))).attr("height", 30)
+                    .attr("rx", 4).attr("fill", palette(f.type)).attr("opacity", 0.6)
+                    .on("mouseover", (e) => showFeatureTooltip(e, f))
+                    .on("mousemove", moveTooltip)
+                    .on("mouseout", hideTooltip);
+
+                if (f.description) {
+                    const midX = rescaledX((f.begin + f.end) / 2);
+                    const axisLineY = chartCenterY + 45; 
+                    const labelY = axisLineY + 60 + (i % 5 * 20); 
+                    
+                    calloutGroup.append("line")
+                        .attr("x1", midX).attr("y1", chartCenterY + 15)
+                        .attr("x2", midX).attr("y2", labelY - 10)
+                        .attr("stroke", "#d2d2d7").attr("stroke-width", 0.5);
+
+                    calloutGroup.append("text")
+                        .attr("x", midX).attr("y", labelY)
+                        .attr("text-anchor", "middle")
+                        .attr("font-size", "10px")
+                        .attr("fill", "#86868b")
+                        .attr("font-weight", "500")
+                        .text(f.description.length > 40 ? f.description.substring(0, 37) + "..." : f.description);
+                }
+            }
+        });
+
+        g.append("rect").attr("x", rescaledX(0)).attr("y", chartCenterY - 10).attr("width", rescaledX(geneInfo.length) - rescaledX(0)).attr("height", 20).attr("rx", 10).attr("fill", document.getElementById('backboneColor').value).attr("fill-opacity", 0.4).attr("stroke", "#d2d2d7").style("pointer-events", "none");
+        g.append("g").attr("transform", `translate(0, ${chartCenterY + 25})`).call(d3.axisBottom(rescaledX).ticks(10).tickFormat(d => d + " aa"));
+
+        const lollipops = g.selectAll(".v-group").data(rawData).enter().append("g");
+        lollipops.append("line").attr("x1", d => rescaledX(d.pos)).attr("x2", d => rescaledX(d.pos)).attr("y1", chartCenterY - 10).attr("y2", d => chartCenterY + (document.getElementById('heightMode').value === 'freq' ? yScale(d.submissions) : -60)).attr("stroke", "#8e8e93").attr("stroke-width", 1 / zoomTransform.k);
+        lollipops.append("path").attr("transform", d => `translate(${rescaledX(d.pos)}, ${chartCenterY + (document.getElementById('heightMode').value === 'freq' ? yScale(d.submissions) : -60)})`)
+            .attr("d", d => d3.symbol().type(shapeMap[d.type] || d3.symbolCircle).size(80)()).attr("fill", d => getColor(d)).attr("stroke", "white").attr("stroke-width", 1).style("cursor", "pointer")
+            .on("mouseover", showTooltip)
+            .on("mousemove", moveTooltip)
+            .on("mouseout", hideTooltip)
+            .on("click", (e, d) => showDetails(d));
+
+        updateLegend();
+    }
+
+    function getColor(d) {
+        const mode = document.getElementById('colorMode').value;
+        if (mode === 'type') return d3.scaleOrdinal(d3.schemeCategory10)(d.type);
+        if (mode === 'condition') {
+            if (d.primaryCondition === 'Multiple') return '#9467bd';
+            if (d.primaryCondition === 'Unknown') return '#8e8e93';
+            return conditionColorScale(d.primaryCondition);
+        }
+        const sig = String(d.significance).toLowerCase();
+        if(sig.includes("pathogenic")) return "var(--pathogenic)";
+        if(sig.includes("benign")) return "var(--benign)";
+        if(sig.includes("uncertain") || sig.includes("vus")) return "var(--vus)";
+        return "#8e8e93";
+    }
+
+    function getRelativePointer(event) {
+        const wrapper = document.getElementById('viz-wrapper').getBoundingClientRect();
+        return {
+            x: event.clientX - wrapper.left,
+            y: event.clientY - wrapper.top
+        };
+    }
+
+    function showTooltip(event, d) {
+        const pos = getRelativePointer(event);
+        d3.select("#tooltip")
+            .style("visibility", "visible")
+            .style("left", (pos.x + 15) + "px")
+            .style("top", (pos.y - 10) + "px")
+            .html(`
+                <div style="border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px; margin-bottom: 5px;">
+                    <strong style="font-size: 14px;">${d.hgvs_p}</strong>
+                </div>
+                <div><strong>Submissions:</strong> ${d.submissions}</div>
+                <div><strong>Significance:</strong> ${d.significance}</div>
+                <div><strong>Variant Type:</strong> ${d.type}</div>
+                <div><strong>Primary Condition:</strong> ${d.primaryCondition}</div>
+                <div style="margin-top: 5px; font-size: 10px; opacity: 0.8; font-style: italic;">
+                    <strong>Unique Conditions:</strong> ${d.allConditions}
+                </div>
+            `);
+    }
+
+    function showFeatureTooltip(event, f) {
+        const pos = getRelativePointer(event);
+        d3.select("#tooltip")
+            .style("visibility", "visible")
+            .style("left", (pos.x + 15) + "px")
+            .style("top", (pos.y - 10) + "px")
+            .html(`<strong>${f.type}</strong>: ${f.description || "N/A"}<br>Range: ${f.begin} - ${f.end} aa`);
+    }
+
+    function moveTooltip(event) {
+        const pos = getRelativePointer(event);
+        d3.select("#tooltip")
+            .style("left", (pos.x + 15) + "px")
+            .style("top", (pos.y - 10) + "px");
+    }
+
+    function hideTooltip() { d3.select("#tooltip").style("visibility", "hidden"); }
+
+    function showDetails(d) {
+        document.getElementById('modalTitle').innerText = "Variant Analysis";
+        document.getElementById('modalContent').innerHTML = `
+            <table class="detail-table">
+                <tr><th>Preferred Name</th><td>${d.hgvs_p}</td></tr>
+                <tr><th>HGVS Genomic</th><td><code>${d.hgvs_g}</code></td></tr>
+                <tr><th>Significance</th><td><span class="badge" style="background:${getColor(d)}; color:white">${d.significance}</span></td></tr>
+                <tr><th>Primary Condition</th><td>${d.primaryCondition}</td></tr>
+                <tr><th>All Conditions</th><td>${d.allConditions}</td></tr>
+                <tr><th>Effect</th><td>${d.type}</td></tr>
+            </table>`;
+        document.getElementById('modalOverlay').style.display = 'flex';
+        document.getElementById('exportBtn').onclick = () => {
+            const blob = new Blob([JSON.stringify(d.raw, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const dl = document.createElement('a'); dl.href = url; dl.download = `${d.id}.json`; dl.click();
+        };
+    }
+
+    function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+    function resetZoom() { d3.select("#viz-container").transition().call(zoom.transform, d3.zoomIdentity); }
+    function exportSVG() {
+        const source = (new XMLSerializer()).serializeToString(document.querySelector("#viz-container svg"));
+        const dl = document.createElement("a"); dl.href = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source); dl.download = "gene_viz.svg"; dl.click();
+    }
+</script>
+</body>
+</html>
