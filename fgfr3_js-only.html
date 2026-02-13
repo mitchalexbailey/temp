@@ -1,0 +1,1189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MyVariant.info – ClinVar variants in FGFR3</title>
+  <style>
+    :root{
+      /* Palette provided */
+      --c1:#28509C; --c2:#ED037C; --c3:#272D72; --c4:#A9208E; --c5:#7C2F90;
+      --black:#000000; --gray:#A0A0A0;
+
+      --bg:#ffffff; --panel:#ffffff;
+      --text:var(--black); --muted:#4f4f4f;
+      --border:rgba(0,0,0,0.18); --border2:rgba(0,0,0,0.10);
+      --shadow: 0 18px 60px rgba(0,0,0,0.18);
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+    body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--sans); }
+
+    a{ color:var(--c1); text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+
+    /* Top header */
+    .topbar{
+      position:sticky; top:0; z-index:50;
+      border-bottom:1px solid var(--border);
+      background:
+        radial-gradient(1200px 300px at 10% 0%, rgba(40,80,156,0.12), rgba(255,255,255,0)),
+        radial-gradient(900px 260px at 70% 10%, rgba(237,3,124,0.10), rgba(255,255,255,0)),
+        #fff;
+      backdrop-filter: blur(8px);
+    }
+    .topbar-inner{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:14px;
+      padding:14px 16px;
+      max-width:1600px; margin:0 auto;
+    }
+    .topbar h1{ margin:0; font-size:16px; font-weight:950; color:var(--c3); letter-spacing:.2px; }
+    .topbar .sub{ margin-top:4px; font-size:12px; color:#444; line-height:1.35; max-width:920px; }
+    .topbar-right{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; min-width:240px; }
+    .chips{ display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; }
+    .chip{
+      font-size:11px; color:var(--c3);
+      background:rgba(40,80,156,0.06);
+      border:1px solid rgba(40,80,156,0.18);
+      padding:4px 8px; border-radius:999px; white-space:nowrap;
+    }
+    .chip strong{ color:var(--black); font-weight:950; }
+    .mono{ font-family:var(--mono); }
+
+    /* App layout */
+    .app{
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      min-height: calc(100vh - 0px);
+    }
+    @media (max-width: 980px){
+      .topbar-right{ align-items:flex-start; min-width:0; }
+      .chips{ justify-content:flex-start; }
+      .app{ grid-template-columns: 1fr; }
+    }
+
+    /* Sidebar */
+    .sidebar{
+      position:sticky;
+      top:56px;
+      align-self:start;
+      height: calc(100vh - 56px);
+      overflow:auto;
+      border-right:1px solid var(--border);
+      background:
+        radial-gradient(1100px 300px at 10% 0%, rgba(40,80,156,0.10), rgba(255,255,255,0)),
+        radial-gradient(900px 260px at 85% 10%, rgba(237,3,124,0.09), rgba(255,255,255,0)),
+        #fff;
+      padding:14px 14px;
+    }
+    @media (max-width: 980px){
+      .sidebar{
+        position:relative; top:0; height:auto;
+        border-right:0; border-bottom:1px solid var(--border);
+      }
+    }
+
+    .panel{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.05);
+      margin-bottom:12px;
+    }
+    .panel h2{
+      margin:0 0 10px 0;
+      font-size:12px;
+      letter-spacing:.18px;
+      color:var(--c3);
+      font-weight:950;
+      text-transform:uppercase;
+    }
+
+    label{ font-size:12px; font-weight:950; color:var(--c3); }
+    .help{ font-size:11px; color:#555; line-height:1.25; }
+
+    button{
+      background:linear-gradient(135deg, var(--c1), var(--c5));
+      color:#fff; border:0;
+      padding:10px 12px; border-radius:12px;
+      font-weight:950; cursor:pointer;
+      box-shadow: 0 10px 26px rgba(40,80,156,0.18);
+      width:100%;
+    }
+    button.secondary{
+      background:transparent; color:var(--c3);
+      border:1px solid var(--border); box-shadow:none;
+    }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
+
+    input[type="text"]{
+      width:100%;
+      background:#fff; color:var(--text);
+      border:1px solid var(--border);
+      padding:10px 12px; border-radius:12px;
+      outline:none;
+    }
+    input[type="text"]:focus{
+      border-color: rgba(40,80,156,0.55);
+      box-shadow: 0 0 0 3px rgba(40,80,156,0.12);
+    }
+
+    select{
+      width:100%;
+      background:#fff; color:var(--text);
+      border:1px solid var(--border);
+      padding:10px 12px; border-radius:12px;
+      outline:none;
+    }
+    select:focus{
+      border-color: rgba(169,32,142,0.55);
+      box-shadow: 0 0 0 3px rgba(169,32,142,0.10);
+    }
+    .multisel{ padding:8px; height:160px; }
+
+    .statline{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .stat{
+      border:1px solid var(--border2);
+      border-radius:12px;
+      padding:10px;
+      background:rgba(40,80,156,0.03);
+    }
+    .stat .k{ font-size:11px; color:#555; }
+    .stat .v{ font-size:15px; font-weight:950; color:var(--c3); margin-top:4px; }
+
+    .progress{
+      width:100%;
+      height:10px;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:999px;
+      overflow:hidden;
+      margin-top:8px;
+    }
+    .progress > div{
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg, var(--c2), var(--c1));
+      transition:width .15s ease;
+    }
+    .status{
+      margin-top:10px;
+      font-size:12px;
+      color:#444;
+      line-height:1.35;
+    }
+
+    /* Active filters string (view-only) */
+    .activeFilters{
+      font-size:11px;
+      color:#333;
+      line-height:1.35;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(0,0,0,0.12);
+      background:rgba(169,32,142,0.05);
+    }
+    .activeFilters strong{ color:var(--c3); font-weight:950; }
+    .activeFilters .mono{ color:var(--black); }
+
+    /* Main */
+    .main{
+      padding:14px 16px 28px;
+      min-width:0;
+      overflow:hidden;
+    }
+
+    /* Table: equal-width columns that scale together */
+    .tablewrap{
+      border:1px solid var(--border);
+      border-radius:14px;
+      overflow:auto;         /* scroll within container on very small screens */
+      max-width:100%;
+      background:#fff;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:12px;
+      table-layout:fixed;    /* key: equal distribution */
+      min-width: 900px;      /* keeps readability; scrolls within .tablewrap if needed */
+    }
+    thead th{
+      position:sticky; top:0; z-index:2;
+      background:linear-gradient(180deg, rgba(40,80,156,0.09), rgba(255,255,255,1));
+      border-bottom:1px solid var(--border);
+      text-align:left;
+      padding:10px 10px;
+      font-weight:950;
+      color:var(--c3);
+      white-space:nowrap;
+      width: calc(100% / 6); /* equal width for 6 columns */
+    }
+    tbody td{
+      border-top:1px solid var(--border2);
+      padding:9px 10px;
+      vertical-align:top;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+      width: calc(100% / 6); /* equal width for 6 columns */
+    }
+    tbody tr:nth-child(2n){ background:rgba(40,80,156,0.03); }
+    .rowclick{ cursor:pointer; }
+    .rowclick:hover{ background:rgba(237,3,124,0.06) !important; }
+
+    /* Variant cell typography: prominence top -> bottom */
+    .v-preferred{
+      font-weight:950;
+      color:var(--c3);
+      font-size:12.5px;
+      line-height:1.25;
+      margin-bottom:4px;
+      word-break:break-word;
+    }
+    .v-coords{
+      font-family:var(--mono);
+      font-size:11.5px;
+      color:var(--black);
+      opacity:.88;
+      margin-bottom:2px;
+      word-break:break-word;
+    }
+    .v-gene{
+      font-size:11px;
+      color:#555;
+    }
+
+    .tag{
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid rgba(40,80,156,0.25);
+      background:rgba(40,80,156,0.06);
+      color:var(--c3);
+      margin:0 6px 6px 0;
+      font-size:11px;
+      white-space:nowrap;
+    }
+    .sig{ font-weight:950; }
+    .sig.good{ color:var(--c1); }
+    .sig.warn{ color:var(--c5); }
+    .sig.bad{ color:var(--c2); }
+    .small{ font-size:11px; color:#555; }
+
+    /* Modal */
+    .overlay{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,0.35);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      padding:18px;
+    }
+    .overlay.show{ display:flex; }
+    .modal{
+      width:min(1100px, 96vw);
+      max-height:92vh;
+      overflow:auto;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow: var(--shadow);
+    }
+    .modalhead{
+      position:sticky; top:0; z-index:5;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--border);
+      background:
+        radial-gradient(900px 220px at 15% 0%, rgba(169,32,142,0.10), rgba(255,255,255,0)),
+        #fff;
+      backdrop-filter: blur(8px);
+    }
+    .modalhead h2{ margin:0; font-size:14px; font-weight:950; color:var(--c3); }
+    .modalhead .subline{ margin-top:4px; color:#444; font-size:12px; }
+    .closebtn{
+      background:transparent;
+      border:1px solid var(--border);
+      color:var(--c3);
+      padding:8px 10px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:950;
+    }
+    .closebtn:hover{ border-color: rgba(237,3,124,0.45); color: var(--c2); }
+    .modalbody{ padding:12px 14px 16px; }
+
+    .grid{ display:grid; grid-template-columns: 1fr; gap:12px; }
+    @media (min-width: 980px){ .grid{ grid-template-columns: 1fr 1fr; } }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius:16px;
+      overflow:hidden;
+      background:#fff;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.05);
+    }
+    .card h3{
+      margin:0;
+      padding:10px 12px;
+      border-bottom:1px solid var(--border2);
+      font-size:13px;
+      color:var(--c3);
+      background:rgba(40,80,156,0.05);
+    }
+    .card .inner{ padding:10px 12px; }
+
+    .kv{ width:100%; border-collapse:collapse; font-size:12px; }
+    .kv td{ border-top:1px solid var(--border2); padding:8px 8px; vertical-align:top; }
+    .kv td:first-child{ width:220px; color:#444; font-weight:950; }
+
+    .rcvtable{ width:100%; border-collapse:collapse; font-size:12px; }
+    .rcvtable th{
+      text-align:left;
+      padding:9px 8px;
+      border-bottom:1px solid var(--border2);
+      background:rgba(40,80,156,0.05);
+      position:sticky;
+      top:0;
+      z-index:1;
+      color:var(--c3);
+      font-weight:950;
+      white-space:nowrap;
+    }
+    .rcvtable td{ border-top:1px solid var(--border2); padding:8px 8px; vertical-align:top; }
+
+    pre{
+      margin:0;
+      padding:10px;
+      overflow:auto;
+      border-radius:14px;
+      background:rgba(40,80,156,0.04);
+      border:1px solid rgba(40,80,156,0.20);
+      color:var(--black);
+      font-family:var(--mono);
+      font-size:11px;
+      line-height:1.35;
+      max-height:340px;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+  </style>
+</head>
+<body>
+  <!-- TOP HEADER -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div>
+        <h1>ClinVar data for variants in <span class="mono">FGFR3</span> (via MyVariant.info)</h1>
+        <div class="sub">
+          Automatically loads on page open. Summary row uses preferred name derived from most-recent RCV
+          (first non-blank <span class="mono">preferred_name</span> when scanning from newest → oldest).
+          Click any row for full details and RCV table.
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="chips">
+          <span class="chip">Gene: <strong>FGFR3</strong></span>
+          <span class="chip">Total: <strong id="topTotal">—</strong></span>
+          <span class="chip">Showing: <strong id="topShowing">—</strong></span>
+        </div>
+        <div class="chips">
+          <span class="chip">Condition default: <strong>Hypochondroplasia</strong></span>
+          <span class="chip">Sig default: <strong>All</strong></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="app">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <div class="panel">
+        <h2>Active filters</h2>
+        <div id="activeFilters" class="activeFilters">Loading…</div>
+      </div>
+
+      <div class="panel">
+        <h2>Data</h2>
+        <button id="btnRefresh">Refresh data</button>
+        <button id="btnStop" class="secondary" disabled style="margin-top:8px;">Stop</button>
+
+        <div class="statline" style="margin-top:10px;">
+          <div class="stat"><div class="k">Total</div><div class="v" id="total">—</div></div>
+          <div class="stat"><div class="k">Fetched</div><div class="v" id="fetched">0</div></div>
+        </div>
+
+        <div class="progress" aria-label="progress"><div id="bar"></div></div>
+        <div class="status" id="status">Loading on page open…</div>
+      </div>
+
+      <div class="panel">
+        <h2>Filters</h2>
+
+        <div style="margin-bottom:10px;">
+          <label for="filter">Text filter</label>
+          <input id="filter" type="text" placeholder="filter rows…" />
+          <div class="help">Matches HGVS / coords / gene / conditions / significance.</div>
+        </div>
+
+        <div style="margin-bottom:10px;">
+          <label for="sigSelect">Clinical significance</label>
+          <select id="sigSelect" class="multisel" multiple></select>
+          <div class="help">Options ordered by frequency (descending). “All” means no restriction.</div>
+        </div>
+
+        <div style="margin-bottom:10px;">
+          <label for="condSelect">Condition</label>
+          <select id="condSelect" class="multisel" multiple></select>
+          <div class="help">Options ordered by frequency (descending). Default selects fuzzy “Hypochondroplasia”.</div>
+        </div>
+
+        <div>
+          <label for="pageSize">Page size</label>
+          <select id="pageSize">
+            <option>100</option>
+            <option>200</option>
+            <option>500</option>
+            <option selected>1000</option>
+          </select>
+          <div class="help">Smaller page size can help with timeouts.</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+      <div class="tablewrap" aria-label="results table container">
+        <table id="tbl" aria-label="results table">
+          <thead>
+            <tr>
+              <th>Variant</th>
+              <th>ClinVar Variation ID</th>
+              <th>Clinical significance (RCV)</th>
+              <th>Conditions (RCV)</th>
+              <th>Review status / submitters</th>
+              <th>Last evaluated</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="6" class="small">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-label="Variant details">
+    <div class="modal" id="modal" tabindex="-1">
+      <div class="modalhead">
+        <div>
+          <h2 id="modalTitle">Variant</h2>
+          <div class="subline" id="modalSubtitle"></div>
+        </div>
+        <button class="closebtn" id="closeModal" aria-label="Close">Close</button>
+      </div>
+      <div class="modalbody">
+        <div class="grid">
+          <div class="card">
+            <h3>Basic information</h3>
+            <div class="inner">
+              <table class="kv" id="basicTable"></table>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Raw ClinVar JSON</h3>
+            <div class="inner">
+              <pre id="rawJson"></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+          <h3>RCVs</h3>
+          <div class="inner" style="overflow:auto; max-height:420px;">
+            <table class="rcvtable" id="rcvTable"></table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---- Configuration ----
+    const API_BASE = "https://myvariant.info/v1/query";
+    const QUERY = 'clinvar.gene.symbol:FGFR3 AND _exists_:clinvar';
+    const FIELDS = "clinvar";
+    const INITIAL_CONDITION_FUZZY = "hypochondroplasia";
+
+    // ---- State ----
+    let controller = null;
+    let allRows = [];
+    let totalHits = null;
+    let sigCounts = new Map();
+    let condCounts = new Map();
+
+    // ---- DOM ----
+    const btnRefresh = document.getElementById("btnRefresh");
+    const btnStop = document.getElementById("btnStop");
+    const statusEl = document.getElementById("status");
+    const totalEl = document.getElementById("total");
+    const fetchedEl = document.getElementById("fetched");
+    const barEl = document.getElementById("bar");
+    const tbody = document.getElementById("tbody");
+    const filterEl = document.getElementById("filter");
+    const pageSizeEl = document.getElementById("pageSize");
+    const sigSelect = document.getElementById("sigSelect");
+    const condSelect = document.getElementById("condSelect");
+    const activeFiltersEl = document.getElementById("activeFilters");
+
+    const topTotal = document.getElementById("topTotal");
+    const topShowing = document.getElementById("topShowing");
+
+    const overlay = document.getElementById("overlay");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalSubtitle = document.getElementById("modalSubtitle");
+    const basicTable = document.getElementById("basicTable");
+    const rcvTable = document.getElementById("rcvTable");
+    const rawJson = document.getElementById("rawJson");
+
+    // ---- Helpers ----
+    function setStatus(msg){ statusEl.textContent = msg; }
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+    function safeGet(obj, path, fallback=null){
+      try{
+        return path.split(".").reduce((o,k)=> (o && (k in o)) ? o[k] : undefined, obj) ?? fallback;
+      }catch(e){ return fallback; }
+    }
+    function asArray(x){ return x == null ? [] : (Array.isArray(x) ? x : [x]); }
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+    function uniq(arr){ return [...new Set(arr.filter(v => v != null && String(v).trim() !== ""))]; }
+    function parseDateToMs(d){
+      if (!d) return null;
+      if (typeof d === "number") return d;
+      if (typeof d !== "string") return null;
+      const t = Date.parse(d);
+      return Number.isFinite(t) ? t : null;
+    }
+    function extractString(v){
+      if (v == null) return null;
+      if (typeof v === "string") return v;
+      if (typeof v === "number" || typeof v === "boolean") return String(v);
+      if (Array.isArray(v)){
+        for (const item of v){
+          const s = extractString(item);
+          if (s && s.trim() !== "") return s;
+        }
+        return null;
+      }
+      if (typeof v === "object"){
+        const candidates = [
+          safeGet(v, "preferred_name", null),
+          safeGet(v, "name", null),
+          safeGet(v, "hgvs", null),
+          safeGet(v, "text", null),
+          safeGet(v, "value", null),
+          safeGet(v, "display", null),
+          safeGet(v, "label", null),
+        ];
+        for (const c of candidates){
+          const s = extractString(c);
+          if (s && s.trim() !== "") return s;
+        }
+        const vals = Object.values(v);
+        if (vals.length === 1){
+          const s = extractString(vals[0]);
+          if (s && s.trim() !== "") return s;
+        }
+        return null;
+      }
+      return String(v);
+    }
+
+    function pickMostRecentPreferredNameFromRcv(rcvArray){
+      const rcv = asArray(rcvArray);
+      const enriched = rcv.map((r) => {
+        const d1 = safeGet(r, "last_evaluated", null);
+        const d2 = safeGet(r, "date_last_evaluated", null);
+        const d3 = safeGet(r, "date_last_updated", null);
+        const ms = parseDateToMs(d1) ?? parseDateToMs(d2) ?? parseDateToMs(d3) ?? -Infinity;
+        const prefRaw = safeGet(r, "preferred_name", null);
+        return { ms, prefRaw };
+      });
+      enriched.sort((a,b) => b.ms - a.ms);
+      for (const item of enriched){
+        const s = extractString(item.prefRaw);
+        if (s && s.trim() !== "") return s.trim();
+      }
+      return null;
+    }
+
+    function formatSig(sig){
+      const s = String(sig || "").toLowerCase();
+      let cls = "warn";
+      if (s.includes("pathogenic")) cls = "bad";
+      if (s.includes("benign")) cls = "good";
+      if (s.includes("uncertain")) cls = "warn";
+      if (s.includes("conflict")) cls = "warn";
+      return { text: sig || "—", cls };
+    }
+
+    function buildClinVarLink(variationId){
+      if (!variationId) return null;
+      return `https://www.ncbi.nlm.nih.gov/clinvar/variation/${encodeURIComponent(variationId)}/`;
+    }
+
+    function extractConditionsFromRcv(rcv){
+      const out = [];
+      for (const c of asArray(safeGet(rcv, "conditions", null))){
+        const nm = (typeof c === "string") ? c : safeGet(c, "name", null);
+        if (nm) out.push(nm);
+      }
+      return out;
+    }
+
+    function formatCoords(clinvar){
+      const chrom = safeGet(clinvar, "chrom", null);
+      const pos = safeGet(clinvar, "pos", null);
+      const ref = safeGet(clinvar, "ref", null);
+      const alt = safeGet(clinvar, "alt", null);
+      if (chrom == null || pos == null) return null;
+      const chr = String(chrom).startsWith("chr") ? String(chrom) : `chr${chrom}`;
+      const alleles = (ref != null && alt != null) ? `${ref}>${alt}` : "";
+      return alleles ? `${chr}:${pos}${alleles}` : `${chr}:${pos}`;
+    }
+
+    function summarizeClinVar(hit){
+      const clinvar = hit?.clinvar || null;
+
+      const variationId =
+        safeGet(clinvar, "variation_id", null) ??
+        safeGet(clinvar, "variation.id", null) ??
+        safeGet(clinvar, "clinvar_id", null);
+
+      const geneSymbol =
+        safeGet(clinvar, "gene.symbol", null) ??
+        safeGet(clinvar, "gene.gene_symbol", null) ??
+        safeGet(clinvar, "gene", null);
+
+      const rcv = asArray(safeGet(clinvar, "rcv", null));
+
+      const preferredName = pickMostRecentPreferredNameFromRcv(rcv);
+      const coords = formatCoords(clinvar);
+
+      const sigs = uniq(rcv.map(r => safeGet(r, "clinical_significance", null)));
+      const review = uniq(rcv.map(r => safeGet(r, "review_status", null)));
+      const submitters = uniq(rcv.map(r => safeGet(r, "number_submitters", null))).map(String);
+      const lastEval = uniq(rcv.map(r => safeGet(r, "last_evaluated", null)));
+      const conditions = uniq(rcv.flatMap(extractConditionsFromRcv));
+
+      return {
+        id: hit?._id || "—",
+        variationId: variationId != null ? String(variationId) : "—",
+        geneSymbol: geneSymbol || "—",
+        preferredName: preferredName || null,
+        coords,
+        sigs, review, submitters, lastEval, conditions,
+        rawClinvar: clinvar
+      };
+    }
+
+    // ---- Frequency ordering for options ----
+    function buildCounts(){
+      sigCounts = new Map();
+      condCounts = new Map();
+      for (const r of allRows){
+        for (const s of (r.sigs || [])){
+          const k = String(s);
+          sigCounts.set(k, (sigCounts.get(k) || 0) + 1);
+        }
+        for (const c of (r.conditions || [])){
+          const k = String(c);
+          condCounts.set(k, (condCounts.get(k) || 0) + 1);
+        }
+      }
+    }
+    function sortByFrequencyThenAlpha(map){
+      const arr = Array.from(map.entries()).map(([value, count]) => ({ value, count }));
+      arr.sort((a,b) => (b.count - a.count) || a.value.localeCompare(b.value));
+      return arr;
+    }
+    function setOptionsFromFreq(selectEl, freqArr, { includeAll=false, allLabel="All" } = {}){
+      selectEl.innerHTML = "";
+      if (includeAll){
+        const opt = document.createElement("option");
+        opt.value = "__ALL__";
+        opt.textContent = allLabel;
+        selectEl.appendChild(opt);
+      }
+      for (const { value, count } of freqArr){
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = `${value} (${count})`;
+        selectEl.appendChild(opt);
+      }
+    }
+
+    function selectedValues(selectEl){
+      return Array.from(selectEl.selectedOptions).map(o => o.value);
+    }
+    function enforceAllRule(selectEl){
+      const vals = selectedValues(selectEl);
+      if (vals.includes("__ALL__") && vals.length > 1){
+        for (const opt of Array.from(selectEl.options)) opt.selected = (opt.value === "__ALL__");
+      }
+    }
+
+    // ---- Filter logic ----
+    function matchesSig(row, selectedSigs){
+      if (!selectedSigs.length || selectedSigs.includes("__ALL__")) return true;
+      const set = new Set((row.sigs || []).map(String));
+      return selectedSigs.some(s => set.has(String(s)));
+    }
+    function matchesCond(row, selectedConds){
+      if (!selectedConds.length || selectedConds.includes("__ALL__")) return true;
+      const set = new Set((row.conditions || []).map(String));
+      return selectedConds.some(c => set.has(String(c)));
+    }
+    function matchesText(row, q){
+      if (!q) return true;
+      const hay = [
+        row.preferredName || "",
+        row.coords || "",
+        row.geneSymbol || "",
+        row.id || "",
+        row.variationId || "",
+        (row.sigs || []).join(" | "),
+        (row.conditions || []).join(" | "),
+        (row.review || []).join(" | "),
+        (row.submitters || []).join(" | "),
+        (row.lastEval || []).join(" | "),
+      ].join(" || ").toLowerCase();
+      return hay.includes(q);
+    }
+
+    function buildActiveFiltersString({ showingCount }){
+      const q = filterEl.value.trim();
+      const sigs = selectedValues(sigSelect);
+      const conds = selectedValues(condSelect);
+
+      const sigLabel = (sigs.length === 0 || sigs.includes("__ALL__")) ? "All" : sigs.join(", ");
+      const condLabel = (conds.length === 0 || conds.includes("__ALL__")) ? "All" : conds.join(", ");
+
+      const parts = [
+        `<strong>Condition:</strong> <span class="mono">${escapeHtml(condLabel)}</span>`,
+        `<strong>Clinical significance:</strong> <span class="mono">${escapeHtml(sigLabel)}</span>`,
+        `<strong>Text:</strong> <span class="mono">${escapeHtml(q || "—")}</span>`,
+        `<strong>Showing:</strong> <span class="mono">${escapeHtml(String(showingCount))}</span>`
+      ];
+      return parts.join("<br/>");
+    }
+
+    function applyFiltersAndRender(){
+      const q = filterEl.value.trim().toLowerCase();
+      const selSigs = selectedValues(sigSelect);
+      const selConds = selectedValues(condSelect);
+
+      const filtered = allRows.filter(r =>
+        matchesSig(r, selSigs) &&
+        matchesCond(r, selConds) &&
+        matchesText(r, q)
+      );
+
+      renderTable(filtered);
+
+      activeFiltersEl.innerHTML = buildActiveFiltersString({ showingCount: filtered.length });
+      topShowing.textContent = String(filtered.length);
+    }
+
+    // ---- Table render ----
+    function renderTable(rows){
+      tbody.innerHTML = "";
+      if (!rows.length){
+        tbody.innerHTML = `<tr><td colspan="6" class="small">No rows match the current filters.</td></tr>`;
+        return;
+      }
+
+      const frag = document.createDocumentFragment();
+
+      for (const r of rows){
+        const tr = document.createElement("tr");
+        tr.className = "rowclick";
+        tr.tabIndex = 0;
+
+        tr.addEventListener("click", () => openVariantDetails(r));
+        tr.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " "){
+            e.preventDefault();
+            openVariantDetails(r);
+          }
+        });
+
+        const td0 = document.createElement("td");
+        const pref = r.preferredName
+          ? `<div class="v-preferred mono">${escapeHtml(r.preferredName)}</div>`
+          : `<div class="v-preferred">—</div>`;
+        const coords = r.coords
+          ? `<div class="v-coords">${escapeHtml(r.coords)}</div>`
+          : `<div class="v-coords">—</div>`;
+        const gene = `<div class="v-gene">gene: <span class="mono">${escapeHtml(r.geneSymbol)}</span></div>`;
+        td0.innerHTML = pref + coords + gene;
+        tr.appendChild(td0);
+
+        const td1 = document.createElement("td");
+        if (r.variationId && r.variationId !== "—"){
+          const link = buildClinVarLink(r.variationId);
+          td1.innerHTML = `<a class="mono" href="${link}" target="_blank" rel="noopener">${escapeHtml(r.variationId)}</a>`;
+        } else {
+          td1.innerHTML = `<span class="mono">—</span>`;
+        }
+        tr.appendChild(td1);
+
+        const td2 = document.createElement("td");
+        td2.innerHTML = r.sigs.length
+          ? r.sigs.map(sig => {
+              const f = formatSig(sig);
+              return `<div class="sig ${f.cls}">${escapeHtml(String(f.text))}</div>`;
+            }).join("")
+          : "—";
+        tr.appendChild(td2);
+
+        const td3 = document.createElement("td");
+        td3.innerHTML = r.conditions.length
+          ? r.conditions.slice(0, 10).map(c => `<span class="tag">${escapeHtml(c)}</span>`).join("")
+            + (r.conditions.length > 10 ? `<div class="help">+ ${r.conditions.length - 10} more…</div>` : "")
+          : "—";
+        tr.appendChild(td3);
+
+        const td4 = document.createElement("td");
+        const reviewTxt = r.review.length ? r.review.join(" • ") : "—";
+        const subTxt = r.submitters.length ? r.submitters.join(", ") : "—";
+        td4.innerHTML = `<div>${escapeHtml(reviewTxt)}</div><div class="help">submitters: ${escapeHtml(subTxt)}</div>`;
+        tr.appendChild(td4);
+
+        const td5 = document.createElement("td");
+        td5.textContent = r.lastEval.length ? r.lastEval.join(" • ") : "—";
+        tr.appendChild(td5);
+
+        frag.appendChild(tr);
+      }
+
+      tbody.appendChild(frag);
+    }
+
+    // ---- Modal ----
+    function kvRow(k, vHtml){
+      const tr = document.createElement("tr");
+      const tdK = document.createElement("td");
+      const tdV = document.createElement("td");
+      tdK.textContent = k;
+      tdV.innerHTML = vHtml;
+      tr.appendChild(tdK);
+      tr.appendChild(tdV);
+      return tr;
+    }
+    function joinOrDash(arr){ return (arr && arr.length) ? arr.join(" • ") : "—"; }
+
+    function openVariantDetails(row){
+      const raw = row.rawClinvar || null;
+      const variationId = row.variationId && row.variationId !== "—" ? row.variationId : null;
+      const clinvarLink = variationId ? buildClinVarLink(variationId) : null;
+
+      modalTitle.innerHTML = `Variant <span class="mono">${escapeHtml(row.id)}</span>`;
+      modalSubtitle.innerHTML = clinvarLink
+        ? `ClinVar variation: <a class="mono" href="${clinvarLink}" target="_blank" rel="noopener">${escapeHtml(variationId)}</a>`
+        : `ClinVar variation: —`;
+
+      basicTable.innerHTML = "";
+      basicTable.appendChild(kvRow("MyVariant _id", `<span class="mono">${escapeHtml(row.id)}</span>`));
+      basicTable.appendChild(kvRow("Gene", `<span class="mono">${escapeHtml(row.geneSymbol)}</span>`));
+      basicTable.appendChild(kvRow("ClinVar variation_id", variationId
+        ? `<a class="mono" href="${clinvarLink}" target="_blank" rel="noopener">${escapeHtml(variationId)}</a>`
+        : "—"
+      ));
+      basicTable.appendChild(kvRow("Coordinates", row.coords ? `<span class="mono">${escapeHtml(row.coords)}</span>` : "—"));
+      basicTable.appendChild(kvRow("Preferred name (RCV recency)", row.preferredName ? `<span class="mono">${escapeHtml(row.preferredName)}</span>` : "—"));
+      basicTable.appendChild(kvRow("Clinical significance (unique)", escapeHtml(joinOrDash(row.sigs))));
+      basicTable.appendChild(kvRow("Review status (unique)", escapeHtml(joinOrDash(row.review))));
+      basicTable.appendChild(kvRow("Last evaluated (unique)", escapeHtml(joinOrDash(row.lastEval))));
+      basicTable.appendChild(kvRow("Conditions (unique)", row.conditions.length
+        ? row.conditions.map(c => `<span class="tag">${escapeHtml(c)}</span>`).join(" ")
+        : "—"
+      ));
+
+      rawJson.textContent = raw ? JSON.stringify(raw, null, 2) : "null";
+
+      const rcvArr = asArray(safeGet(raw, "rcv", null));
+      rcvTable.innerHTML = "";
+
+      const headers = ["RCV","Clinical significance","Conditions","Review status","Last evaluated","# submitters","preferred_name"];
+
+      const thead = document.createElement("thead");
+      const hr = document.createElement("tr");
+      for (const h of headers){
+        const th = document.createElement("th");
+        th.textContent = h;
+        hr.appendChild(th);
+      }
+      thead.appendChild(hr);
+      rcvTable.appendChild(thead);
+
+      const tb = document.createElement("tbody");
+      if (!rcvArr.length){
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = headers.length;
+        td.className = "help";
+        td.textContent = "No clinvar.rcv records found on this variant.";
+        tr.appendChild(td);
+        tb.appendChild(tr);
+      } else {
+        for (const rcv of rcvArr){
+          const tr = document.createElement("tr");
+
+          const rcvId =
+            safeGet(rcv, "accession", null) ??
+            safeGet(rcv, "rcv_accession", null) ??
+            safeGet(rcv, "rcv", null) ??
+            safeGet(rcv, "id", null) ??
+            "—";
+
+          const td0 = document.createElement("td");
+          td0.innerHTML = `<span class="mono">${escapeHtml(String(rcvId))}</span>`;
+          tr.appendChild(td0);
+
+          const sig = safeGet(rcv, "clinical_significance", null);
+          const f = formatSig(sig);
+          const td1 = document.createElement("td");
+          td1.innerHTML = sig ? `<span class="sig ${f.cls}">${escapeHtml(String(sig))}</span>` : "—";
+          tr.appendChild(td1);
+
+          const conds = uniq(extractConditionsFromRcv(rcv));
+          const td2 = document.createElement("td");
+          td2.innerHTML = conds.length ? conds.map(c => `<span class="tag">${escapeHtml(c)}</span>`).join(" ") : "—";
+          tr.appendChild(td2);
+
+          const td3 = document.createElement("td");
+          td3.textContent = safeGet(rcv, "review_status", "—");
+          tr.appendChild(td3);
+
+          const td4 = document.createElement("td");
+          td4.textContent =
+            safeGet(rcv, "last_evaluated", "—") ||
+            safeGet(rcv, "date_last_evaluated", "—") ||
+            safeGet(rcv, "date_last_updated", "—") ||
+            "—";
+          tr.appendChild(td4);
+
+          const td5 = document.createElement("td");
+          td5.textContent = String(safeGet(rcv, "number_submitters", "—"));
+          tr.appendChild(td5);
+
+          const td6 = document.createElement("td");
+          const prefStr = extractString(safeGet(rcv, "preferred_name", null));
+          td6.innerHTML = prefStr ? `<span class="mono">${escapeHtml(prefStr)}</span>` : "—";
+          tr.appendChild(td6);
+
+          tb.appendChild(tr);
+        }
+      }
+      rcvTable.appendChild(tb);
+
+      overlay.classList.add("show");
+      document.body.style.overflow = "hidden";
+      document.getElementById("modal").focus();
+    }
+
+    function closeModal(){
+      overlay.classList.remove("show");
+      document.body.style.overflow = "";
+    }
+    document.getElementById("closeModal").addEventListener("click", closeModal);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && overlay.classList.contains("show")) closeModal();
+    });
+
+    // ---- Network ----
+    async function fetchPage({ from, size, signal }){
+      const url = new URL(API_BASE);
+      url.searchParams.set("q", QUERY);
+      url.searchParams.set("fields", FIELDS);
+      url.searchParams.set("from", String(from));
+      url.searchParams.set("size", String(size));
+
+      const res = await fetch(url.toString(), { method:"GET", headers:{ "Accept":"application/json" }, signal });
+      if (!res.ok){
+        const text = await res.text().catch(() => "");
+        throw new Error(`HTTP ${res.status} ${res.statusText}${text ? " – " + text.slice(0, 200) : ""}`);
+      }
+      return await res.json();
+    }
+
+    function resetStateForLoad(){
+      controller = null;
+      allRows = [];
+      totalHits = null;
+      sigCounts = new Map();
+      condCounts = new Map();
+
+      totalEl.textContent = "—";
+      fetchedEl.textContent = "0";
+      barEl.style.width = "0%";
+      topTotal.textContent = "—";
+      topShowing.textContent = "—";
+
+      sigSelect.innerHTML = "";
+      condSelect.innerHTML = "";
+
+      tbody.innerHTML = `<tr><td colspan="6" class="small">Loading…</td></tr>`;
+      activeFiltersEl.innerHTML = "Loading…";
+    }
+
+    function setLoadingUI(loading){
+      btnRefresh.disabled = loading;
+      btnStop.disabled = !loading;
+      pageSizeEl.disabled = loading;
+      sigSelect.disabled = loading;
+      condSelect.disabled = loading;
+    }
+
+    btnStop.addEventListener("click", () => {
+      if (controller){
+        controller.abort();
+        setStatus("Stopped by user. Partial results shown.");
+      }
+    });
+
+    function setInitialSelections(){
+      const allSig = Array.from(sigSelect.options).find(o => o.value === "__ALL__");
+      if (allSig) allSig.selected = true;
+
+      const target = INITIAL_CONDITION_FUZZY.toLowerCase();
+      let any = false;
+      for (const opt of Array.from(condSelect.options)){
+        if (opt.value !== "__ALL__" && opt.value.toLowerCase().includes(target)){
+          opt.selected = true;
+          any = true;
+        }
+      }
+      if (!any){
+        const allCond = Array.from(condSelect.options).find(o => o.value === "__ALL__");
+        if (allCond) allCond.selected = true;
+      }
+    }
+
+    async function loadAllData(){
+      resetStateForLoad();
+      setLoadingUI(true);
+
+      controller = new AbortController();
+      const signal = controller.signal;
+
+      const size = parseInt(pageSizeEl.value, 10);
+      let from = 0;
+
+      try{
+        setStatus("Querying MyVariant.info…");
+
+        while (true){
+          const data = await fetchPage({ from, size, signal });
+
+          if (totalHits == null){
+            totalHits = data?.total ?? 0;
+            totalEl.textContent = String(totalHits);
+            topTotal.textContent = String(totalHits);
+          }
+
+          const hits = Array.isArray(data?.hits) ? data.hits : [];
+          if (!hits.length) break;
+
+          for (const hit of hits){
+            allRows.push(summarizeClinVar(hit));
+          }
+
+          from += hits.length;
+          fetchedEl.textContent = String(from);
+
+          const pct = totalHits ? clamp((from / totalHits) * 100, 0, 100) : 0;
+          barEl.style.width = pct.toFixed(1) + "%";
+          setStatus(`Fetched ${from} / ${totalHits}…`);
+
+          if (from >= totalHits) break;
+        }
+
+        // Populate filters by frequency
+        buildCounts();
+        setOptionsFromFreq(sigSelect, sortByFrequencyThenAlpha(sigCounts), { includeAll:true, allLabel:"All" });
+        setOptionsFromFreq(condSelect, sortByFrequencyThenAlpha(condCounts), { includeAll:true, allLabel:"All" });
+
+        setInitialSelections();
+
+        // Wire listeners once
+        if (!window.__filtersWired){
+          window.__filtersWired = true;
+
+          filterEl.addEventListener("input", applyFiltersAndRender);
+
+          sigSelect.addEventListener("change", () => {
+            enforceAllRule(sigSelect);
+            applyFiltersAndRender();
+          });
+
+          condSelect.addEventListener("change", () => {
+            enforceAllRule(condSelect);
+            applyFiltersAndRender();
+          });
+        }
+
+        applyFiltersAndRender();
+        setStatus(`Done. Loaded ${allRows.length} variants.`);
+        setLoadingUI(false);
+
+      }catch(err){
+        if (err?.name === "AbortError"){
+          setStatus("Stopped. Partial results shown.");
+
+          // Populate what we have
+          buildCounts();
+          setOptionsFromFreq(sigSelect, sortByFrequencyThenAlpha(sigCounts), { includeAll:true, allLabel:"All" });
+          setOptionsFromFreq(condSelect, sortByFrequencyThenAlpha(condCounts), { includeAll:true, allLabel:"All" });
+          setInitialSelections();
+          applyFiltersAndRender();
+        } else {
+          console.error(err);
+          setStatus("Error: " + (err?.message || String(err)));
+          tbody.innerHTML = `<tr><td colspan="6" class="small">Error occurred. Try a smaller page size and refresh.</td></tr>`;
+          activeFiltersEl.innerHTML = `<strong>Error</strong>: <span class="mono">${escapeHtml(err?.message || String(err))}</span>`;
+        }
+        setLoadingUI(false);
+      }
+    }
+
+    btnRefresh.addEventListener("click", loadAllData);
+
+    // Auto-load on page open
+    window.addEventListener("DOMContentLoaded", () => {
+      setStatus("Loading on page open…");
+      loadAllData();
+    });
+  </script>
+</body>
+</html>
