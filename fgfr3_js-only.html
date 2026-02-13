@@ -2559,6 +2559,7 @@
       tr.appendChild(tdV);
       return tr;
     }
+    function joinOrDash(arr){ return (arr && arr.length) ? arr.join(" • ") : "—"; }
 
     function isVUSRow(row){
       const sigs = (row?.sigs || []).map(s => norm(s));
