@@ -1,0 +1,2941 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GALNS Variants</title>
+  <link rel="icon" type="image/x-icon" href="https://www.dmd.nl/static/images/vertical_clip.png">
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
+  <style>
+    :root{
+      /* Palette provided */
+      --c1:#28509C; --c2:#ED037C; --c3:#272D72; --c4:#A9208E; --c5:#7C2F90;
+      --black:#000000; --gray:#A0A0A0;
+
+      --bg:#ffffff;
+      --text:var(--black);
+      --muted:#444;
+
+      --border:rgba(0,0,0,0.18);
+      --border2:rgba(0,0,0,0.10);
+      --shadow: 0 18px 60px rgba(0,0,0,0.18);
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+
+      --sidebarW: 320px;
+      --topbarH: 56px;
+    }
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+    body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--sans); }
+
+    a{ color:var(--c1); text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+    .mono{ font-family:var(--mono); }
+    .sr-only{
+      position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0;
+    }
+
+    /* Top header (simplified) */
+    .topbar{
+      position:sticky; top:0; z-index:80;
+      border-bottom:1px solid var(--border);
+      background:
+        radial-gradient(1200px 300px at 10% 0%, rgba(40,80,156,0.12), rgba(255,255,255,0)),
+        radial-gradient(900px 260px at 70% 10%, rgba(237,3,124,0.10), rgba(255,255,255,0)),
+        #fff;
+      backdrop-filter: blur(8px);
+    }
+    .topbar-inner{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:12px 16px;
+      max-width:1850px; margin:0 auto;
+      min-height: var(--topbarH);
+    }
+    .brand {
+      display:flex; 
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+      padding-left: 50px;
+    }
+    .brand h1{
+      margin:0;
+      font-size:15px;
+      font-weight:950;
+      color:var(--c3);
+      letter-spacing:.2px;
+      line-height:1.2;
+    }
+    .brand .sub{
+      margin:0;
+      font-size:12px;
+      color:#444;
+      line-height:1.25;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 980px;
+    }
+    .top-actions{
+      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    }
+    .pill{
+      font-size:11px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,0.14);
+      background:rgba(40,80,156,0.05);
+      color:var(--c3);
+      font-weight:850;
+      white-space:nowrap;
+    }
+    .pill .mono{ font-weight:950; }
+    .top-actions button{
+      width:auto;
+      padding:8px 10px;
+      border-radius:999px;
+      font-weight:950;
+      cursor:pointer;
+      border:1px solid rgba(0,0,0,0.16);
+      background:#fff;
+      color:var(--c3);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+    }
+    .top-actions button:hover{ border-color: rgba(40,80,156,0.5); }
+
+    /* App layout */
+    .app{
+      display:grid;
+      grid-template-columns: var(--sidebarW) 1fr;
+      min-height: calc(100vh - 0px);
+      transition: grid-template-columns .18s ease;
+    }
+    .app.sidebar-collapsed{
+      grid-template-columns: 0px 1fr;
+    }
+
+    @media (max-width: 980px){
+      .app{ grid-template-columns: 1fr; }
+      .brand .sub{ white-space:normal; }
+    }
+
+    /* Sidebar */
+    .sidebar{
+      position:sticky;
+      top:var(--topbarH);
+      align-self:start;
+      height: calc(100vh - var(--topbarH));
+      overflow:auto;
+      border-right:1px solid var(--border);
+      background:
+        radial-gradient(1100px 300px at 10% 0%, rgba(40,80,156,0.10), rgba(255,255,255,0)),
+        radial-gradient(900px 260px at 85% 10%, rgba(237,3,124,0.09), rgba(255,255,255,0)),
+        #fff;
+      padding:14px 14px;
+      transition: transform .18s ease, opacity .18s ease;
+      z-index:60;
+    }
+    .app.sidebar-collapsed .sidebar{
+      transform: translateX(calc(-1 * var(--sidebarW)));
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    @media (max-width: 980px){
+      .sidebar{
+        position:fixed;
+        left:0;
+        top:var(--topbarH);
+        width:min(360px, 92vw);
+        height: calc(100vh - var(--topbarH));
+        border-right:1px solid var(--border);
+        box-shadow: 0 18px 60px rgba(0,0,0,0.22);
+        transform: translateX(-110%);
+        opacity:1;
+        pointer-events:none;
+      }
+      .app.sidebar-open .sidebar{
+        transform: translateX(0);
+        pointer-events:auto;
+      }
+      .backdrop{
+        position:fixed; inset:0;
+        background:rgba(0,0,0,0.26);
+        z-index:55;
+        display:none;
+      }
+      .app.sidebar-open .backdrop{ display:block; }
+    }
+
+    .panel{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.05);
+      margin-bottom:12px;
+    }
+    .panel h2{
+      margin:0 0 10px 0;
+      font-size:12px;
+      letter-spacing:.18px;
+      color:var(--c3);
+      font-weight:950;
+      text-transform:uppercase;
+    }
+
+    label{ font-size:12px; font-weight:950; color:var(--c3); }
+    .help{ font-size:11px; color:#555; line-height:1.25; margin: 10px 0px 10px 20px;}
+
+    button.primary{
+      background:linear-gradient(135deg, var(--c1), var(--c5));
+      color:#fff; border:0;
+      padding:10px 12px; border-radius:12px;
+      font-weight:950; cursor:pointer;
+      box-shadow: 0 10px 26px rgba(40,80,156,0.18);
+      width:100%;
+    }
+    button.secondary{
+      background:transparent; color:var(--c3);
+      border:1px solid var(--border); box-shadow:none;
+      padding:10px 12px; border-radius:12px;
+      font-weight:950; cursor:pointer;
+      width:100%;
+    }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
+
+    input[type="text"], input[type="search"]{
+      width:100%;
+      background:#fff; color:var(--text);
+      border:1px solid var(--border);
+      padding:10px 12px; border-radius:12px;
+      outline:none;
+    }
+    input[type="text"]:focus, input[type="search"]:focus{
+      border-color: rgba(40,80,156,0.55);
+      box-shadow: 0 0 0 3px rgba(40,80,156,0.12);
+    }
+
+    select{
+      width:100%;
+      background:#fff; color:var(--text);
+      border:1px solid var(--border);
+      padding:10px 12px; border-radius:12px;
+      outline:none;
+    }
+
+    /* Searchable multi-select (custom) */
+    .ms{
+      border:1px solid var(--border);
+      border-radius:14px;
+      overflow:hidden;
+      background:#fff;
+    }
+    .msTop{
+      padding:10px;
+      border-bottom:1px solid var(--border2);
+      background:rgba(40,80,156,0.04);
+    }
+    .msTop input{
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(0,0,0,0.16);
+    }
+    .msList{
+      max-height:220px;
+      overflow:auto;
+      padding:8px 10px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .msItem{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      border:1px solid rgba(0,0,0,0.10);
+      border-radius:12px;
+      padding:8px 10px;
+      cursor:pointer;
+      background:#fff;
+    }
+    .msItem:hover{
+      border-color: rgba(169,32,142,0.35);
+      background: rgba(169,32,142,0.05);
+    }
+    .msItem input{ width:16px; height:16px; cursor:pointer; }
+    .msItem .txt{
+      font-size:12px;
+      line-height:1.2;
+      flex:1 1 auto;
+      min-width:0;
+      color:var(--black);
+    }
+    .msItem .cnt{
+      font-size:11px;
+      color:#444;
+      font-family:var(--mono);
+      white-space:nowrap;
+    }
+    .msPills{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:8px;
+    }
+    .chip{
+      font-size:11px;
+      color:var(--c3);
+      background:rgba(40,80,156,0.06);
+      border:1px solid rgba(40,80,156,0.18);
+      padding:4px 8px;
+      border-radius:999px;
+      white-space:nowrap;
+    }
+    .chip button{
+      all:unset;
+      margin-left:6px;
+      cursor:pointer;
+      font-weight:950;
+      color:var(--c2);
+    }
+
+    .activeFilters{
+      font-size:11px;
+      color:#333;
+      line-height:1.35;
+      padding:10px 12px;
+      margin: 10px 0 10px 0;
+      border-radius:12px;
+      border:1px solid rgba(0,0,0,0.12);
+      background:rgba(169,32,142,0.05);
+    }
+    .activeFilters strong{ color:var(--c3); font-weight:950; }
+    .activeFilters .mono{ color:var(--black); }
+
+    /* Export controls (compact) */
+    .exportRow{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .exportRow button{
+      width:auto;
+      flex:1 1 0;
+      min-width: 120px;
+      padding:10px 10px;
+      border-radius:12px;
+      font-weight:950;
+      cursor:pointer;
+    }
+    .exportRow .secondary{
+      background:#fff;
+      color:var(--c3);
+      border:1px solid rgba(0,0,0,0.16);
+      box-shadow:none;
+    }
+    .exportRow .primary{
+      background:linear-gradient(135deg, var(--c1), var(--c5));
+      color:#fff;
+      border:0;
+      box-shadow: 0 10px 26px rgba(40,80,156,0.18);
+    }
+
+    /* Main */
+    .main{
+      padding:14px 16px 28px;
+      min-width:0;
+      overflow:hidden;
+    }
+
+    /* Sidebar toggle */
+    .sidebarToggle{
+      position:fixed;
+      left:10px;
+      top:10px;
+      z-index:95;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      pointer-events:none;
+    }
+    .hamburger{
+      pointer-events:auto;
+      width:42px; height:42px;
+      border-radius:14px;
+      border:1px solid rgba(0,0,0,0.16);
+      background:#fff;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.10);
+      cursor:pointer;
+      display:grid;
+      place-items:center;
+    }
+    .hamburger:hover{ border-color: rgba(40,80,156,0.45); }
+    .hamburger svg{ width:20px; height:20px; }
+    .hamburger line{ stroke: var(--c3); stroke-width:2.4; stroke-linecap:round; }
+
+    .flag{
+      pointer-events:auto;
+      position:fixed;
+      left:0;
+      top:calc(var(--topbarH) + 84px);
+      z-index:90;
+      transform: translateX(-2px);
+      border:1px solid rgba(0,0,0,0.16);
+      border-left:0;
+      border-top-right-radius:14px;
+      border-bottom-right-radius:14px;
+      background: linear-gradient(135deg, rgba(40,80,156,0.12), rgba(237,3,124,0.10));
+      box-shadow: 0 12px 30px rgba(0,0,0,0.10);
+      cursor:pointer;
+      padding:10px 8px;
+      display:none;
+    }
+    .flag span{
+      display:inline-block;
+      font-size:11px;
+      letter-spacing:.16em;
+      font-weight:950;
+      color:var(--c3);
+      white-space:nowrap;
+    }
+    .app.sidebar-collapsed ~ .sidebarToggle .flag{ display:block; }
+    @media (max-width: 980px){
+      .flag{ display:block; }
+      .app.sidebar-open ~ .sidebarToggle .flag{ display:none; }
+    }
+
+    /* ---- Matrix ---- */
+    .matrixCard{
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#fff;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+      overflow:hidden;
+      margin-bottom:14px;
+      display: block; /* ensure details displays correctly */
+    }
+    .matrixHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      padding: 1px 10px 1px 10px;
+      border-bottom:1px solid var(--border2);
+      background:
+        radial-gradient(900px 220px at 15% 0%, rgba(40,80,156,0.10), rgba(255,255,255,0)),
+        #fff;
+      cursor: pointer;
+      user-select: none;
+      list-style: none; /* hide default arrow */
+    }
+    .matrixHead::-webkit-details-marker { display: none; } /* hide default arrow safari */
+    
+    .matrixCard:not([open]) .matrixHead {
+      border-bottom: 0;
+    }
+
+    .matrixHead h2{
+      /*margin:0;*/
+      font-size:15px;
+      font-weight:950;
+      color:var(--c3);
+      letter-spacing:.15px;
+    }
+    .matrixHead .help{ margin-top:6px; max-width:980px; }
+    .matrixWrap{ overflow:auto; }
+    .matrix{
+      width:100%;
+      border-collapse:collapse;
+      table-layout:fixed;
+      min-width: 760px; /* desktop/tablet */
+    }
+    .matrix th, .matrix td{
+      border-top:1px solid var(--border2);
+      border-right:1px solid var(--border2);
+      vertical-align:top;
+      padding: 2.5%;
+    }
+    /*.matrix tr:first-child th{ border-top:0; }*/
+    .matrix th:last-child, .matrix td:last-child{ border-right:0; }
+    .matrix thead th{
+      background:linear-gradient(180deg, rgba(169,32,142,0.08), rgba(255,255,255,1));
+      color:var(--c3);
+      font-weight:950;
+      text-align:center;
+      white-space:normal;
+    }
+    .matrix .rowHead{
+      background:rgba(40,80,156,0.04);
+      font-weight:950;
+      color:var(--c3);
+      text-align:center;
+      width: 20%;
+    }
+    .matrix .colHead{ width: 33%; }
+
+      .matrixHeadTop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+  }
+  .matrixTitle {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 950;
+    color: var(--c3);
+    letter-spacing: .15px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chartToggles {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+    /* --- Toggle headers: identical sizing + modern index badge --- */
+    .toggleHeader {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 0px solid rgba(0,0,0,0);
+      background: #fff;
+      /*box-shadow: 0 10px 24px rgba(0,0,0,0.06);*/
+      font-weight: 250;
+      color: gray; /* var(--c3); */
+      cursor: pointer;
+      user-select: none;
+      line-height: 1;
+      white-space: nowrap;
+      font-size: 12px; /* identical */
+    }
+    .toggleHeader[aria-pressed="true"]{
+      border-color: rgba(40,80,156,0);
+      background: rgba(40,80,156,0.1);
+      color: var(--c3);
+      font-weight: 950;
+    }
+    .toggleBadge{
+      font-family: Arial, Helvetica, sans-serif; /* clean, modern */
+      font-weight: 900;
+      font-size: 18px;        /* oversized but clean */
+      line-height: 1;
+      width: 22px;            /* fixed width = perfect alignment */
+      height: 22px;
+      display: grid;
+      place-items: center;    /* perfectly middle aligned */
+      color: var(--c3);
+      opacity: .9;
+    }
+    /* end toggle headers */
+    .cell{
+      min-height:130px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .cellTop{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .cellCount{
+      font-size:40px;
+      line-height:1;
+      font-weight:950;
+      color:var(--c3);
+      letter-spacing:-0.5px;
+    }
+    .cellMeta{
+      font-size:11px;
+      color:#444;
+      text-align:right;
+      white-space:nowrap;
+    }
+    .cellVariants{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    .vChip{
+      border:1px solid rgba(40,80,156,0.22);
+      background:rgba(40,80,156,0.05);
+      color:var(--c3);
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:10px;
+      cursor:pointer;
+      max-width: 100%;
+      /* mitch */
+      font-family:var(--mono);
+    }
+    .vChip:hover{
+      border-color: rgba(237,3,124,0.45);
+      color: var(--c2);
+      background: rgba(237,3,124,0.06);
+    }
+    details.cellDetails{ margin:0; }
+    details.cellDetails > summary{
+      list-style:none;
+      cursor:pointer;
+      user-select:none;
+      font-size:12px;
+      color:var(--c1);
+      font-weight:950;
+      display:inline-block;
+    }
+    details.cellDetails > summary::-webkit-details-marker{ display:none; }
+
+    /* ---- Collapsible main table ---- */
+    details.mainTableDetails{
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#fff;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+      overflow:hidden;
+      margin-top:10px;
+    }
+    details.mainTableDetails > summary{
+      cursor:pointer;
+      user-select:none;
+      padding:12px 12px;
+      font-weight:950;
+      color:var(--c3);
+      background:
+        radial-gradient(900px 220px at 15% 0%, rgba(237,3,124,0.08), rgba(255,255,255,0)),
+        #fff;
+      border-bottom:1px solid var(--border2);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    details.mainTableDetails > summary::-webkit-details-marker{ display:none; }
+    .summaryRight{
+      font-size:11px;
+      color:#444;
+      font-weight:700;
+      white-space:nowrap;
+    }
+
+    .tablewrap{
+      overflow:auto;
+      max-width:100%;
+      background:#fff;
+    }
+    table#tbl{
+      width:100%;
+      border-collapse:collapse;
+      font-size:12px;
+      table-layout:auto;
+      min-width: 980px;
+    }
+    #tbl thead th{
+      position:sticky; top:0; z-index:2;
+      background:linear-gradient(180deg, rgba(40,80,156,0.09), rgba(255,255,255,1));
+      border-bottom:1px solid var(--border);
+      text-align:left;
+      padding:10px 10px;
+      font-weight:950;
+      color:var(--c3);
+      white-space:nowrap;
+    }
+    #tbl tbody td{
+      border-top:1px solid var(--border2);
+      padding:9px 10px;
+      vertical-align:top;
+      white-space:normal;
+      overflow-wrap: break-word;
+      word-break: normal;
+    }
+    #tbl tbody tr:nth-child(2n){ background:rgba(40,80,156,0.03); }
+    .rowclick{ cursor:pointer; }
+    .rowclick:hover{ background:rgba(237,3,124,0.06) !important; }
+
+    .v-preferred{ font-weight:750; color:var(--c3); font-size:12.5px; line-height:1.25; margin-bottom:4px; }
+    .v-coords{ font-family:var(--mono); font-size:11.5px; color:var(--black); opacity:.88; margin-bottom:2px; }
+    .v-gene{ font-size:11px; color:#555; }
+    .tag{
+      display:inline-block; padding:2px 8px; border-radius:999px;
+      border:1px solid rgba(40,80,156,0.25); background:rgba(40,80,156,0.06);
+      color:var(--c3); margin:0 6px 6px 0; font-size:11px; white-space:nowrap;
+    }
+    .sig{ font-weight:950; }
+    .sig.good{ color:var(--c1); }
+    .sig.warn{ color:var(--c5); }
+    .sig.bad{ color:var(--c2); }
+    .small{ font-size:11px; color:#555; }
+
+    /* Modal */
+    .overlay{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,0.35);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      padding:18px;
+    }
+    .overlay.show{ display:flex; }
+    .modal{
+      width:min(1100px, 96vw);
+      max-height:92vh;
+      overflow:auto;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow: var(--shadow);
+    }
+    .modalhead{
+      position:sticky; top:0; z-index:5;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--border);
+      background:
+        radial-gradient(900px 220px at 15% 0%, rgba(169,32,142,0.10), rgba(255,255,255,0)),
+        #fff;
+      backdrop-filter: blur(8px);
+    }
+    .modalhead h2{ margin:0; font-size:14px; font-weight:950; color:var(--c3); }
+    .modalhead .subline{ margin-top:4px; color:#444; font-size:12px; }
+    .closebtn{
+      background:transparent;
+      border:1px solid var(--border);
+      color:var(--c3);
+      padding:8px 10px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:950;
+      width:auto;
+      box-shadow:none;
+    }
+    .closebtn:hover{ border-color: rgba(237,3,124,0.45); color: var(--c2); }
+    .modalbody{ padding:12px 14px 16px; }
+
+    /* Evidence Pills for Summary Table */
+    .count-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+      background: rgba(40,80,156,0.08);
+      color: var(--c1);
+      border: 1px solid rgba(40,80,156,0.15);
+      white-space: nowrap;
+    }
+    .scv-pill {
+      background: rgba(237,3,124,0.06);
+      color: var(--c2);
+      border-color: rgba(237,3,124,0.15);
+    }
+
+    /* Scroll button */
+    .scroll-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9000;
+      background: rgba(40, 80, 156, 0.7);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 10px 16px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .scroll-btn:hover {
+      background: rgba(40, 80, 156, 0.9);
+      transform: translateY(-2px);
+    }
+    .scroll-btn:active {
+      transform: translateY(0);
+    }
+
+    /* VUS contribution UI */
+    .contribWrap{ margin-bottom:12px; }
+    .contribBtn{
+      width:100%;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid rgba(237,3,124,0.35);
+      background:linear-gradient(135deg, rgba(237,3,124,0.15), rgba(40,80,156,0.12));
+      color:var(--c3);
+      font-weight:950;
+      cursor:pointer;
+      box-shadow: 0 12px 30px rgba(237,3,124,0.12);
+    }
+    .contribBtn:hover{
+      border-color: rgba(237,3,124,0.55);
+      box-shadow: 0 14px 34px rgba(237,3,124,0.16);
+    }
+    /* Contribution card is collapsed by default; toggled via .show */
+    .contribCard{
+      display:none;
+      margin-top:10px;
+      padding:12px;
+      border:1px solid rgba(0,0,0,0.14);
+      border-radius:16px;
+      background:#fff;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.05);
+    }
+    .contribCard.show{ display:block; }
+
+    .contribCard textarea{
+      width:100%;
+      min-height: 142px; /* will align with 3 stacked inputs (see below) */
+      resize: vertical;
+      border:1px solid rgba(0,0,0,0.16);
+      border-radius:14px;
+      padding:12px;
+      font-family:var(--mono);
+      font-size:12px;
+      line-height:1.35;
+      outline:none;
+      background:#fff;
+      display:block;
+    }
+    .contribCard textarea:focus{
+      border-color: rgba(40,80,156,0.55);
+      box-shadow: 0 0 0 3px rgba(40,80,156,0.12);
+    }
+
+    /* 2 columns:
+       - col1: 3 equal rows (Name/Email/Affiliation)
+       - col2: Notes spans all 3 rows; top aligns with Name label, bottom aligns with Affiliation input bottom */
+    .contribGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr; /* two columns */
+      grid-template-rows: 1fr 1fr 1fr; /* three equal rows in col1 */
+      gap:10px;
+      align-items:stretch; /* ensures Notes spans full height */
+    }
+
+    /* Field container */
+    .contribField{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:0;
+    }
+
+    /* Put Name/Email/Affil each in its own row in column 1 */
+    .fieldName{ grid-column:1; grid-row:1; }
+    .fieldEmail{ grid-column:1; grid-row:2; }
+    .fieldAffil{ grid-column:1; grid-row:3; }
+
+    /* Notes occupies column 2 and spans all rows */
+    .fieldNote{ grid-column:2; grid-row:1 / span 3; }
+
+    /* Consistent input sizing so the three rows are identical */
+    .contribCard input[type="text"],
+    .contribCard input[type="email"]{
+      width:100%;
+      border:1px solid rgba(0,0,0,0.16);
+      border-radius:14px;
+      padding:12px;
+      font-size:14px;
+      line-height:1.25;
+      outline:none;
+      background:#fff;
+    }
+    .contribCard input[type="text"]:focus,
+    .contribCard input[type="email"]:focus{
+      border-color: rgba(40,80,156,0.55);
+      box-shadow: 0 0 0 3px rgba(40,80,156,0.12);
+    }
+
+    /* Make the Notes textarea height line up visually with 3 stacked inputs.
+       This uses a predictable height based on input padding+font, plus label gap.
+       If you later adjust paddings, tweak this single value. */
+    .contribCard .fieldNote textarea{
+      height: calc((44px * 3) + (10px * 2)); /* 3 inputs + 2 gaps between rows (approx) */
+      min-height: calc((44px * 3) + (10px * 2));
+    }
+
+    /* Mobile: stack fields */
+    @media (max-width: 760px){
+      .contribGrid{
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+      }
+      .fieldName, .fieldEmail, .fieldAffil, .fieldNote{
+        grid-column:1 !important;
+        grid-row:auto !important;
+      }
+      .contribCard .fieldNote textarea{
+        height: 160px;
+        min-height: 160px;
+      }
+    }
+    .contribActions{
+      display:flex;
+      gap:10px;
+      margin-top:10px;
+      flex-wrap:wrap;
+    }
+    .btnInline{
+      width:auto;
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:950;
+      cursor:pointer;
+      border:0;
+      background:linear-gradient(135deg, var(--c1), var(--c5));
+      color:#fff;
+      box-shadow: 0 10px 26px rgba(40,80,156,0.18);
+    }
+    .btnInline.secondary{
+      background:#fff;
+      color:var(--c3);
+      border:1px solid rgba(0,0,0,0.16);
+      box-shadow:none;
+    }
+    .formHint{
+      font-size:11px;
+      color:#444;
+      margin-top:8px;
+      line-height:1.35;
+    }
+
+    .grid{ display:grid; grid-template-columns: 1fr; gap:12px; }
+    @media (min-width: 980px){ .grid{ grid-template-columns: 1fr 1fr; } }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius:16px;
+      overflow:hidden;
+      background:#fff;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.05);
+    }
+    .card h3{
+      margin:0;
+      padding:10px 12px;
+      border-bottom:1px solid var(--border2);
+      font-size:13px;
+      color:var(--c3);
+      background:rgba(40,80,156,0.05);
+    }
+    .card .inner{ padding:10px 12px; }
+
+    .kv{ width:100%; border-collapse:collapse; font-size:12px; }
+    .kv td{ border-top:1px solid var(--border2); padding:8px 8px; vertical-align:top; }
+    .kv td:first-child{ width:220px; color:#444; font-weight:950; }
+
+    .rcvtable{ width:100%; border-collapse:collapse; font-size:12px; }
+    .rcvtable th{
+      text-align:left;
+      padding:9px 8px;
+      border-bottom:1px solid var(--border2);
+      background:rgba(40,80,156,0.05);
+      position:sticky;
+      top:0;
+      z-index:1;
+      color:var(--c3);
+      font-weight:950;
+      white-space:nowrap;
+    }
+    .rcvtable td{ border-top:1px solid var(--border2); padding:8px 8px; vertical-align:top; }
+
+    pre{
+      margin:0;
+      padding:10px;
+      overflow:auto;
+      border-radius:14px;
+      background:rgba(40,80,156,0.04);
+      border:1px solid rgba(40,80,156,0.20);
+      color:var(--black);
+      font-family:var(--mono);
+      font-size:11px;
+      line-height:1.35;
+      max-height:340px;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+
+    /* ---------- Mobile usability improvements ---------- */
+    @media (max-width: 640px){
+      :root{ --topbarH: 64px; }
+
+      .topbar-inner{
+        padding:12px 12px;
+        align-items:flex-start;
+      }
+      .brand h1{ font-size:16px; }
+      .brand .sub{ font-size:12px; white-space:normal; max-width:100%; }
+      .pill{ display:none; } /* keep top right minimal */
+
+      .main{ padding:12px 12px 18px; }
+
+      .matrixCard{ border-radius:16px; }
+      .matrixHead h2{ font-size:15px; }
+      .matrixHead .help{ font-size:13px; line-height:1.35; }
+      .matrixWrap{ overflow:auto; }
+      .matrix{ min-width: 860px; } /* allow horizontal scroll rather than squish */
+
+      .cellCount{ font-size:44px; }
+      .vChip{ font-size:13px; padding:8px 12px; }
+
+      details.mainTableDetails > summary{
+        padding:14px 12px;
+        font-size:14px;
+      }
+      .summaryRight{ display:none; } /* simplify */
+
+      .sidebar{
+        padding:14px 12px;
+      }
+      .panel{
+        border-radius:16px;
+        padding:14px 12px;
+      }
+      .panel h2{ font-size:13px; }
+
+      input[type="text"], input[type="search"], select{
+        padding:12px 12px;
+        font-size:16px; /* avoids iOS zoom */
+        border-radius:14px;
+      }
+
+      .msTop input{ font-size:16px; }
+      .msItem{
+        padding:10px 10px;
+        border-radius:14px;
+      }
+      .msItem .txt{ font-size:14px; }
+      .msItem .cnt{ font-size:12px; }
+
+      .exportRow button{
+        padding:12px 12px;
+        font-size:14px;
+        border-radius:14px;
+      }
+
+      .overlay{ padding:10px; }
+      .modal{
+        width: 96vw;
+        max-height: 92vh;
+        border-radius:18px;
+      }
+      .modalhead h2{ font-size:16px; }
+      .modalhead .subline{ font-size:13px; }
+      .contribBtn{ padding:14px 14px; font-size:14px; }
+
+      .rcvtable th, .rcvtable td{ font-size:13px; }
+      .kv td{ font-size:13px; }
+      pre{ font-size:12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" id="backdrop" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <h1>GALNS Variants</h1>
+        <p class="sub">Loads current ClinVar data automatically. Three sections: 1) # of variants over time 2) variant-condition associations 3) full variant-level table</p>
+      </div>
+      <div class="top-actions">
+        <span class="pill">Showing <span class="mono" id="topShowing">—</span></span>
+        <button id="btnTopRefresh" type="button" title="Refresh data">Refresh</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="sidebarToggle" aria-label="Sidebar controls">
+    <button class="hamburger" id="btnHamburger" type="button" aria-label="Toggle filters sidebar">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <line x1="4" y1="7" x2="20" y2="7"></line>
+        <line x1="4" y1="12" x2="20" y2="12"></line>
+        <line x1="4" y1="17" x2="20" y2="17"></line>
+      </svg>
+      <span class="sr-only">Toggle filters</span>
+    </button>
+  </div>
+
+  <div class="app" id="app">
+    <aside class="sidebar" id="sidebar" aria-label="Filters sidebar">
+
+      <div class="panel">
+        <h2>Filters</h2>
+        <div id="activeFilters" class="activeFilters">Loading…</div>
+        <div style="margin-bottom:12px;">
+          <label for="filter">Search (main table)</label>
+          <input id="filter" type="search" placeholder="type to filter…" />
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label>Clinical significance</label>
+          <div class="ms" id="sigMS">
+            <div class="msTop">
+              <input id="sigSearch" type="search" placeholder="search options…" />
+              <div class="msPills" id="sigPills"></div>
+            </div>
+            <div class="msList" id="sigList" aria-label="Clinical significance options"></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label>Condition</label>
+          <div class="ms" id="condMS">
+            <div class="msTop">
+              <input id="condSearch" type="search" placeholder="search options…" />
+              <div class="msPills" id="condPills"></div>
+            </div>
+            <div class="msList" id="condList" aria-label="Condition options"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Export</h2>
+          <div class="exportRow">
+            <button id="btnExportJson" class="secondary" type="button">JSON</button>
+            <button id="btnExportCsv" class="primary" type="button">CSV</button>
+          </div>
+          <div class="help" id="exportHint"></div>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button id="btnStop" class="secondary" type="button" disabled>Stop</button>
+          <button id="btnRefresh" class="primary" type="button">Refresh data</button>
+        </div>
+        
+
+        <div class="help" id="status">Loading on page open…</div>
+        <div class="help mono" style="margin-top:8px;">
+          Fetched: <span id="fetched">0</span> • Total: <span id="total">—</span>
+        </div>
+        <div class="help" style="margin-top:8px;">
+          Page size:
+          <select id="pageSize" aria-label="Page size">
+            <option>100</option>
+            <option>200</option>
+            <option>500</option>
+            <option selected>1000</option>
+          </select>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <details class="matrixCard" id="chartDetails" open aria-label="Classification Trends">
+        <summary class="matrixHead">
+          <div>
+            <h2>Cumulative Variant Count Over Time</h2>
+          </div>
+
+          <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end;">
+            <div class="summaryRight" style="margin-top: 20%;">▾ collapse</div>
+          </div>
+        </summary>
+
+        <!-- toggles moved into the section header bar -->
+        <div class="chartToggles" aria-label="Chart toggles" style="margin: 1% 1% 0 1%">
+          <button id="toggleByClass" type="button" class="toggleHeader" aria-pressed="true" title="View by classification">
+            <span class="toggleBadge">A</span>
+            <span>By Classification</span>
+          </button>
+
+          <button id="toggleByCond" type="button" class="toggleHeader" aria-pressed="false" title="View by condition">
+            <span class="toggleBadge">B</span>
+            <span>By Condition</span>
+          </button>
+        </div>
+
+        <div id="plotlyChart" style="width: 100%; height: 400px; padding: 10px;">
+          <div class="help" style="text-align:center; padding:50px;">Load data to generate chart...</div>
+        </div>
+      </details>
+
+      <details class="matrixCard" id="matrixDetails" aria-label="Condition x Significance matrix">
+        <summary class="matrixHead">
+          <div>
+            <h2>Condition × Clinical significance</h2>
+          </div>
+          <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end;">
+            <!-- <div class="help mono" id="matrixMeta">—</div> -->
+            <div class="summaryRight" style="margin-top: 20%;">▾ collapse</div>
+          </div>
+        </summary>
+        <div class="matrixWrap">
+          <table class="matrix" id="matrixTbl">
+            <thead>
+              <tr>
+                <th class="rowHead">Condition</th>
+                <th class="colHead">Pathogenic / Likely Pathogenic</th>
+                <th class="colHead">VUS</th>
+              </tr>
+            </thead>
+            <tbody id="matrixBody">
+              <tr><td colspan="3" class="help">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="help">
+              All variants listed are based on RefSeq transcript <span class="mono">NM_000142.5</span>.
+              Variants in each cell are sorted by association strength (RCV frequency + exclusivity).<br>
+              RCVs with 3 or more different conditions listed in association with the variant were not included in the table above.
+            </div>
+      </details>
+
+      <details class="mainTableDetails" open id="mainDetails">
+        <summary>
+          <span>Full variant table</span>
+          <span class="summaryRight">▸ expand</span>
+        </summary>
+        <div class="tablewrap" aria-label="results table container">
+          <table id="tbl" aria-label="results table">
+            <thead>
+              <tr>
+                <th style="min-width:340px;">Variant</th>
+                <th style="min-width:180px;">ClinVar Variation ID</th>
+                <th style="min-width:180px;">Clinical significance (RCV)</th>
+                <th style="min-width:260px;">Conditions (RCV)</th>
+                <th style="min-width:220px;">Review status / submitters</th>
+                <th style="min-width:170px;">Last evaluated</th>
+              </tr>
+            </thead>
+            <tbody id="tbody">
+              <tr><td colspan="6" class="small">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </main>
+  </div>
+
+  <!-- Hovering Scroll Button -->
+  <button class="scroll-btn" id="btnScrollBottom" title="Scroll to bottom">
+    <span>Main table below</span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
+  </button>
+
+  <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-label="Variant details">
+    <div class="modal" id="modal" tabindex="-1">
+      <div class="modalhead">
+        <div>
+          <h2 id="modalTitle">Variant</h2>
+          <div class="subline" id="modalSubtitle"></div>
+        </div>
+        <button class="closebtn" id="closeModal" aria-label="Close">Close</button>
+      </div>
+
+      <div class="modalbody">
+        <div class="contribWrap" id="contribWrap" style="display:none;">
+          <button class="contribBtn" id="contribBtn" type="button">
+            Contribute evidence towards classification of this VUS
+          </button>
+
+          <div class="contribCard" id="contribCard">
+            <div class="help" style="margin-bottom:10px;">
+              This will open your email client addressed to <span class="mono">placeholder@testing.org</span>.
+            </div>
+
+            <form id="contribForm">
+              <div class="contribGrid">
+                <div class="contribField fieldName">
+                  <label for="cName">Name</label>
+                  <input id="cName" type="text" autocomplete="name" required />
+                </div>
+
+                <div class="contribField fieldEmail">
+                  <label for="cEmail">Email</label>
+                  <input id="cEmail" type="email" autocomplete="email" required />
+                </div>
+
+                <div class="contribField fieldAffil">
+                  <label for="cAffil">Affiliation</label>
+                  <input id="cAffil" type="text" autocomplete="organization" />
+                </div>
+
+                <div class="contribField fieldNote">
+                  <label for="cNote">Notes</label>
+                  <textarea id="cNote" placeholder="Evidence, literature, functional data, etc." required></textarea>
+                </div>
+              </div>
+
+              <div class="contribActions">
+                <button class="btnInline" type="submit">Send</button>
+                <button class="btnInline secondary" type="button" id="contribCancel">Cancel</button>
+              </div>
+              <div class="formHint" id="contribHint"></div>
+            </form>
+          </div>
+        </div>
+
+        
+        <div class="card">
+          <h3>Basic</h3>
+          <div class="inner">
+            <table class="kv" id="basicTable"></table>
+          </div>
+        </div>
+        
+        <div class="grid">
+          <div class="card" style="margin-top:12px;">
+            <h3>RCVs (Reference Accessions)</h3>
+            <div class="help" style="padding: 0 12px 10px;">Click an RCV row to load individual lab submissions (SCVs) below. Sorted newest to oldest.</div>
+            <div class="inner" style="overflow:auto; max-height:340px;">
+              <table class="rcvtable" id="rcvTable"></table>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:12px; border-color: var(--c1);">
+            <h3>Submissions (SCVs)</h3>
+            <div id="scvStatus" class="help" style="padding: 10px 12px;">Select an RCV above to view evidence details...</div>
+            <div class="inner" style="overflow:auto; max-height:420px;">
+              <table class="rcvtable" id="scvTable">
+                <thead>
+                  <tr>
+                    <th>SCV Accession</th>
+                    <th>Submitter</th>
+                    <th>Significance</th>
+                    <th>Date</th>
+                    <th>Method</th>
+                  </tr>
+                </thead>
+                <tbody id="scvTableBody">
+                  <tr><td colspan="5" class="help">No RCV selected.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Raw ClinVar JSON</h3>
+          <div class="inner">
+            <pre id="rawJson"></pre>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---- Configuration ----
+    const API_BASE = "https://myvariant.info/v1/query";
+    const QUERY = 'clinvar.gene.symbol:GALNS AND _exists_:clinvar';
+    const FIELDS = "clinvar";
+    // const INITIAL_CONDITION_FUZZY = null;
+    const REFSEQ_TX = "NM_000512.5";
+    const REFSEQ_PREFIX_RE = /^NM_000512\.5\(GALNS\):/i;
+
+    // Matrix settings
+    const MATRIX_ROWS = ["MPS-IV-A", "Morquio syndrome", "Mucopolysaccharidosis"];
+    const MATRIX_COLS = [
+      { key: "PLP", label: "Pathogenic or Likely Pathogenic" },
+      { key: "VUS", label: "Variant of Uncertain Significance" }
+    ];
+    const CELL_VARIANT_LIMIT = 6;
+
+    const CONTRIBUTION_EMAIL = "placeholder@testing.org";
+
+    // ---- State ----
+    let controller = null;
+    let allRows = [];
+    let totalHits = null;
+
+    let sigCounts = new Map();
+    let condCounts = new Map();
+
+    let currentModalRow = null;
+    let lastFilteredRows = [];
+
+    // Custom multiselect state (values are the raw option values)
+    let sigOptions = [];   // [{value,count}]
+    let condOptions = [];  // [{value,count}]
+    let sigSelected = new Set(); // includes "__ALL__"
+    let condSelected = new Set();
+
+    // ---- DOM ----
+    const app = document.getElementById("app");
+    const backdrop = document.getElementById("backdrop");
+    const btnHamburger = document.getElementById("btnHamburger");
+
+    const btnTopRefresh = document.getElementById("btnTopRefresh");
+    const btnRefresh = document.getElementById("btnRefresh");
+    const btnStop = document.getElementById("btnStop");
+    const statusEl = document.getElementById("status");
+    const totalEl = document.getElementById("total");
+    const fetchedEl = document.getElementById("fetched");
+    const filterEl = document.getElementById("filter");
+    const pageSizeEl = document.getElementById("pageSize");
+    const activeFiltersEl = document.getElementById("activeFilters");
+
+    const topShowing = document.getElementById("topShowing");
+
+    const tbody = document.getElementById("tbody");
+    const matrixBody = document.getElementById("matrixBody");
+    // const matrixMeta = document.getElementById("matrixMeta");
+    const chartDetails = document.getElementById("chartDetails");
+    const matrixDetails = document.getElementById("matrixDetails");
+    const mainDetails = document.getElementById("mainDetails");
+
+    const overlay = document.getElementById("overlay");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalSubtitle = document.getElementById("modalSubtitle");
+    const basicTable = document.getElementById("basicTable");
+    const rcvTable = document.getElementById("rcvTable");
+    const rawJson = document.getElementById("rawJson");
+
+    // Contribution UI
+    const contribWrap = document.getElementById("contribWrap");
+    const contribBtn = document.getElementById("contribBtn");
+    const contribCard = document.getElementById("contribCard");
+    const contribForm = document.getElementById("contribForm");
+    const contribCancel = document.getElementById("contribCancel");
+    const contribHint = document.getElementById("contribHint");
+    const cName = document.getElementById("cName");
+    const cEmail = document.getElementById("cEmail");
+    const cAffil = document.getElementById("cAffil");
+    const cNote = document.getElementById("cNote");
+
+    // Export UI
+    const btnExportJson = document.getElementById("btnExportJson");
+    const btnExportCsv = document.getElementById("btnExportCsv");
+    const exportHint = document.getElementById("exportHint");
+
+    // Custom multiselect DOM
+    const sigSearch = document.getElementById("sigSearch");
+    const sigList = document.getElementById("sigList");
+    const sigPills = document.getElementById("sigPills");
+
+    const condSearch = document.getElementById("condSearch");
+    const condList = document.getElementById("condList");
+    const condPills = document.getElementById("condPills");
+
+    // ---- Helpers ----
+    function setStatus(msg){ statusEl.textContent = msg; }
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+    function safeGet(obj, path, fallback=null){
+      try{
+        return path.split(".").reduce((o,k)=> (o && (k in o)) ? o[k] : undefined, obj) ?? fallback;
+      }catch(e){ return fallback; }
+    }
+    function asArray(x){ return x == null ? [] : (Array.isArray(x) ? x : [x]); }
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+    function uniq(arr){ return [...new Set(arr.filter(v => v != null && String(v).trim() !== ""))]; }
+    function parseDateToMs(d){
+      if (!d) return null;
+      if (typeof d === "number") return d;
+      if (typeof d !== "string") return null;
+      const t = Date.parse(d);
+      return Number.isFinite(t) ? t : null;
+    }
+    function extractString(v){
+      if (v == null) return null;
+      if (typeof v === "string") return v;
+      if (typeof v === "number" || typeof v === "boolean") return String(v);
+      if (Array.isArray(v)){
+        for (const item of v){
+          const s = extractString(item);
+          if (s && s.trim() !== "") return s;
+        }
+        return null;
+      }
+      if (typeof v === "object"){
+        const candidates = [
+          safeGet(v, "preferred_name", null),
+          safeGet(v, "name", null),
+          safeGet(v, "hgvs", null),
+          safeGet(v, "text", null),
+          safeGet(v, "value", null),
+          safeGet(v, "display", null),
+          safeGet(v, "label", null),
+        ];
+        for (const c of candidates){
+          const s = extractString(c);
+          if (s && s.trim() !== "") return s;
+        }
+        const vals = Object.values(v);
+        if (vals.length === 1){
+          const s = extractString(vals[0]);
+          if (s && s.trim() !== "") return s;
+        }
+        return null;
+      }
+      return String(v);
+    }
+    function norm(s){ return String(s || "").toLowerCase(); }
+
+    /**
+     * Fetches and parses SCVs for a specific RCV from NCBI E-utils.
+     */
+    async function getSCVsForRCV(rcvId) {
+      const status = document.getElementById("scvStatus");
+      const body = document.getElementById("scvTableBody");
+      
+      status.innerHTML = `Loading submissions for <strong>${rcvId}</strong> from NCBI...`;
+      body.innerHTML = '<tr><td colspan="5" class="help">Fetching XML...</td></tr>';
+
+      try {
+        const url = new URL("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi");
+        url.searchParams.append("db", "clinvar");
+        url.searchParams.append("rettype", "clinvarset");
+        url.searchParams.append("id", rcvId);
+        url.searchParams.append("tool", "galns_explorer");
+        url.searchParams.append("email", "research@example.org");
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`NCBI Fetch failed: ${response.status}`);
+        
+        const xmlText = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(xmlText, "application/xml");
+        
+        const assertions = doc.querySelectorAll("ClinVarAssertion");
+        const results = [];
+
+        assertions.forEach(node => {
+          const accNode = node.querySelector("ClinVarAccession");
+          const scvAcc = accNode?.getAttribute("Acc");
+          if (!scvAcc || !scvAcc.startsWith("SCV")) return;
+
+          const classif = node.querySelector("Classification");
+          results.push({
+            accession: scvAcc,
+            version: accNode.getAttribute("Version"),
+            submitter: node.querySelector("ClinVarSubmissionID")?.getAttribute("submitter") || "N/A",
+            significance: classif?.querySelector("GermlineClassification")?.textContent || "N/A",
+            date: classif?.getAttribute("DateLastEvaluated") || "N/A",
+            method: node.querySelector("ObservedIn")?.getAttribute("MethodType") || "N/A"
+          });
+        });
+
+        // Sort SCV results newest to oldest
+        results.sort((a, b) => parseDateToMs(b.date) - parseDateToMs(a.date));
+
+        body.innerHTML = "";
+        if (results.length === 0) {
+          body.innerHTML = '<tr><td colspan="5" class="help">No individual submissions found.</td></tr>';
+          status.textContent = "Data retrieval complete.";
+          return;
+        }
+
+        results.forEach(s => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="mono">${s.accession}.${s.version}</td>
+            <td>${escapeHtml(s.submitter)}</td>
+            <td><span class="sig warn">${escapeHtml(s.significance)}</span></td>
+            <td>${escapeHtml(s.date)}</td>
+            <td class="small">${escapeHtml(s.method)}</td>
+          `;
+          body.appendChild(tr);
+        });
+        status.innerHTML = `Displaying <strong>${results.length}</strong> submissions for ${rcvId}.`;
+
+      } catch (e) {
+        status.innerHTML = `<span style="color:var(--c2)">Error: ${e.message}</span>`;
+        body.innerHTML = '<tr><td colspan="5" class="help">Fetch error.</td></tr>';
+      }
+    }
+
+    function pickMostRecentPreferredNameFromRcv(rcvArray){
+      const rcv = asArray(rcvArray);
+      const enriched = rcv.map((r) => {
+        const d1 = safeGet(r, "last_evaluated", null);
+        const d2 = safeGet(r, "date_last_evaluated", null);
+        const d3 = safeGet(r, "date_last_updated", null);
+        const ms = parseDateToMs(d1) ?? parseDateToMs(d2) ?? parseDateToMs(d3) ?? -Infinity;
+        const prefRaw = safeGet(r, "preferred_name", null);
+        return { ms, prefRaw };
+      });
+      enriched.sort((a,b) => b.ms - a.ms);
+      for (const item of enriched){
+        const s = extractString(item.prefRaw);
+        if (s && s.trim() !== "") return s.trim();
+      }
+      return null;
+    }
+
+    function formatSig(sig){
+      const s = String(sig || "").toLowerCase();
+      let cls = "warn";
+      if (s.includes("pathogenic")) cls = "bad";
+      if (s.includes("benign")) cls = "good";
+      if (s.includes("uncertain")) cls = "warn";
+      if (s.includes("conflict")) cls = "warn";
+      return { text: sig || "—", cls };
+    }
+
+    function buildClinVarLink(variationId){
+      if (!variationId) return null;
+      return `https://www.ncbi.nlm.nih.gov/clinvar/variation/${encodeURIComponent(variationId)}/`;
+    }
+
+    function extractConditionsFromRcv(rcv){
+      const out = [];
+      for (const c of asArray(safeGet(rcv, "conditions", null))){
+        const nm = (typeof c === "string") ? c : safeGet(c, "name", null);
+        if (nm) out.push(nm);
+      }
+      return out;
+    }
+
+    function formatCoords(clinvar){
+      const chrom = safeGet(clinvar, "chrom", null);
+      const pos = safeGet(clinvar, "pos", null);
+      const ref = safeGet(clinvar, "ref", null);
+      const alt = safeGet(clinvar, "alt", null);
+      if (chrom == null || pos == null) return null;
+      const chr = String(chrom).startsWith("chr") ? String(chrom) : `chr${chrom}`;
+      const alleles = (ref != null && alt != null) ? `${ref}>${alt}` : "";
+      return alleles ? `${chr}:${pos}${alleles}` : `${chr}:${pos}`;
+    }
+
+    function summarizeClinVar(hit){
+      const clinvar = hit?.clinvar || null;
+
+      const variationId =
+        safeGet(clinvar, "variant_id", null) ??
+        safeGet(clinvar, "variation.id", null) ??
+        safeGet(clinvar, "clinvar_id", null);
+
+      const geneSymbol =
+        safeGet(clinvar, "gene.symbol", null) ??
+        safeGet(clinvar, "gene.gene_symbol", null) ??
+        safeGet(clinvar, "gene", null);
+
+      const rcv = asArray(safeGet(clinvar, "rcv", null));
+      const rcvCount = rcv.length;
+      const scvTotal = rcv.reduce((acc, r) => acc + (parseInt(r.number_submitters) || 0), 0);
+
+      const preferredName = pickMostRecentPreferredNameFromRcv(rcv);
+      const coords = formatCoords(clinvar);
+
+      const sigs = uniq(rcv.map(r => safeGet(r, "clinical_significance", null)));
+      const review = uniq(rcv.map(r => safeGet(r, "review_status", null)));
+      const submitters = uniq(rcv.map(r => safeGet(r, "number_submitters", null))).map(String);
+      
+      // Calculate single most recent evaluated date
+      const lastEvalDates = rcv.map(r => safeGet(r, "last_evaluated", null)).filter(Boolean);
+      let mostRecentEval = "—";
+      if (lastEvalDates.length > 0) {
+        const sortedDates = lastEvalDates.sort((a, b) => parseDateToMs(b) - parseDateToMs(a));
+        mostRecentEval = sortedDates[0];
+      }
+
+      // Aggregate conditions and their counts
+      const condCountsMap = new Map();
+      rcv.forEach(r => {
+        const subCount = parseInt(r.number_submitters) || 1;
+        const conds = uniq(extractConditionsFromRcv(r));
+        conds.forEach(c => {
+          condCountsMap.set(c, (condCountsMap.get(c) || 0) + subCount);
+        });
+      });
+
+      // Create sorted array of {name, count}
+      const sortedConditions = Array.from(condCountsMap.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
+
+      return {
+        id: hit?._id || "—",
+        variationId: variationId != null ? String(variationId) : "—",
+        geneSymbol: geneSymbol || "—",
+        preferredName: preferredName || null,
+        coords,
+        sigs, review, submitters, 
+        lastEval: mostRecentEval, 
+        conditions: sortedConditions,
+        rcvCount, scvTotal,
+        rawClinvar: clinvar
+      };
+    }
+
+    // ---- Frequency ordering for options ----
+    function buildCounts(){
+      sigCounts = new Map();
+      condCounts = new Map();
+      for (const r of allRows){
+        for (const s of (r.sigs || [])){
+          const k = String(s);
+          sigCounts.set(k, (sigCounts.get(k) || 0) + 1);
+        }
+        for (const cObj of (r.conditions || [])){
+          const k = String(cObj.name);
+          condCounts.set(k, (condCounts.get(k) || 0) + 1);
+        }
+      }
+    }
+    function sortByFrequencyThenAlpha(map){
+      const arr = Array.from(map.entries()).map(([value, count]) => ({ value, count }));
+      arr.sort((a,b) => (b.count - a.count) || a.value.localeCompare(b.value));
+      return arr;
+    }
+
+    // ---- Custom searchable multiselect ----
+    function setAllRule(set, val){
+      if (val === "__ALL__"){
+        set.clear();
+        set.add("__ALL__");
+      } else {
+        if (set.has("__ALL__")) set.delete("__ALL__");
+        if (set.has(val)) set.delete(val);
+        else set.add(val);
+        if (set.size === 0) set.add("__ALL__");
+      }
+    }
+
+    function renderMS({ options, selected, listEl, pillsEl, searchText }){
+      const q = norm(searchText || "");
+      listEl.innerHTML = "";
+
+      // Always show "All" at top
+      const base = [{ value:"__ALL__", count:null, label:"All" }, ...options.map(o => ({...o, label:`${o.value}`}))];
+
+      for (const opt of base){
+        const label = opt.label;
+        const show = (opt.value === "__ALL__") ? true : norm(label).includes(q);
+        if (!show) continue;
+
+        const row = document.createElement("label");
+        row.className = "msItem";
+        row.tabIndex = 0;
+
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = selected.has(opt.value);
+        cb.addEventListener("click", (e) => e.stopPropagation());
+
+        const txt = document.createElement("div");
+        txt.className = "txt";
+        txt.textContent = label;
+
+        const cnt = document.createElement("div");
+        cnt.className = "cnt";
+        cnt.textContent = (opt.value === "__ALL__") ? "" : `(${opt.count})`;
+
+        row.appendChild(cb);
+        row.appendChild(txt);
+        row.appendChild(cnt);
+
+        const toggle = () => {
+          setAllRule(selected, opt.value);
+          renderSelectedPills(selected, pillsEl);
+          // rerender lists to update checks
+          renderMS({ options, selected, listEl, pillsEl, searchText });
+          applyFiltersAndRender();
+        };
+
+        row.addEventListener("click", toggle);
+        row.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " "){
+            e.preventDefault();
+            toggle();
+          }
+        });
+
+        listEl.appendChild(row);
+      }
+
+      renderSelectedPills(selected, pillsEl);
+    }
+
+    function renderSelectedPills(selected, pillsEl){
+      pillsEl.innerHTML = "";
+      const vals = Array.from(selected.values());
+
+      // If All is selected, show a single pill
+      if (vals.includes("__ALL__")){
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        chip.textContent = "All";
+        pillsEl.appendChild(chip);
+        return;
+      }
+
+      // show up to 4 pills, then "+N"
+      const max = 4;
+      const shown = vals.slice(0, max);
+      for (const v of shown){
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        chip.textContent = v;
+
+        const x = document.createElement("button");
+        x.type = "button";
+        x.textContent = "×";
+        x.title = "Remove";
+        x.addEventListener("click", (e) => {
+          e.stopPropagation();
+          setAllRule(selected, v); // toggles
+          renderSelectedPills(selected, pillsEl);
+          applyFiltersAndRender();
+          // rerender list checkboxes by triggering a synthetic re-render via searches
+          renderMS({ options: (pillsEl === sigPills ? sigOptions : condOptions),
+                     selected,
+                     listEl: (pillsEl === sigPills ? sigList : condList),
+                     pillsEl,
+                     searchText: (pillsEl === sigPills ? sigSearch.value : condSearch.value) });
+        });
+        chip.appendChild(x);
+
+        pillsEl.appendChild(chip);
+      }
+
+      if (vals.length > max){
+        const more = document.createElement("span");
+        more.className = "chip";
+        more.textContent = `+${vals.length - max}`;
+        pillsEl.appendChild(more);
+      }
+    }
+
+    function selectedValues(set){
+      return Array.from(set.values());
+    }
+
+    // ---- Filter logic (main table only) ----
+    function matchesSig(row, selectedSigs){
+      if (!selectedSigs.length || selectedSigs.includes("__ALL__")) return true;
+      const set = new Set((row.sigs || []).map(String));
+      return selectedSigs.some(s => set.has(String(s)));
+    }
+    function matchesCond(row, selectedConds){
+      if (!selectedConds.length || selectedConds.includes("__ALL__")) return true;
+      const set = new Set((row.conditions || []).map(c => String(c.name)));
+      return selectedConds.some(c => set.has(String(c)));
+    }
+    function matchesText(row, q){
+      if (!q) return true;
+      const hay = [
+        row.preferredName || "",
+        row.coords || "",
+        row.geneSymbol || "",
+        row.id || "",
+        row.variationId || "",
+        (row.sigs || []).join(" | "),
+        (row.conditions || []).map(c => c.name).join(" | "),
+      ].join(" || ").toLowerCase();
+      return hay.includes(q);
+    }
+
+    function buildActiveFiltersString({ showingCount }){
+      const q = filterEl.value.trim();
+      const sigs = selectedValues(sigSelected);
+      const conds = selectedValues(condSelected);
+
+      const sigLabel = (sigs.length === 0 || sigs.includes("__ALL__")) ? "All" : sigs.join(", ");
+      const condLabel = (conds.length === 0 || conds.includes("__ALL__")) ? "All" : conds.join(", ");
+
+      const parts = [
+        `<strong>Currently active:</strong><hr><strong>Condition:</strong> <span class="mono">${escapeHtml(condLabel)}</span>`,
+        `<strong>Sig:</strong> <span class="mono">${escapeHtml(sigLabel)}</span>`,
+        `<strong>Search:</strong> <span class="mono">${escapeHtml(q || "—")}</span>`,
+        `<strong>Showing:</strong> <span class="mono">${escapeHtml(String(showingCount))}</span>`
+      ];
+      return parts.join("<br/>");
+    }
+
+    function applyFiltersAndRender(){
+      const q = filterEl.value.trim().toLowerCase();
+      const selSigs = selectedValues(sigSelected);
+      const selConds = selectedValues(condSelected);
+
+      const filtered = allRows.filter(r =>
+        matchesSig(r, selSigs) &&
+        matchesCond(r, selConds) &&
+        matchesText(r, q)
+      );
+
+      // Default main table sort: Newest evaluation first
+      filtered.sort((a, b) => parseDateToMs(b.lastEval) - parseDateToMs(a.lastEval));
+
+      lastFilteredRows = filtered;
+
+      renderTable(filtered);
+      renderTimelineChart(filtered); // Update plot with filtered data
+
+      activeFiltersEl.innerHTML = buildActiveFiltersString({ showingCount: filtered.length });
+      topShowing.textContent = String(filtered.length);
+
+      const summaryRightTable = mainDetails.querySelector(".summaryRight");
+      if (summaryRightTable){
+        summaryRightTable.textContent = mainDetails.open ? "▾ collapse" : "▸ expand"
+      }
+
+      const summaryRightMatrix = matrixDetails.querySelector(".summaryRight");
+      if (summaryRightMatrix){
+        summaryRightMatrix.textContent = matrixDetails.open ? "▾ collapse" : "▸ expand"
+      }
+
+      const summaryRightChart = chartDetails.querySelector(".summaryRight");
+      if (summaryRightChart){
+        summaryRightChart.textContent = chartDetails.open ? "▾ collapse" : "▸ expand"
+      }
+    }
+
+    // ---- Sidebar toggle logic ----
+    function setSidebarState({ open }){
+      const isMobile = window.matchMedia("(max-width: 980px)").matches;
+
+      if (isMobile){
+        if (open){
+          app.classList.add("sidebar-open");
+          backdrop.setAttribute("aria-hidden", "false");
+          document.body.style.overflow = "hidden";
+        } else {
+          app.classList.remove("sidebar-open");
+          backdrop.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
+        }
+      } else {
+        if (open) app.classList.remove("sidebar-collapsed");
+        else app.classList.add("sidebar-collapsed");
+        app.classList.remove("sidebar-open");
+        backdrop.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+      }
+    }
+
+    function toggleSidebar(){
+      const isMobile = window.matchMedia("(max-width: 980px)").matches;
+      if (isMobile){
+        setSidebarState({ open: !app.classList.contains("sidebar-open") });
+      } else {
+        setSidebarState({ open: app.classList.contains("sidebar-collapsed") });
+      }
+    }
+
+    btnHamburger.addEventListener("click", toggleSidebar);
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape"){
+        if (window.matchMedia("(max-width: 980px)").matches && app.classList.contains("sidebar-open")){
+          setSidebarState({ open:false });
+        }
+      }
+    });
+
+    function initSidebarDefault(){
+      const mobile = window.matchMedia("(max-width: 980px)").matches;
+      if (mobile) setSidebarState({ open:false });
+      else setSidebarState({ open:true });
+    }
+
+    // ---- Matrix logic: association strength sorting ----
+    function sigMatchesGroup(row, groupKey){
+      const sigs = (row.sigs || []).map(s => norm(s));
+      if (groupKey === "PLP") return sigs.some(s => s.includes("pathogenic"));
+      if (groupKey === "VUS") return sigs.some(s => s.includes("uncertain") || s.includes("vus"));
+      return false;
+    }
+
+    function stripRefseqPrefix(label){
+      if (!label) return label;
+      return String(label).replace(REFSEQ_PREFIX_RE, "").trim();
+    }
+
+    function variantLabelShort(row){
+      const base = (row.preferredName && row.preferredName.trim()) ? stripRefseqPrefix(row.preferredName.trim())
+                 : (row.coords && row.coords.trim()) ? row.coords.trim()
+                 : row.id;
+      return base;
+    }
+
+    function conditionMatch(condText, targetLabel){
+      const a = norm(condText);
+      const b = norm(targetLabel);
+      return a.includes(b);
+    }
+
+    function conditionAssociationScore(rawClinvar, conditionLabel){
+      const rcvArr = asArray(safeGet(rawClinvar, "rcv", null));
+      let matchCount = 0;
+      let totalSubmissions = 0;
+      let exclSum = 0;      
+      let onlyBonus = 0;
+
+      for (const rcv of rcvArr){
+        const conds = uniq(extractConditionsFromRcv(rcv));
+        if (!conds.length) continue;
+
+        const has = conds.some(c => conditionMatch(c, conditionLabel));
+        if (!has) continue;
+
+        const subCount = parseInt(rcv.number_submitters) || 1;
+        matchCount += 1;
+        totalSubmissions += subCount;
+        const k = conds.length;
+        exclSum += (1 / k);
+        if (k === 1) onlyBonus += 1;
+      }
+
+      // We prioritize matchCount and totalSubmissions for sorting
+      const score = (totalSubmissions * 1000) + (matchCount * 100) + (exclSum * 10);
+      return { score, matchCount, totalSubmissions, exclSum, onlyBonus };
+    }
+
+    function buildMatrixData(){
+      const out = new Map();
+      for (const rowLabel of MATRIX_ROWS){
+        const m = new Map();
+        for (const col of MATRIX_COLS) m.set(col.key, new Map());
+        out.set(rowLabel, m);
+      }
+
+      for (const r of allRows){
+        const raw = r.rawClinvar || null;
+        if (!raw) continue;
+
+        for (const rowLabel of MATRIX_ROWS){
+          const assoc = conditionAssociationScore(raw, rowLabel);
+          if (assoc.matchCount <= 0) continue;
+
+          const perRow = out.get(rowLabel);
+          for (const col of MATRIX_COLS){
+            if (sigMatchesGroup(r, col.key)){
+              perRow.get(col.key).set(r.id, { row: r, assoc });
+            }
+          }
+        }
+      }
+      return out;
+    }
+
+    function renderMatrix(){
+      if (!allRows.length){
+        matrixBody.innerHTML = `<tr><td colspan="3" class="help">No data loaded.</td></tr>`;
+        // matrixMeta.textContent = "—";
+        return;
+      }
+
+      // Sort MATRIX_ROWS by global frequency rank
+      const sortedMatrixRows = [...MATRIX_ROWS].sort((a, b) => {
+        const rankA = condOptions.findIndex(o => o.value === a);
+        const rankB = condOptions.findIndex(o => o.value === b);
+        const finalA = rankA === -1 ? 9999 : rankA;
+        const finalB = rankB === -1 ? 9999 : rankB;
+        return finalA - finalB;
+      });
+
+      const data = buildMatrixData();
+      // matrixMeta.textContent = `${allRows.length} variants`;
+
+      matrixBody.innerHTML = "";
+      const frag = document.createDocumentFragment();
+
+      for (const rowLabel of sortedMatrixRows){
+        const tr = document.createElement("tr");
+
+        const th = document.createElement("th");
+        th.className = "rowHead";
+        th.textContent = rowLabel;
+        tr.appendChild(th);
+
+        for (const col of MATRIX_COLS){
+          const td = document.createElement("td");
+          const m = data.get(rowLabel).get(col.key);
+
+          // Variants in each cell are sorted by their submission count for this specific row condition
+          const variants = Array.from(m.values()).sort((a,b) => {
+            if (b.assoc.totalSubmissions !== a.assoc.totalSubmissions) return b.assoc.totalSubmissions - a.assoc.totalSubmissions;
+            if (b.assoc.matchCount !== a.assoc.matchCount) return b.assoc.matchCount - a.assoc.matchCount;
+            return variantLabelShort(a.row).localeCompare(variantLabelShort(b.row));
+          });
+
+          const cell = document.createElement("div");
+          cell.className = "cell";
+
+          const top = document.createElement("div");
+          top.className = "cellTop";
+
+          const count = document.createElement("div");
+          count.className = "cellCount";
+          count.textContent = String(variants.length);
+
+          const meta = document.createElement("div");
+          meta.className = "cellMeta mono";
+          meta.textContent = "unique";
+
+          top.appendChild(count);
+          top.appendChild(meta);
+
+          const listWrap = document.createElement("div");
+          listWrap.className = "cellVariants";
+
+          const shown = variants.slice(0, CELL_VARIANT_LIMIT);
+          for (const v of shown){
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "vChip";
+            btn.title = `Submissions for this condition: ${v.assoc.totalSubmissions} (across ${v.assoc.matchCount} RCVs)`;
+            btn.textContent = variantLabelShort(v.row);
+            btn.addEventListener("click", () => openVariantDetails(v.row));
+            listWrap.appendChild(btn);
+          }
+
+          cell.appendChild(top);
+          cell.appendChild(listWrap);
+
+          if (variants.length > CELL_VARIANT_LIMIT){
+            const details = document.createElement("details");
+            details.className = "cellDetails";
+            const summary = document.createElement("summary");
+            summary.textContent = `… show ${variants.length - CELL_VARIANT_LIMIT} more`;
+            details.appendChild(summary);
+
+            const moreBox = document.createElement("div");
+            moreBox.className = "cellVariants";
+            moreBox.style.marginTop = "8px";
+
+            for (const v of variants.slice(CELL_VARIANT_LIMIT)){
+              const btn = document.createElement("button");
+              btn.type = "button";
+              btn.className = "vChip";
+              btn.title = `Submissions for this condition: ${v.assoc.totalSubmissions} (across ${v.assoc.matchCount} RCVs)`;
+              btn.textContent = variantLabelShort(v.row);
+              btn.addEventListener("click", () => openVariantDetails(v.row));
+              moreBox.appendChild(btn);
+            }
+
+            details.appendChild(moreBox);
+            cell.appendChild(details);
+          }
+
+          td.appendChild(cell);
+          tr.appendChild(td);
+        }
+
+        frag.appendChild(tr);
+      }
+
+      matrixBody.appendChild(frag);
+    }
+
+    /**
+     * Renders cumulative classification chart using Plotly
+     * Updated to accept an optional 'rows' parameter to handle filtered data.
+     */
+    // ---- Timeline chart mode + listeners (FULL REPLACEMENT) ----
+// Requires these existing helpers from your file:
+//   asArray, safeGet, uniq, parseDateToMs, norm
+// Also expects your header toggle buttons exist:
+//   <button id="toggleByClass" ...>
+//   <button id="toggleByCond" ...>
+
+    let timelineMode = "classification"; // "classification" | "condition"
+
+    function setTimelineMode(mode){
+      timelineMode = (mode === "condition") ? "condition" : "classification";
+
+      const byClass = document.getElementById("toggleByClass");
+      const byCond  = document.getElementById("toggleByCond");
+
+      if (byClass) byClass.setAttribute("aria-pressed", timelineMode === "classification" ? "true" : "false");
+      if (byCond)  byCond.setAttribute("aria-pressed",  timelineMode === "condition" ? "true" : "false");
+
+      // Re-render using the current filtered set
+      renderTimelineChart(lastFilteredRows);
+    }
+
+    // Wire listeners once
+    (function initTimelineToggles(){
+      const byClass = document.getElementById("toggleByClass");
+      const byCond  = document.getElementById("toggleByCond");
+      if (byClass) byClass.addEventListener("click", () => setTimelineMode("classification"));
+      if (byCond)  byCond.addEventListener("click", () => setTimelineMode("condition"));
+    })();
+
+    /**
+     * Builds earliest+latest timeline events per variant, and provides:
+     *  - firstMs: earliest evaluated date
+     *  - sigAtFirst: normalized clinical significance at earliest
+     *  - sigAtLast: normalized clinical significance at latest
+     *  - conds: unique list of conditions across all RCVs
+     */
+    function buildVariantTimelineFacts(row){
+      const rcvs = asArray(row.rawClinvar?.rcv);
+
+      let firstMs = null;
+      let lastMs = null;
+      let sigAtFirst = "";
+      let sigAtLast = "";
+
+      const condSet = new Set();
+
+      for (const r of rcvs){
+        // date
+        const ms = parseDateToMs(r?.last_evaluated);
+        if (ms != null){
+          if (firstMs == null || ms < firstMs){
+            firstMs = ms;
+            sigAtFirst = norm(r?.clinical_significance);
+          }
+          if (lastMs == null || ms > lastMs){
+            lastMs = ms;
+            sigAtLast = norm(r?.clinical_significance);
+          }
+        }
+
+        // conditions (keep light/robust)
+        const condArr = asArray(r?.conditions);
+        for (const c of condArr){
+          const name =
+            (typeof c === "string") ? c :
+            safeGet(c, "name", null) ??
+            safeGet(c, "preferred_name", null) ??
+            safeGet(c, "label", null);
+
+          if (name && String(name).trim()) condSet.add(String(name).trim());
+        }
+      }
+
+      if (firstMs == null) return null;
+
+      return {
+        id: row.id,
+        firstMs,
+        lastMs: lastMs ?? firstMs,
+        sigAtFirst,
+        sigAtLast,
+        conds: Array.from(condSet.values())
+      };
+    }
+
+    function renderTimelineChart(rows) {
+      const dataRows = rows || lastFilteredRows || [];
+      const chartDiv = document.getElementById("plotlyChart");
+
+      if (!dataRows.length || typeof Plotly === "undefined") {
+        chartDiv.innerHTML =
+          '<div class="help" style="text-align:center; padding:50px;">If this isnt loading try <a href="https://raw.githack.com/mitchalexbailey/temp/main/galns_js-only.html" target="_blank">this alternate link</a></div>';
+        return;
+      }
+
+      // ---- Common: extract per-variant facts (first/last dates + labels) ----
+      const facts = [];
+      for (const row of dataRows){
+        const f = buildVariantTimelineFacts(row);
+        if (f) facts.push(f);
+      }
+
+      if (!facts.length){
+        chartDiv.innerHTML =
+          '<div class="help" style="text-align:center; padding:50px;">If this isnt loading try <a href="https://raw.githack.com/mitchalexbailey/temp/main/galns_js-only.html" target="_blank">this alternate link</a></div>';
+        return;
+      }
+
+      // ---- Build events depending on mode ----
+      // Each event contributes to "current live set" of variants for that mode.
+      // After sorting events, we walk chronologically and record cumulative counts.
+      const events = [];
+
+      // ========= Mode 1: BY CLASSIFICATION (your original stacked categories) =========
+      const categories = [
+        { label: "Pathogenic / Likely Pathogenic", match: "pathogenic", color: "#ED037C" },
+        { label: "VUS", match: "uncertain", color: "#7C2F90" },
+        { label: "Benign / Likely Benign", match: "benign", color: "#28509C" },
+        { label: "Conflicting / Other", match: "", color: "#A0A0A0" }
+      ];
+
+      // ========= Mode 2: BY CONDITION (top N conditions among filtered rows) =========
+      // We'll stack Top 6 conditions by frequency (within filtered data), plus "Other".
+      const TOP_N_CONDITIONS = 6;
+
+      function buildTopConditions(){
+        const counts = new Map();
+        for (const f of facts){
+          for (const c of f.conds){
+            counts.set(c, (counts.get(c) || 0) + 1);
+          }
+        }
+        const sorted = Array.from(counts.entries())
+          .sort((a,b) => (b[1] - a[1]) || a[0].localeCompare(b[0]))
+          .slice(0, TOP_N_CONDITIONS)
+          .map(([name]) => name);
+
+        // Palette for conditions (pleasant, distinct; uses your existing theme colors + neutrals)
+        // If you want strict palette control, swap these.
+        const palette = ["#28509C", "#ED037C", "#7C2F90", "#272D72", "#A9208E", "#A0A0A0"];
+
+        const condCats = sorted.map((name, i) => ({
+          label: name,
+          key: name,
+          color: palette[i % palette.length]
+        }));
+
+        condCats.push({ label: "Other", key: "__OTHER__", color: "#A0A0A0" });
+        return condCats;
+      }
+
+      // Create events:
+      if (timelineMode === "classification"){
+        for (const f of facts){
+          // add at first
+          events.push({ t: f.firstMs, id: f.id, kind: "add", sig: f.sigAtFirst });
+
+          // change at last (only if differs and last != first)
+          if (f.lastMs != null && f.lastMs !== f.firstMs && f.sigAtLast && f.sigAtLast !== f.sigAtFirst){
+            events.push({ t: f.lastMs, id: f.id, kind: "change", sig: f.sigAtLast });
+          }
+        }
+      } else {
+        // By condition: each variant belongs to 1 bucket: top condition (first matching) or Other.
+        const condCats = buildTopConditions();
+        const topSet = new Set(condCats.filter(c => c.key !== "__OTHER__").map(c => c.key));
+
+        for (const f of facts){
+          // Determine bucket for this variant (pick the "best" condition deterministically)
+          // If multiple conds: prefer ones in top set; if multiple in top set, alphabetical
+          const conds = (f.conds || []).slice();
+          let bucket = "__OTHER__";
+          const topMatches = conds.filter(c => topSet.has(c)).sort((a,b) => a.localeCompare(b));
+          if (topMatches.length) bucket = topMatches[0];
+
+          // Store bucket on events
+          events.push({ t: f.firstMs, id: f.id, kind: "add", bucket });
+          // No "change" concept here (unless you want “condition changes over time”, which your data doesn’t really imply)
+        }
+
+        // Attach condCats so we can use them later
+        renderTimelineChart.__condCats = condCats;
+      }
+
+      events.sort((a,b) => a.t - b.t);
+
+      // ---- Walk events and create timeline points ----
+      const timeline = [];
+
+      if (timelineMode === "classification"){
+        const currentStates = new Map(); // id -> category index
+
+        for (const ev of events){
+          const catIdx = categories.findIndex(c => (ev.sig || "").includes(c.match));
+          const finalIdx = (catIdx === -1) ? (categories.length - 1) : catIdx;
+
+          currentStates.set(ev.id, finalIdx);
+
+          const counts = new Array(categories.length).fill(0);
+          currentStates.forEach(idx => { counts[idx] += 1; });
+
+          timeline.push({ date: new Date(ev.t), counts });
+        }
+
+        if (!timeline.length){
+          chartDiv.innerHTML =
+            '<div class="help" style="text-align:center; padding:50px;">Insufficient date information to build timeline.</div>';
+          return;
+        }
+
+        const traces = categories.map((cat, i) => ({
+          x: timeline.map(t => t.date),
+          y: timeline.map(t => t.counts[i]),
+          name: cat.label,
+          type: "scatter",
+          mode: "lines",
+          stackgroup: "one",
+          line: { color: cat.color, width: 2 },
+          fillcolor: cat.color + "44"
+        }));
+
+        const maxDate = timeline[timeline.length - 1].date;
+
+        const layout = {
+          margin: { l: 40, r: 20, t: 30, b: 40 },
+          hovermode: "x unified",
+          paper_bgcolor: "rgba(0,0,0,0)",
+          plot_bgcolor: "rgba(0,0,0,0)",
+          font: { family: "var(--mono)" },
+          showlegend: true,
+          legend: {
+            orientation: "v",
+            x: 0.01,
+            y: 0.99,
+            xanchor: "left",
+            yanchor: "top",
+            bgcolor: "rgba(0,0,0,0)"
+          },
+          xaxis: {
+            showgrid: false,
+            zeroline: false,
+            rangeslider: { visible: true, thickness: 0.05 },
+            range: [ new Date("2010-01-01"), maxDate ]
+          },
+          yaxis: {
+            showgrid: false,
+            zeroline: false,
+            title: "Cumulative Variants"
+          }
+        };
+
+        Plotly.newPlot("plotlyChart", traces, layout, { responsive: true, displayModeBar: false });
+        return;
+      }
+
+      // ---- Condition mode timeline ----
+      const condCats = renderTimelineChart.__condCats || [];
+      const keyToIdx = new Map(condCats.map((c, i) => [c.key, i]));
+
+      const currentBuckets = new Map(); // id -> bucket key
+
+      for (const ev of events){
+        currentBuckets.set(ev.id, ev.bucket);
+
+        const counts = new Array(condCats.length).fill(0);
+        currentBuckets.forEach(bucketKey => {
+          const idx = keyToIdx.get(bucketKey) ?? keyToIdx.get("__OTHER__");
+          if (idx != null) counts[idx] += 1;
+        });
+
+        timeline.push({ date: new Date(ev.t), counts });
+      }
+
+      if (!timeline.length){
+        chartDiv.innerHTML =
+          '<div class="help" style="text-align:center; padding:50px;">Insufficient date information to build timeline.</div>';
+        return;
+      }
+
+      const traces = condCats.map((cat, i) => ({
+        x: timeline.map(t => t.date),
+        y: timeline.map(t => t.counts[i]),
+        name: cat.label,
+        type: "scatter",
+        mode: "lines",
+        stackgroup: "one",
+        line: { color: cat.color, width: 2 },
+        fillcolor: cat.color + "44"
+      }));
+
+      const maxDate = timeline[timeline.length - 1].date;
+
+      const layout = {
+        margin: { l: 40, r: 20, t: 30, b: 40 },
+        hovermode: "x unified",
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        font: { family: "var(--mono)" },
+        showlegend: true,
+        legend: {
+          orientation: "v",
+          x: 0.01,
+          y: 0.99,
+          xanchor: "left",
+          yanchor: "top",
+          bgcolor: "rgba(0,0,0,0)"
+        },
+        xaxis: {
+          showgrid: false,
+          zeroline: false,
+          rangeslider: { visible: true, thickness: 0.05 },
+          range: [ new Date("2010-01-01"), maxDate ]
+        },
+        yaxis: {
+          showgrid: false,
+          zeroline: false,
+          title: "Cumulative Variants"
+        }
+      };
+
+      Plotly.newPlot("plotlyChart", traces, layout, { responsive: true, displayModeBar: false });
+    }
+    // end chart //
+
+    // ---- Main table render ----
+    function renderTable(rows){
+      tbody.innerHTML = "";
+      if (!rows.length){
+        tbody.innerHTML = `<tr><td colspan="6" class="small">No rows match the current filters.</td></tr>`;
+        return;
+      }
+
+      const frag = document.createDocumentFragment();
+
+      for (const r of rows){
+        const tr = document.createElement("tr");
+        tr.className = "rowclick";
+        tr.tabIndex = 0;
+
+        tr.addEventListener("click", () => openVariantDetails(r));
+        tr.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " "){
+            e.preventDefault();
+            openVariantDetails(r);
+          }
+        });
+
+        const td0 = document.createElement("td");
+        const pref = r.preferredName
+          ? `<div class="v-preferred mono">${escapeHtml(r.preferredName)}</div>`
+          : `<div class="v-preferred">—</div>`;
+        const coords = r.coords
+          ? `<div class="v-coords">${escapeHtml(r.coords)}</div>`
+          : `<div class="v-coords">—</div>`;
+        const gene = `<div class="v-gene">gene: <span class="mono">${escapeHtml(r.geneSymbol)}</span></div>`;
+        td0.innerHTML = pref + coords + gene;
+        tr.appendChild(td0);
+
+        const td1 = document.createElement("td");
+        const variationIdStr = (r.variationId && r.variationId !== "—") 
+          ? `<a class="mono" href="${buildClinVarLink(r.variationId)}" target="_blank" rel="noopener">${escapeHtml(r.variationId)}</a>` 
+          : `<span class="mono">—</span>`;
+        
+        const evidenceCounts = `
+          <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">
+            <span class="count-pill">${r.rcvCount} RCVs</span>
+            <span class="count-pill scv-pill">${r.scvTotal} SCVs</span>
+          </div>
+        `;
+
+        td1.innerHTML = variationIdStr + evidenceCounts;
+        tr.appendChild(td1);
+
+        const td2 = document.createElement("td");
+        td2.innerHTML = r.sigs.length
+          ? r.sigs.map(sig => {
+              const f = formatSig(sig);
+              return `<div class="sig ${f.cls}">${escapeHtml(String(f.text))}</div>`;
+            }).join("")
+          : "—";
+        tr.appendChild(td2);
+
+        const td3 = document.createElement("td");
+        td3.innerHTML = r.conditions.length
+          ? r.conditions.slice(0, 10).map(c => `<span class="tag">${escapeHtml(c.name)} (${c.count})</span>`).join("")
+            + (r.conditions.length > 10 ? `<div class="help">+ ${r.conditions.length - 10} more…</div>` : "")
+          : "—";
+        tr.appendChild(td3);
+
+        const td4 = document.createElement("td");
+        const reviewTxt = r.review.length ? r.review.join(" • ") : "—";
+        const subTxt = r.submitters.length ? r.submitters.join(", ") : "—";
+        td4.innerHTML = `<div>${escapeHtml(reviewTxt)}</div><div class="help">submitters: ${escapeHtml(subTxt)}</div>`;
+        tr.appendChild(td4);
+
+        const td5 = document.createElement("td");
+        td5.textContent = r.lastEval;
+        tr.appendChild(td5);
+
+        frag.appendChild(tr);
+      }
+
+      tbody.appendChild(frag);
+    }
+
+    // ---- Modal ----
+    function kvRow(k, vHtml){
+      const tr = document.createElement("tr");
+      const tdK = document.createElement("td");
+      const tdV = document.createElement("td");
+      tdK.textContent = k;
+      tdV.innerHTML = vHtml;
+      tr.appendChild(tdK);
+      tr.appendChild(tdV);
+      return tr;
+    }
+    function joinOrDash(arr){ return (arr && arr.length) ? arr.join(" • ") : "—"; }
+
+    function isVUSRow(row){
+      const sigs = (row?.sigs || []).map(s => norm(s));
+      return sigs.some(s => s.includes("uncertain") || s.includes("vus"));
+    }
+
+    function resetContributionUI(){
+      contribWrap.style.display = "none";
+      contribCard.classList.remove("show");
+      contribHint.textContent = "";
+      cName.value = "";
+      cEmail.value = "";
+      cAffil.value = "";
+      cNote.value = "";
+    }
+
+    function openVariantDetails(row){
+      currentModalRow = row;
+      const raw = row.rawClinvar || null;
+      const variationId = row.variationId && row.variationId !== "—" ? row.variationId : null;
+      const clinvarLink = variationId ? buildClinVarLink(variationId) : null;
+
+      modalTitle.innerHTML = `Variant <span class="mono">${escapeHtml(row.id)}</span>`;
+      modalSubtitle.innerHTML = clinvarLink
+        ? `ClinVar variation: <a class="mono" href="${clinvarLink}" target="_blank" rel="noopener">${escapeHtml(variationId)}</a>`
+        : `ClinVar variation: —`;
+
+      resetContributionUI();
+      if (isVUSRow(row)){
+        contribWrap.style.display = "block";
+      }
+
+      basicTable.innerHTML = "";
+      basicTable.appendChild(kvRow("MyVariant _id", `<span class="mono">${escapeHtml(row.id)}</span>`));
+      basicTable.appendChild(kvRow("Gene", `<span class="mono">${escapeHtml(row.geneSymbol)}</span>`));
+      basicTable.appendChild(kvRow("ClinVar variation_id", variationId
+        ? `<a class="mono" href="${clinvarLink}" target="_blank" rel="noopener">${escapeHtml(variationId)}</a>`
+        : "—"
+      ));
+      basicTable.appendChild(kvRow("Coordinates", row.coords ? `<span class="mono">${escapeHtml(row.coords)}</span>` : "—"));
+      basicTable.appendChild(kvRow("Preferred name (RCV recency)", row.preferredName ? `<span class="mono">${escapeHtml(row.preferredName)}</span>` : "—"));
+      basicTable.appendChild(kvRow("Clinical significance (unique)", escapeHtml(joinOrDash(row.sigs))));
+      basicTable.appendChild(kvRow("Review status (unique)", escapeHtml(joinOrDash(row.review))));
+      basicTable.appendChild(kvRow("Last evaluated (most recent)", escapeHtml(row.lastEval)));
+      basicTable.appendChild(kvRow("Conditions (unique, with submission counts)", row.conditions.length
+        ? row.conditions.map(c => `<span class="tag">${escapeHtml(c.name)} (${c.count})</span>`).join(" ")
+        : "—"
+      ));
+
+      rawJson.textContent = raw ? JSON.stringify(raw, null, 2) : "null";
+
+      const rcvArr = [...asArray(safeGet(raw, "rcv", null))];
+      rcvArr.sort((a, b) => {
+        const dateA = parseDateToMs(safeGet(a, "last_evaluated", null) || safeGet(a, "date_last_evaluated", null));
+        const dateB = parseDateToMs(safeGet(b, "last_evaluated", null) || safeGet(b, "date_last_evaluated", null));
+        return dateB - dateA;
+      });
+
+      rcvTable.innerHTML = "";
+      const headers = ["RCV Accession","Clinical significance","Conditions","Last evaluated","Submissions"];
+      const thead = document.createElement("thead");
+      const hr = document.createElement("tr");
+      headers.forEach(h => {
+        const th = document.createElement("th");
+        th.textContent = h;
+        hr.appendChild(th);
+      });
+      thead.appendChild(hr);
+      rcvTable.appendChild(thead);
+
+      const tb = document.createElement("tbody");
+      if (!rcvArr.length){
+        tb.innerHTML = `<tr><td colspan="${headers.length}" class="help">No RCV records found.</td></tr>`;
+      } else {
+        rcvArr.forEach(rcv => {
+          const rcvId = safeGet(rcv, "accession", null) || safeGet(rcv, "id", null) || "—";
+          const tr = document.createElement("tr");
+          tr.className = "rowclick";
+          tr.style.cursor = "pointer";
+          tr.title = "Click to load SCVs for this RCV";
+          tr.addEventListener("click", () => getSCVsForRCV(rcvId));
+
+          const sig = safeGet(rcv, "clinical_significance", null);
+          const f = formatSig(sig);
+          const conds = uniq(extractConditionsFromRcv(rcv));
+
+          tr.innerHTML = `
+            <td><span class="mono" style="color:var(--c1); font-weight:800">${escapeHtml(String(rcvId))} ↳</span></td>
+            <td><span class="sig ${f.cls}">${escapeHtml(String(sig || "—"))}</span></td>
+            <td>${conds.length ? conds.map(c => `<span class="tag">${escapeHtml(c)}</span>`).join(" ") : "—"}</td>
+            <td class="small">${escapeHtml(safeGet(rcv, "last_evaluated", "—"))}</td>
+            <td class="mono" style="text-align:center">${rcv.number_submitters || "—"}</td>
+          `;
+          tb.appendChild(tr);
+        });
+      }
+      rcvTable.appendChild(tb);
+
+      document.getElementById("scvStatus").innerHTML = "Select an RCV above to view individual evidence details...";
+      document.getElementById("scvTableBody").innerHTML = '<tr><td colspan="5" class="help">No RCV selected.</td></tr>';
+
+      overlay.classList.add("show");
+      document.body.style.overflow = "hidden";
+      document.getElementById("modal").focus();
+    }
+
+    function closeModal(){
+      overlay.classList.remove("show");
+      document.body.style.overflow = "";
+      currentModalRow = null;
+      resetContributionUI();
+    }
+    document.getElementById("closeModal").addEventListener("click", closeModal);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && overlay.classList.contains("show")) closeModal();
+    });
+
+    const TO_PLACEHOLDER = "TEST_SUCCESS";
+    function encodeMailto(s){ return encodeURIComponent(String(s || "")); }
+    function buildVariantSubject(row){
+      const mvId = row?.id ? `MyVariant:${row.id}` : "";
+      const cvId = (row?.variationId && row.variationId !== "—") ? `ClinVar:${row.variationId}` : "";
+      const pieces = [cvId, mvId].filter(Boolean);
+      return pieces.length ? pieces.join(" | ") : "Variant";
+    }
+
+    function buildContributionEmail({ row, name, email, affil, note }){
+      const subj = `Evidence contribution (${buildVariantSubject(row)})`;
+      const clinvarVarId = (row?.variationId && row.variationId !== "—") ? row.variationId : "";
+      const clinvarLink = clinvarVarId ? `https://www.ncbi.nlm.nih.gov/clinvar/variation/${encodeURIComponent(clinvarVarId)}/` : "";
+      const bodyLines = [
+        "Evidence contribution (placeholder)",
+        "----------------------------------",
+        `Variant subject: ${buildVariantSubject(row)}`,
+        `Preferred name: ${row?.preferredName || "—"}`,
+        `ClinVar variation_id: ${clinvarVarId || "—"}`,
+        `ClinVar link: ${clinvarLink || "—"}`,
+        `MyVariant _id: ${row?.id || "—"}`,
+        "",
+        "Contributor details",
+        "-------------------",
+        `Name: ${name}`,
+        `Email: ${email}`,
+        `Affiliation: ${affil || "—"}`,
+        "",
+        "Notes",
+        "-----",
+        note,
+        "",
+        "(Generated from the GALNS variant detail modal)"
+      ];
+      return `mailto:${encodeMailto(TO_PLACEHOLDER)}?cc=${encodeMailto(email)}&subject=${encodeMailto(subj)}&body=${encodeMailto(bodyLines.join("\n"))}`;
+    }
+
+    contribBtn.addEventListener("click", () => {
+      contribCard.classList.toggle("show");
+      contribHint.textContent = "";
+      if (contribCard.classList.contains("show")){
+        setTimeout(() => cName.focus(), 0);
+      }
+    });
+
+    contribForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!currentModalRow){
+        contribHint.textContent = "No variant selected.";
+        return;
+      }
+      const name = cName.value.trim();
+      const email = cEmail.value.trim();
+      const affil = cAffil.value.trim();
+      const note = cNote.value.trim();
+      if (!name || !email || !note){
+        contribHint.textContent = "Please fill in Name, Email, and Notes.";
+        return;
+      }
+      window.location.href = buildContributionEmail({ row: currentModalRow, name, email, affil, note });
+      contribHint.textContent = "Opening your default email app…";
+    });
+
+    contribCancel.addEventListener("click", () => {
+      contribCard.classList.remove("show");
+      contribHint.textContent = "";
+    });
+
+    function downloadBlob({ data, filename, mime }){
+      const blob = new Blob([data], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 800);
+    }
+
+    function buildExportMeta(){
+      const q = filterEl.value.trim();
+      const sigs = selectedValues(sigSelected);
+      const conds = selectedValues(condSelected);
+      return {
+        exported_at: new Date().toISOString(),
+        gene: "GALNS",
+        filters: { clinical_significance: sigs, condition: conds, text: q || null }
+      };
+    }
+
+    function exportAsJson(){
+      if (!allRows.length) return;
+      const rows = lastFilteredRows || [];
+      const meta = buildExportMeta();
+      const payload = { meta, count: rows.length, rows: rows.map(r => ({ ...r, clinvar: r.rawClinvar })) };
+      const dateTag = meta.exported_at.replaceAll(":", "").replaceAll("-", "").slice(0, 15);
+      downloadBlob({ data: JSON.stringify(payload, null, 2), filename: `GALNS_filtered_${dateTag}.json`, mime: "application/json" });
+    }
+
+    function csvEscape(v){
+      const s = (v == null) ? "" : String(v);
+      const needs = /[",\n\r]/.test(s);
+      const esc = s.replaceAll('"', '""');
+      return needs ? `"${esc}"` : esc;
+    }
+
+    function exportAsCsv(){
+      if (!allRows.length) return;
+      const rows = lastFilteredRows || [];
+      const header = ["preferred_name","coords","clinvar_id","significance","conditions","rcv_count","scv_count","last_evaluated","id"];
+      const lines = [header.map(csvEscape).join(",")];
+      rows.forEach(r => {
+        lines.push([
+          r.preferredName || "",
+          r.coords || "",
+          r.variationId || "",
+          (r.sigs || []).join(" | "),
+          (r.conditions || []).map(c => `${c.name} (${c.count})`).join(" | "),
+          r.rcvCount,
+          r.scvTotal,
+          r.lastEval,
+          r.id
+        ].map(csvEscape).join(","));
+      });
+      const meta = buildExportMeta();
+      const dateTag = meta.exported_at.replaceAll(":", "").replaceAll("-", "").slice(0, 15);
+      downloadBlob({ data: lines.join("\n"), filename: `GALNS_filtered_${dateTag}.csv`, mime: "text/csv" });
+    }
+
+    btnExportJson.addEventListener("click", exportAsJson);
+    btnExportCsv.addEventListener("click", exportAsCsv);
+
+    async function fetchPage({ from, size, signal }){
+      const url = new URL(API_BASE);
+      url.searchParams.set("q", QUERY);
+      url.searchParams.set("fields", FIELDS);
+      url.searchParams.set("from", String(from));
+      url.searchParams.set("size", String(size));
+      const res = await fetch(url.toString(), { method:"GET", headers:{ "Accept":"application/json" }, signal });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    }
+
+    function resetStateForLoad(){
+      controller = null;
+      allRows = [];
+      totalHits = null;
+      sigCounts = new Map();
+      condCounts = new Map();
+      lastFilteredRows = [];
+      sigOptions = [];
+      condOptions = [];
+      sigSelected = new Set(["__ALL__"]);
+      condSelected = new Set(["__ALL__"]);
+      totalEl.textContent = "—";
+      fetchedEl.textContent = "0";
+      topShowing.textContent = "—";
+      tbody.innerHTML = `<tr><td colspan="6" class="small">Loading…</td></tr>`;
+      activeFiltersEl.innerHTML = "Loading…";
+      matrixBody.innerHTML = `<tr><td colspan="3" class="help">Loading…</td></tr>`;
+      sigPills.innerHTML = "";
+      condPills.innerHTML = "";
+      document.getElementById('plotlyChart').innerHTML = '<div class="help" style="text-align: center; padding: 50px;">If this isnt loading try <a href="https://raw.githack.com/mitchalexbailey/temp/main/galns_js-only.html" target="_blank">this link</a> instead</div>';
+    }
+
+    function setLoadingUI(loading){
+      btnRefresh.disabled = loading;
+      btnTopRefresh.disabled = loading;
+      btnStop.disabled = !loading;
+      pageSizeEl.disabled = loading;
+    }
+
+    async function loadAllData(){
+      resetStateForLoad();
+      setLoadingUI(true);
+      controller = new AbortController();
+      const signal = controller.signal;
+      const size = parseInt(pageSizeEl.value, 10);
+      let from = 0;
+
+      try{
+        setStatus("Loading data...");
+        while (true){
+          const data = await fetchPage({ from, size, signal });
+          if (totalHits == null){
+            totalHits = data?.total ?? 0;
+            totalEl.textContent = String(totalHits);
+          }
+          const hits = Array.isArray(data?.hits) ? data.hits : [];
+          if (!hits.length) break;
+          hits.forEach(hit => allRows.push(summarizeClinVar(hit)));
+          from += hits.length;
+          fetchedEl.textContent = String(from);
+          if (totalHits && from >= totalHits) break;
+        }
+
+        buildCounts();
+        sigOptions = sortByFrequencyThenAlpha(sigCounts);
+        condOptions = sortByFrequencyThenAlpha(condCounts);
+
+        if (!window.__filtersWired){
+          window.__filtersWired = true;
+          filterEl.addEventListener("input", applyFiltersAndRender);
+          sigSearch.addEventListener("input", () => renderMS({ options: sigOptions, selected: sigSelected, listEl: sigList, pillsEl: sigPills, searchText: sigSearch.value }));
+          condSearch.addEventListener("input", () => renderMS({ options: condOptions, selected: condSelected, listEl: condList, pillsEl: condPills, searchText: condSearch.value }));
+        }
+
+        // const target = INITIAL_CONDITION_FUZZY.toLowerCase();
+        // condOptions.forEach(o => { if (o.value.toLowerCase().includes(target)) condSelected.add(o.value); });
+        // if (condSelected.size > 1) condSelected.delete("__ALL__");
+
+        renderMS({ options: sigOptions, selected: sigSelected, listEl: sigList, pillsEl: sigPills, searchText: sigSearch.value });
+        renderMS({ options: condOptions, selected: condSelected, listEl: condList, pillsEl: condPills, searchText: condSearch.value });
+
+        renderMatrix();
+        applyFiltersAndRender(); // This will trigger renderTimelineChart with initial filter
+        setStatus("Ready");
+        setLoadingUI(false);
+      } catch(err){
+        if (err.name === "AbortError") setStatus("Stopped.");
+        else setStatus(`Error: ${err.message}`);
+        setLoadingUI(false);
+      }
+    }
+
+    btnRefresh.addEventListener("click", loadAllData);
+    btnTopRefresh.addEventListener("click", loadAllData);
+    btnStop.addEventListener("click", () => controller && controller.abort());
+
+    document.getElementById('btnScrollBottom').onclick = () => {
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+    };
+
+    mainDetails.addEventListener("toggle", () => {
+      const summaryRight = mainDetails.querySelector(".summaryRight");
+      if (summaryRight) summaryRight.textContent = mainDetails.open ? "▾ collapse" : "▸ expand";
+    });
+
+    matrixDetails.addEventListener("toggle", () => {
+      const summaryRight = matrixDetails.querySelector(".summaryRight");
+      if (summaryRight) summaryRight.textContent = matrixDetails.open ? "▾ collapse" : "▸ expand"
+    });
+
+    chartDetails.addEventListener("toggle", () => {
+      const summaryRight = chartDetails.querySelector(".summaryRight");
+      if (summaryRight) {
+        summaryRight.textContent = chartDetails.open ? "▾ collapse" : "▸ expand"
+        if (chartDetails.open) renderTimelineChart(lastFilteredRows);
+      }
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+      initSidebarDefault();
+      loadAllData();
+    });
+    window.addEventListener("resize", initSidebarDefault);
+    btnHamburger.addEventListener("click", toggleSidebar);
+  </script>
+</body>
+</html>
