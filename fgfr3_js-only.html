@@ -501,9 +501,11 @@
       color:var(--c3);
       padding:6px 10px;
       border-radius:999px;
-      font-size:12px;
+      font-size:10px;
       cursor:pointer;
       max-width: 100%;
+      /* mitch */
+      font-family:var(--mono);
     }
     .vChip:hover{
       border-color: rgba(237,3,124,0.45);
@@ -588,7 +590,7 @@
     .rowclick{ cursor:pointer; }
     .rowclick:hover{ background:rgba(237,3,124,0.06) !important; }
 
-    .v-preferred{ font-weight:950; color:var(--c3); font-size:12.5px; line-height:1.25; margin-bottom:4px; }
+    .v-preferred{ font-weight:750; color:var(--c3); font-size:12.5px; line-height:1.25; margin-bottom:4px; }
     .v-coords{ font-family:var(--mono); font-size:11.5px; color:var(--black); opacity:.88; margin-bottom:2px; }
     .v-gene{ font-size:11px; color:#555; }
     .tag{
@@ -648,6 +650,26 @@
     .closebtn:hover{ border-color: rgba(237,3,124,0.45); color: var(--c2); }
     .modalbody{ padding:12px 14px 16px; }
 
+    /* Evidence Pills for Summary Table */
+    .count-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+      background: rgba(40,80,156,0.08);
+      color: var(--c1);
+      border: 1px solid rgba(40,80,156,0.15);
+      white-space: nowrap;
+    }
+    .scv-pill {
+      background: rgba(237,3,124,0.06);
+      color: var(--c2);
+      border-color: rgba(237,3,124,0.15);
+    }
+
     /* VUS contribution UI */
     .contribWrap{ margin-bottom:12px; }
     .contribBtn{
@@ -665,24 +687,104 @@
       border-color: rgba(237,3,124,0.55);
       box-shadow: 0 14px 34px rgba(237,3,124,0.16);
     }
+    /* Contribution card is collapsed by default; toggled via .show */
     .contribCard{
+      display:none;
       margin-top:10px;
-      border:1px solid var(--border);
-      border-radius:16px;
       padding:12px;
+      border:1px solid rgba(0,0,0,0.14);
+      border-radius:16px;
       background:#fff;
       box-shadow: 0 10px 24px rgba(0,0,0,0.05);
-      display:none;
     }
     .contribCard.show{ display:block; }
 
+    .contribCard textarea{
+      width:100%;
+      min-height: 142px; /* will align with 3 stacked inputs (see below) */
+      resize: vertical;
+      border:1px solid rgba(0,0,0,0.16);
+      border-radius:14px;
+      padding:12px;
+      font-family:var(--mono);
+      font-size:12px;
+      line-height:1.35;
+      outline:none;
+      background:#fff;
+      display:block;
+    }
+    .contribCard textarea:focus{
+      border-color: rgba(40,80,156,0.55);
+      box-shadow: 0 0 0 3px rgba(40,80,156,0.12);
+    }
+
+    /* 2 columns:
+       - col1: 3 equal rows (Name/Email/Affiliation)
+       - col2: Notes spans all 3 rows; top aligns with Name label, bottom aligns with Affiliation input bottom */
     .contribGrid{
       display:grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr; /* two columns */
+      grid-template-rows: 1fr 1fr 1fr; /* three equal rows in col1 */
       gap:10px;
+      align-items:stretch; /* ensures Notes spans full height */
     }
+
+    /* Field container */
+    .contribField{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:0;
+    }
+
+    /* Put Name/Email/Affil each in its own row in column 1 */
+    .fieldName{ grid-column:1; grid-row:1; }
+    .fieldEmail{ grid-column:1; grid-row:2; }
+    .fieldAffil{ grid-column:1; grid-row:3; }
+
+    /* Notes occupies column 2 and spans all rows */
+    .fieldNote{ grid-column:2; grid-row:1 / span 3; }
+
+    /* Consistent input sizing so the three rows are identical */
+    .contribCard input[type="text"],
+    .contribCard input[type="email"]{
+      width:100%;
+      border:1px solid rgba(0,0,0,0.16);
+      border-radius:14px;
+      padding:12px;
+      font-size:14px;
+      line-height:1.25;
+      outline:none;
+      background:#fff;
+    }
+    .contribCard input[type="text"]:focus,
+    .contribCard input[type="email"]:focus{
+      border-color: rgba(40,80,156,0.55);
+      box-shadow: 0 0 0 3px rgba(40,80,156,0.12);
+    }
+
+    /* Make the Notes textarea height line up visually with 3 stacked inputs.
+       This uses a predictable height based on input padding+font, plus label gap.
+       If you later adjust paddings, tweak this single value. */
+    .contribCard .fieldNote textarea{
+      height: calc((44px * 3) + (10px * 2)); /* 3 inputs + 2 gaps between rows (approx) */
+      min-height: calc((44px * 3) + (10px * 2));
+    }
+
+    /* Mobile: stack fields */
     @media (max-width: 760px){
-      .contribGrid{ grid-template-columns:1fr; }
+      .contribGrid{
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+      }
+      .fieldName, .fieldEmail, .fieldAffil, .fieldNote{
+        grid-column:1 !important;
+        grid-row:auto !important;
+      }
+      .contribCard .fieldNote textarea{
+        height: 160px;
+        min-height: 160px;
+      }
     }
     .contribActions{
       display:flex;
@@ -870,7 +972,7 @@
     </button>
 
     <button class="flag" id="btnFlag" type="button" aria-label="Open filters sidebar">
-      <span>FILTERS</span>
+      <span class='mono'>FILTERS</span>
     </button>
   </div>
 
@@ -980,7 +1082,7 @@
             <thead>
               <tr>
                 <th style="min-width:340px;">Variant</th>
-                <th style="min-width:160px;">ClinVar Variation ID</th>
+                <th style="min-width:180px;">ClinVar Variation ID</th>
                 <th style="min-width:180px;">Clinical significance (RCV)</th>
                 <th style="min-width:260px;">Conditions (RCV)</th>
                 <th style="min-width:220px;">Review status / submitters</th>
@@ -1019,20 +1121,23 @@
 
             <form id="contribForm">
               <div class="contribGrid">
-                <div>
+                <div class="contribField fieldName">
                   <label for="cName">Name</label>
                   <input id="cName" type="text" autocomplete="name" required />
                 </div>
-                <div>
+
+                <div class="contribField fieldEmail">
                   <label for="cEmail">Email</label>
                   <input id="cEmail" type="email" autocomplete="email" required />
                 </div>
-                <div>
+
+                <div class="contribField fieldAffil">
                   <label for="cAffil">Affiliation</label>
                   <input id="cAffil" type="text" autocomplete="organization" />
                 </div>
-                <div>
-                  <label for="cNote">Note</label>
+
+                <div class="contribField fieldNote">
+                  <label for="cNote">Notes</label>
                   <textarea id="cNote" placeholder="Evidence, literature, functional data, etc." required></textarea>
                 </div>
               </div>
@@ -1062,9 +1167,31 @@
         </div>
 
         <div class="card" style="margin-top:12px;">
-          <h3>RCVs</h3>
-          <div class="inner" style="overflow:auto; max-height:420px;">
+          <h3>RCVs (Reference Accessions)</h3>
+          <div class="help" style="padding: 0 12px 10px;">Click an RCV row to load individual lab submissions (SCVs) below.</div>
+          <div class="inner" style="overflow:auto; max-height:340px;">
             <table class="rcvtable" id="rcvTable"></table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px; border-color: var(--c1);">
+          <h3>Submissions (SCVs)</h3>
+          <div id="scvStatus" class="help" style="padding: 10px 12px;">Select an RCV above to view evidence details...</div>
+          <div class="inner" style="overflow:auto; max-height:420px;">
+            <table class="rcvtable" id="scvTable">
+              <thead>
+                <tr>
+                  <th>SCV Accession</th>
+                  <th>Submitter</th>
+                  <th>Significance</th>
+                  <th>Date</th>
+                  <th>Method</th>
+                </tr>
+              </thead>
+              <tbody id="scvTableBody">
+                <tr><td colspan="5" class="help">No RCV selected.</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -1224,6 +1351,76 @@
     }
     function norm(s){ return String(s || "").toLowerCase(); }
 
+    /**
+     * Fetches and parses SCVs for a specific RCV from NCBI E-utils.
+     */
+    async function getSCVsForRCV(rcvId) {
+      const status = document.getElementById("scvStatus");
+      const body = document.getElementById("scvTableBody");
+      
+      status.innerHTML = `Loading submissions for <strong>${rcvId}</strong> from NCBI...`;
+      body.innerHTML = '<tr><td colspan="5" class="help">Fetching XML...</td></tr>';
+
+      try {
+        const url = new URL("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi");
+        url.searchParams.append("db", "clinvar");
+        url.searchParams.append("rettype", "clinvarset");
+        url.searchParams.append("id", rcvId);
+        url.searchParams.append("tool", "fgfr3_explorer");
+        url.searchParams.append("email", "research@example.org");
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`NCBI Fetch failed: ${response.status}`);
+        
+        const xmlText = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(xmlText, "application/xml");
+        
+        const assertions = doc.querySelectorAll("ClinVarAssertion");
+        const results = [];
+
+        assertions.forEach(node => {
+          const accNode = node.querySelector("ClinVarAccession");
+          const scvAcc = accNode?.getAttribute("Acc");
+          if (!scvAcc || !scvAcc.startsWith("SCV")) return;
+
+          const classif = node.querySelector("Classification");
+          results.push({
+            accession: scvAcc,
+            version: accNode.getAttribute("Version"),
+            submitter: node.querySelector("ClinVarSubmissionID")?.getAttribute("submitter") || "N/A",
+            significance: classif?.querySelector("GermlineClassification")?.textContent || "N/A",
+            date: classif?.getAttribute("DateLastEvaluated") || "N/A",
+            method: node.querySelector("ObservedIn")?.getAttribute("MethodType") || "N/A"
+          });
+        });
+
+        body.innerHTML = "";
+        if (results.length === 0) {
+          body.innerHTML = '<tr><td colspan="5" class="help">No individual submissions found.</td></tr>';
+          status.textContent = "Data retrieval complete.";
+          return;
+        }
+
+        results.forEach(s => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="mono">${s.accession}.${s.version}</td>
+            <td>${escapeHtml(s.submitter)}</td>
+            <td><span class="sig warn">${escapeHtml(s.significance)}</span></td>
+            <td>${escapeHtml(s.date)}</td>
+            <td class="small">${escapeHtml(s.method)}</td>
+          `;
+          body.appendChild(tr);
+        });
+        status.innerHTML = `Displaying <strong>${results.length}</strong> submissions for ${rcvId}.`;
+
+      } catch (e) {
+        status.innerHTML = `<span style="color:var(--c2)">Error: ${e.message}</span>`;
+        body.innerHTML = '<tr><td colspan="5" class="help">Fetch error.</td></tr>';
+      }
+    }
+
     function pickMostRecentPreferredNameFromRcv(rcvArray){
       const rcv = asArray(rcvArray);
       const enriched = rcv.map((r) => {
@@ -1281,7 +1478,7 @@
       const clinvar = hit?.clinvar || null;
 
       const variationId =
-        safeGet(clinvar, "variation_id", null) ??
+        safeGet(clinvar, "variant_id", null) ??
         safeGet(clinvar, "variation.id", null) ??
         safeGet(clinvar, "clinvar_id", null);
 
@@ -1291,6 +1488,8 @@
         safeGet(clinvar, "gene", null);
 
       const rcv = asArray(safeGet(clinvar, "rcv", null));
+      const rcvCount = rcv.length;
+      const scvTotal = rcv.reduce((acc, r) => acc + (parseInt(r.number_submitters) || 0), 0);
 
       const preferredName = pickMostRecentPreferredNameFromRcv(rcv);
       const coords = formatCoords(clinvar);
@@ -1308,6 +1507,7 @@
         preferredName: preferredName || null,
         coords,
         sigs, review, submitters, lastEval, conditions,
+        rcvCount, scvTotal,
         rawClinvar: clinvar
       };
     }
@@ -1432,7 +1632,6 @@
           renderSelectedPills(selected, pillsEl);
           applyFiltersAndRender();
           // rerender list checkboxes by triggering a synthetic re-render via searches
-          // (lists are small enough; this is fine)
           renderMS({ options: (pillsEl === sigPills ? sigOptions : condOptions),
                      selected,
                      listEl: (pillsEl === sigPills ? sigList : condList),
@@ -1585,7 +1784,6 @@
     }
 
     function variantLabelShort(row){
-      // For matrix chips: prefer short HGVS/protein representation (strip "NM_000142.5(FGFR3):")
       const base = (row.preferredName && row.preferredName.trim()) ? stripRefseqPrefix(row.preferredName.trim())
                  : (row.coords && row.coords.trim()) ? row.coords.trim()
                  : row.id;
@@ -1593,7 +1791,6 @@
     }
 
     function variantLabelFull(row){
-      // For tables/modal
       const t = (row.preferredName && row.preferredName.trim()) ? row.preferredName.trim()
               : (row.coords && row.coords.trim()) ? row.coords.trim()
               : row.id;
@@ -1794,12 +1991,18 @@
         tr.appendChild(td0);
 
         const td1 = document.createElement("td");
-        if (r.variationId && r.variationId !== "—"){
-          const link = buildClinVarLink(r.variationId);
-          td1.innerHTML = `<a class="mono" href="${link}" target="_blank" rel="noopener">${escapeHtml(r.variationId)}</a>`;
-        } else {
-          td1.innerHTML = `<span class="mono">—</span>`;
-        }
+        const variationIdStr = (r.variationId && r.variationId !== "—") 
+          ? `<a class="mono" href="${buildClinVarLink(r.variationId)}" target="_blank" rel="noopener">${escapeHtml(r.variationId)}</a>` 
+          : `<span class="mono">—</span>`;
+        
+        const evidenceCounts = `
+          <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">
+            <span class="count-pill">${r.rcvCount} RCVs</span>
+            <span class="count-pill scv-pill">${r.scvTotal} SCVs</span>
+          </div>
+        `;
+
+        td1.innerHTML = variationIdStr + evidenceCounts;
         tr.appendChild(td1);
 
         const td2 = document.createElement("td");
@@ -1897,80 +2100,53 @@
 
       rawJson.textContent = raw ? JSON.stringify(raw, null, 2) : "null";
 
+      // Build RCV Table
       const rcvArr = asArray(safeGet(raw, "rcv", null));
       rcvTable.innerHTML = "";
 
-      const headers = ["RCV","Clinical significance","Conditions","Review status","Last evaluated","# submitters","preferred_name"];
+      const headers = ["RCV Accession","Clinical significance","Conditions","Last evaluated","Submissions"];
       const thead = document.createElement("thead");
       const hr = document.createElement("tr");
-      for (const h of headers){
+      headers.forEach(h => {
         const th = document.createElement("th");
         th.textContent = h;
         hr.appendChild(th);
-      }
+      });
       thead.appendChild(hr);
       rcvTable.appendChild(thead);
 
       const tb = document.createElement("tbody");
       if (!rcvArr.length){
-        const tr = document.createElement("tr");
-        const td = document.createElement("td");
-        td.colSpan = headers.length;
-        td.className = "help";
-        td.textContent = "No clinvar.rcv records found on this variant.";
-        tr.appendChild(td);
-        tb.appendChild(tr);
+        tb.innerHTML = `<tr><td colspan="${headers.length}" class="help">No RCV records found.</td></tr>`;
       } else {
-        for (const rcv of rcvArr){
+        rcvArr.forEach(rcv => {
+          const rcvId = safeGet(rcv, "accession", null) || safeGet(rcv, "id", null) || "—";
           const tr = document.createElement("tr");
+          tr.className = "rowclick";
+          tr.style.cursor = "pointer";
+          tr.title = "Click to load SCVs for this RCV";
 
-          const rcvId =
-            safeGet(rcv, "accession", null) ??
-            safeGet(rcv, "rcv_accession", null) ??
-            safeGet(rcv, "rcv", null) ??
-            safeGet(rcv, "id", null) ??
-            "—";
-
-          const td0 = document.createElement("td");
-          td0.innerHTML = `<span class="mono">${escapeHtml(String(rcvId))}</span>`;
-          tr.appendChild(td0);
+          tr.addEventListener("click", () => getSCVsForRCV(rcvId));
 
           const sig = safeGet(rcv, "clinical_significance", null);
           const f = formatSig(sig);
-          const td1 = document.createElement("td");
-          td1.innerHTML = sig ? `<span class="sig ${f.cls}">${escapeHtml(String(sig))}</span>` : "—";
-          tr.appendChild(td1);
-
           const conds = uniq(extractConditionsFromRcv(rcv));
-          const td2 = document.createElement("td");
-          td2.innerHTML = conds.length ? conds.map(c => `<span class="tag">${escapeHtml(c)}</span>`).join(" ") : "—";
-          tr.appendChild(td2);
 
-          const td3 = document.createElement("td");
-          td3.textContent = safeGet(rcv, "review_status", "—");
-          tr.appendChild(td3);
-
-          const td4 = document.createElement("td");
-          td4.textContent =
-            safeGet(rcv, "last_evaluated", "—") ||
-            safeGet(rcv, "date_last_evaluated", "—") ||
-            safeGet(rcv, "date_last_updated", "—") ||
-            "—";
-          tr.appendChild(td4);
-
-          const td5 = document.createElement("td");
-          td5.textContent = String(safeGet(rcv, "number_submitters", "—"));
-          tr.appendChild(td5);
-
-          const td6 = document.createElement("td");
-          const prefStr = extractString(safeGet(rcv, "preferred_name", null));
-          td6.innerHTML = prefStr ? `<span class="mono">${escapeHtml(prefStr)}</span>` : "—";
-          tr.appendChild(td6);
-
+          tr.innerHTML = `
+            <td><span class="mono" style="color:var(--c1); font-weight:800">${escapeHtml(String(rcvId))} ↳</span></td>
+            <td><span class="sig ${f.cls}">${escapeHtml(String(sig || "—"))}</span></td>
+            <td>${conds.length ? conds.map(c => `<span class="tag">${escapeHtml(c)}</span>`).join(" ") : "—"}</td>
+            <td class="small">${escapeHtml(safeGet(rcv, "last_evaluated", "—"))}</td>
+            <td class="mono" style="text-align:center">${rcv.number_submitters || "—"}</td>
+          `;
           tb.appendChild(tr);
-        }
+        });
       }
       rcvTable.appendChild(tb);
+
+      // Reset SCV Table
+      document.getElementById("scvStatus").innerHTML = "Select an RCV above to view individual evidence details...";
+      document.getElementById("scvTableBody").innerHTML = '<tr><td colspan="5" class="help">No RCV selected.</td></tr>';
 
       overlay.classList.add("show");
       document.body.style.overflow = "hidden";
@@ -1990,6 +2166,46 @@
     });
 
     // ---- Contribution behavior ----
+    const TO_PLACEHOLDER = "TEST_SUCCESS";
+    function encodeMailto(s){ return encodeURIComponent(String(s || "")); }
+
+    function buildVariantSubject(row){
+      const mvId = row?.id ? `MyVariant:${row.id}` : "";
+      const cvId = (row?.variationId && row.variationId !== "—") ? `ClinVar:${row.variationId}` : "";
+      const pieces = [cvId, mvId].filter(Boolean);
+      return pieces.length ? pieces.join(" | ") : "Variant";
+    }
+
+    function buildContributionEmail({ row, name, email, affil, note }){
+      const subj = `Evidence contribution (${buildVariantSubject(row)})`;
+      const clinvarVarId = (row?.variationId && row.variationId !== "—") ? row.variationId : "";
+      const clinvarLink = clinvarVarId ? `https://www.ncbi.nlm.nih.gov/clinvar/variation/${encodeURIComponent(clinvarVarId)}/` : "";
+
+      const bodyLines = [
+        "Evidence contribution (placeholder)",
+        "----------------------------------",
+        `Variant subject: ${buildVariantSubject(row)}`,
+        `Preferred name: ${row?.preferredName || "—"}`,
+        `ClinVar variation_id: ${clinvarVarId || "—"}`,
+        `ClinVar link: ${clinvarLink || "—"}`,
+        `MyVariant _id: ${row?.id || "—"}`,
+        "",
+        "Contributor details",
+        "-------------------",
+        `Name: ${name}`,
+        `Email: ${email}`,
+        `Affiliation: ${affil || "—"}`,
+        "",
+        "Notes",
+        "-----",
+        note,
+        "",
+        "(Generated from the FGFR3 variant detail modal)"
+      ];
+
+      return `mailto:${encodeMailto(TO_PLACEHOLDER)}?cc=${encodeMailto(email)}&subject=${encodeMailto(subj)}&body=${encodeMailto(bodyLines.join("\n"))}`;
+    }
+
     contribBtn.addEventListener("click", () => {
       contribCard.classList.toggle("show");
       contribHint.textContent = "";
@@ -1997,11 +2213,6 @@
         setTimeout(() => cName.focus(), 0);
       }
     });
-    contribCancel.addEventListener("click", () => {
-      contribCard.classList.remove("show");
-      contribHint.textContent = "";
-    });
-    function encodeMailto(s){ return encodeURIComponent(String(s || "")); }
 
     contribForm.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -2016,39 +2227,17 @@
       const note = cNote.value.trim();
 
       if (!name || !email || !note){
-        contribHint.textContent = "Please fill in Name, Email, and Note.";
+        contribHint.textContent = "Please fill in Name, Email, and Notes.";
         return;
       }
 
-      const label = variantLabelFull(currentModalRow);
-      const clinvarVarId = (currentModalRow.variationId && currentModalRow.variationId !== "—") ? currentModalRow.variationId : "";
-      const clinvarLink = clinvarVarId ? `https://www.ncbi.nlm.nih.gov/clinvar/variation/${encodeURIComponent(clinvarVarId)}/` : "";
+      window.location.href = buildContributionEmail({ row: currentModalRow, name, email, affil, note });
+      contribHint.textContent = "Opening your default email app…";
+    });
 
-      const subject = `FGFR3 VUS evidence contribution: ${label}`;
-      const bodyLines = [
-        "Evidence contribution request",
-        "-----------------------------",
-        `Variant label: ${label}`,
-        `MyVariant _id: ${currentModalRow.id}`,
-        `ClinVar variation_id: ${clinvarVarId || "—"}`,
-        `ClinVar link: ${clinvarLink || "—"}`,
-        "",
-        "Contributor details",
-        "-------------------",
-        `Name: ${name}`,
-        `Email: ${email}`,
-        `Affiliation: ${affil || "—"}`,
-        "",
-        "Note / evidence",
-        "---------------",
-        note,
-        "",
-        "(Generated from the FGFR3 ClinVar browser page)"
-      ];
-
-      const mailto = `mailto:${CONTRIBUTION_EMAIL}?subject=${encodeMailto(subject)}&body=${encodeMailto(bodyLines.join("\n"))}`;
-      contribHint.textContent = "Opening your email client…";
-      window.location.href = mailto;
+    contribCancel.addEventListener("click", () => {
+      contribCard.classList.remove("show");
+      contribHint.textContent = "";
     });
 
     // ---- EXPORT ----
@@ -2068,53 +2257,20 @@
       const q = filterEl.value.trim();
       const sigs = selectedValues(sigSelected);
       const conds = selectedValues(condSelected);
-
-      const sigLabel = (sigs.length === 0 || sigs.includes("__ALL__")) ? "All" : sigs;
-      const condLabel = (conds.length === 0 || conds.includes("__ALL__")) ? "All" : conds;
-
       return {
         exported_at: new Date().toISOString(),
         gene: "FGFR3",
-        refseq_transcript: REFSEQ_TX,
-        filters: {
-          clinical_significance: sigLabel,
-          condition: condLabel,
-          text: q || null
-        }
+        filters: { clinical_significance: sigs, condition: conds, text: q || null }
       };
     }
 
     function exportAsJson(){
-      exportHint.textContent = "";
-      if (!allRows.length){ exportHint.textContent = "No data loaded yet."; return; }
-
+      if (!allRows.length) return;
       const rows = lastFilteredRows || [];
       const meta = buildExportMeta();
-      const payload = {
-        meta,
-        count: rows.length,
-        rows: rows.map(r => ({
-          id: r.id,
-          variationId: r.variationId,
-          geneSymbol: r.geneSymbol,
-          preferredName: r.preferredName,
-          coords: r.coords,
-          sigs: r.sigs,
-          review: r.review,
-          submitters: r.submitters,
-          lastEval: r.lastEval,
-          conditions: r.conditions,
-          clinvar: r.rawClinvar
-        }))
-      };
-
+      const payload = { meta, count: rows.length, rows: rows.map(r => ({ ...r, clinvar: r.rawClinvar })) };
       const dateTag = meta.exported_at.replaceAll(":", "").replaceAll("-", "").slice(0, 15);
-      downloadBlob({
-        data: JSON.stringify(payload, null, 2),
-        filename: `FGFR3_clinvar_filtered_${dateTag}.json`,
-        mime: "application/json"
-      });
-      exportHint.textContent = `Downloaded JSON (${rows.length} rows).`;
+      downloadBlob({ data: JSON.stringify(payload, null, 2), filename: `FGFR3_filtered_${dateTag}.json`, mime: "application/json" });
     }
 
     function csvEscape(v){
@@ -2125,53 +2281,25 @@
     }
 
     function exportAsCsv(){
-      exportHint.textContent = "";
-      if (!allRows.length){ exportHint.textContent = "No data loaded yet."; return; }
-
+      if (!allRows.length) return;
       const rows = lastFilteredRows || [];
-      const header = [
-        "variant_preferred_name",
-        "variant_coords",
-        "gene_symbol",
-        "clinvar_variation_id",
-        "clinvar_variation_url",
-        "clinical_significance_rcv_unique",
-        "conditions_rcv_unique",
-        "review_status_unique",
-        "number_submitters_unique",
-        "last_evaluated_unique",
-        "myvariant_id"
-      ];
-
-      const lines = [];
-      lines.push(header.map(csvEscape).join(","));
-
-      for (const r of rows){
-        const varUrl = (r.variationId && r.variationId !== "—") ? `https://www.ncbi.nlm.nih.gov/clinvar/variation/${encodeURIComponent(r.variationId)}/` : "";
-        const line = [
+      const header = ["preferred_name","coords","clinvar_id","significance","conditions","rcv_count","scv_count","id"];
+      const lines = [header.map(csvEscape).join(",")];
+      rows.forEach(r => {
+        lines.push([
           r.preferredName || "",
           r.coords || "",
-          r.geneSymbol || "",
-          (r.variationId && r.variationId !== "—") ? r.variationId : "",
-          varUrl,
+          r.variationId || "",
           (r.sigs || []).join(" | "),
           (r.conditions || []).join(" | "),
-          (r.review || []).join(" | "),
-          (r.submitters || []).join(" | "),
-          (r.lastEval || []).join(" | "),
-          r.id || ""
-        ];
-        lines.push(line.map(csvEscape).join(","));
-      }
-
+          r.rcvCount,
+          r.scvTotal,
+          r.id
+        ].map(csvEscape).join(","));
+      });
       const meta = buildExportMeta();
       const dateTag = meta.exported_at.replaceAll(":", "").replaceAll("-", "").slice(0, 15);
-      downloadBlob({
-        data: lines.join("\n"),
-        filename: `FGFR3_clinvar_summary_filtered_${dateTag}.csv`,
-        mime: "text/csv"
-      });
-      exportHint.textContent = `Downloaded CSV (${rows.length} rows).`;
+      downloadBlob({ data: lines.join("\n"), filename: `FGFR3_filtered_${dateTag}.csv`, mime: "text/csv" });
     }
 
     btnExportJson.addEventListener("click", exportAsJson);
@@ -2184,12 +2312,8 @@
       url.searchParams.set("fields", FIELDS);
       url.searchParams.set("from", String(from));
       url.searchParams.set("size", String(size));
-
       const res = await fetch(url.toString(), { method:"GET", headers:{ "Accept":"application/json" }, signal });
-      if (!res.ok){
-        const text = await res.text().catch(() => "");
-        throw new Error(`HTTP ${res.status} ${res.statusText}${text ? " – " + text.slice(0, 200) : ""}`);
-      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     }
 
@@ -2200,31 +2324,18 @@
       sigCounts = new Map();
       condCounts = new Map();
       lastFilteredRows = [];
-
       sigOptions = [];
       condOptions = [];
       sigSelected = new Set(["__ALL__"]);
       condSelected = new Set(["__ALL__"]);
-
       totalEl.textContent = "—";
       fetchedEl.textContent = "0";
       topShowing.textContent = "—";
-      exportHint.textContent = "";
-
       tbody.innerHTML = `<tr><td colspan="6" class="small">Loading…</td></tr>`;
       activeFiltersEl.innerHTML = "Loading…";
       matrixBody.innerHTML = `<tr><td colspan="3" class="help">Loading…</td></tr>`;
-      matrixMeta.textContent = "—";
-
-      // reset custom MS UI
-      sigSearch.value = "";
-      condSearch.value = "";
-      sigList.innerHTML = "";
-      condList.innerHTML = "";
       sigPills.innerHTML = "";
       condPills.innerHTML = "";
-
-      mainDetails.open = false;
     }
 
     function setLoadingUI(loading){
@@ -2232,140 +2343,78 @@
       btnTopRefresh.disabled = loading;
       btnStop.disabled = !loading;
       pageSizeEl.disabled = loading;
-      btnExportJson.disabled = loading;
-      btnExportCsv.disabled = loading;
-    }
-
-    btnStop.addEventListener("click", () => {
-      if (controller){
-        controller.abort();
-        setStatus("Stopped. Partial results shown.");
-      }
-    });
-
-    function setInitialSelections(){
-      // Default: Sig All, Condition fuzzy Hypochondroplasia
-      sigSelected = new Set(["__ALL__"]);
-
-      const target = INITIAL_CONDITION_FUZZY.toLowerCase();
-      let any = false;
-      condSelected = new Set();
-      for (const o of condOptions){
-        if (o.value.toLowerCase().includes(target)){
-          condSelected.add(o.value);
-          any = true;
-        }
-      }
-      if (!any) condSelected.add("__ALL__");
-
-      renderMS({ options: sigOptions, selected: sigSelected, listEl: sigList, pillsEl: sigPills, searchText: sigSearch.value });
-      renderMS({ options: condOptions, selected: condSelected, listEl: condList, pillsEl: condPills, searchText: condSearch.value });
     }
 
     async function loadAllData(){
       resetStateForLoad();
       setLoadingUI(true);
-
       controller = new AbortController();
       const signal = controller.signal;
-
       const size = parseInt(pageSizeEl.value, 10);
       let from = 0;
 
       try{
-        setStatus("Loading…");
-
+        setStatus("Loading data...");
         while (true){
           const data = await fetchPage({ from, size, signal });
-
           if (totalHits == null){
             totalHits = data?.total ?? 0;
             totalEl.textContent = String(totalHits);
           }
-
           const hits = Array.isArray(data?.hits) ? data.hits : [];
           if (!hits.length) break;
-
-          for (const hit of hits){
-            allRows.push(summarizeClinVar(hit));
-          }
-
+          hits.forEach(hit => allRows.push(summarizeClinVar(hit)));
           from += hits.length;
           fetchedEl.textContent = String(from);
-
-          setStatus(`Loaded ${from}${totalHits ? " / " + totalHits : ""}`);
           if (totalHits && from >= totalHits) break;
         }
 
         buildCounts();
-        sigOptions = sortByFrequencyThenAlpha(sigCounts);   // [{value,count}]
+        sigOptions = sortByFrequencyThenAlpha(sigCounts);
         condOptions = sortByFrequencyThenAlpha(condCounts);
-
-        setInitialSelections();
 
         if (!window.__filtersWired){
           window.__filtersWired = true;
-
           filterEl.addEventListener("input", applyFiltersAndRender);
-
-          sigSearch.addEventListener("input", () => {
-            renderMS({ options: sigOptions, selected: sigSelected, listEl: sigList, pillsEl: sigPills, searchText: sigSearch.value });
-          });
-          condSearch.addEventListener("input", () => {
-            renderMS({ options: condOptions, selected: condSelected, listEl: condList, pillsEl: condPills, searchText: condSearch.value });
-          });
+          sigSearch.addEventListener("input", () => renderMS({ options: sigOptions, selected: sigSelected, listEl: sigList, pillsEl: sigPills, searchText: sigSearch.value }));
+          condSearch.addEventListener("input", () => renderMS({ options: condOptions, selected: condSelected, listEl: condList, pillsEl: condPills, searchText: condSearch.value }));
         }
+
+        // Set Initial Condition filter if found
+        const target = INITIAL_CONDITION_FUZZY.toLowerCase();
+        condOptions.forEach(o => { if (o.value.toLowerCase().includes(target)) condSelected.add(o.value); });
+        if (condSelected.size > 1) condSelected.delete("__ALL__");
+
+        renderMS({ options: sigOptions, selected: sigSelected, listEl: sigList, pillsEl: sigPills, searchText: sigSearch.value });
+        renderMS({ options: condOptions, selected: condSelected, listEl: condList, pillsEl: condPills, searchText: condSearch.value });
 
         renderMatrix();
         applyFiltersAndRender();
-
-        setStatus(`Ready`);
+        setStatus("Ready");
         setLoadingUI(false);
-
-      }catch(err){
-        if (err?.name === "AbortError"){
-          setStatus("Stopped. Partial results shown.");
-
-          buildCounts();
-          sigOptions = sortByFrequencyThenAlpha(sigCounts);
-          condOptions = sortByFrequencyThenAlpha(condCounts);
-
-          setInitialSelections();
-          renderMatrix();
-          applyFiltersAndRender();
-
-        } else {
-          console.error(err);
-          setStatus("Error: " + (err?.message || String(err)));
-          tbody.innerHTML = `<tr><td colspan="6" class="small">Error occurred. Try a smaller page size and refresh.</td></tr>`;
-          activeFiltersEl.innerHTML = `<strong>Error</strong>: <span class="mono">${escapeHtml(err?.message || String(err))}</span>`;
-          matrixBody.innerHTML = `<tr><td colspan="3" class="help">Error building matrix.</td></tr>`;
-        }
+      } catch(err){
+        if (err.name === "AbortError") setStatus("Stopped.");
+        else setStatus(`Error: ${err.message}`);
         setLoadingUI(false);
       }
     }
 
     btnRefresh.addEventListener("click", loadAllData);
     btnTopRefresh.addEventListener("click", loadAllData);
+    btnStop.addEventListener("click", () => controller && controller.abort());
 
-    // ---- Collapsible table label ----
     mainDetails.addEventListener("toggle", () => {
       const summaryRight = mainDetails.querySelector(".summaryRight");
-      if (summaryRight){
-        summaryRight.textContent = mainDetails.open ? "expanded" : "collapsed";
-      }
+      if (summaryRight) summaryRight.textContent = mainDetails.open ? "expanded" : "collapsed";
     });
 
-    // ---- Auto-load ----
     window.addEventListener("DOMContentLoaded", () => {
       initSidebarDefault();
       loadAllData();
     });
-
-    // Sidebar default behavior on resize
-    window.addEventListener("resize", () => {
-      initSidebarDefault();
-    });
+    window.addEventListener("resize", initSidebarDefault);
+    btnHamburger.addEventListener("click", toggleSidebar);
+    btnFlag.addEventListener("click", toggleSidebar);
   </script>
 </body>
 </html>
