@@ -1553,8 +1553,29 @@
       const sigs = uniq(rcv.map(r => safeGet(r, "clinical_significance", null)));
       const review = uniq(rcv.map(r => safeGet(r, "review_status", null)));
       const submitters = uniq(rcv.map(r => safeGet(r, "number_submitters", null))).map(String);
-      const lastEval = uniq(rcv.map(r => safeGet(r, "last_evaluated", null)));
-      const conditions = uniq(rcv.flatMap(extractConditionsFromRcv));
+      
+      // Calculate most recent evaluated date
+      const lastEvalDates = rcv.map(r => safeGet(r, "last_evaluated", null)).filter(Boolean);
+      let mostRecentEval = "—";
+      if (lastEvalDates.length > 0) {
+        const sortedDates = lastEvalDates.sort((a, b) => parseDateToMs(b) - parseDateToMs(a));
+        mostRecentEval = sortedDates[0];
+      }
+
+      // Aggregate conditions and their counts
+      const condCountsMap = new Map();
+      rcv.forEach(r => {
+        const subCount = parseInt(r.number_submitters) || 1;
+        const conds = uniq(extractConditionsFromRcv(r));
+        conds.forEach(c => {
+          condCountsMap.set(c, (condCountsMap.get(c) || 0) + subCount);
+        });
+      });
+
+      // Create sorted array of {name, count}
+      const sortedConditions = Array.from(condCountsMap.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
 
       return {
         id: hit?._id || "—",
@@ -1562,7 +1583,9 @@
         geneSymbol: geneSymbol || "—",
         preferredName: preferredName || null,
         coords,
-        sigs, review, submitters, lastEval, conditions,
+        sigs, review, submitters, 
+        lastEval: mostRecentEval, 
+        conditions: sortedConditions,
         rcvCount, scvTotal,
         rawClinvar: clinvar
       };
@@ -1577,8 +1600,8 @@
           const k = String(s);
           sigCounts.set(k, (sigCounts.get(k) || 0) + 1);
         }
-        for (const c of (r.conditions || [])){
-          const k = String(c);
+        for (const cObj of (r.conditions || [])){
+          const k = String(cObj.name);
           condCounts.set(k, (condCounts.get(k) || 0) + 1);
         }
       }
@@ -1719,7 +1742,7 @@
     }
     function matchesCond(row, selectedConds){
       if (!selectedConds.length || selectedConds.includes("__ALL__")) return true;
-      const set = new Set((row.conditions || []).map(String));
+      const set = new Set((row.conditions || []).map(c => String(c.name)));
       return selectedConds.some(c => set.has(String(c)));
     }
     function matchesText(row, q){
@@ -1731,7 +1754,7 @@
         row.id || "",
         row.variationId || "",
         (row.sigs || []).join(" | "),
-        (row.conditions || []).join(" | "),
+        (row.conditions || []).map(c => c.name).join(" | "),
       ].join(" || ").toLowerCase();
       return hay.includes(q);
     }
@@ -2075,8 +2098,9 @@
         tr.appendChild(td2);
 
         const td3 = document.createElement("td");
+        // Show sorted conditions with SCV counts
         td3.innerHTML = r.conditions.length
-          ? r.conditions.slice(0, 10).map(c => `<span class="tag">${escapeHtml(c)}</span>`).join("")
+          ? r.conditions.slice(0, 10).map(c => `<span class="tag">${escapeHtml(c.name)} (${c.count})</span>`).join("")
             + (r.conditions.length > 10 ? `<div class="help">+ ${r.conditions.length - 10} more…</div>` : "")
           : "—";
         tr.appendChild(td3);
@@ -2088,7 +2112,8 @@
         tr.appendChild(td4);
 
         const td5 = document.createElement("td");
-        td5.textContent = r.lastEval.length ? r.lastEval.join(" • ") : "—";
+        // Only most recent date
+        td5.textContent = r.lastEval;
         tr.appendChild(td5);
 
         frag.appendChild(tr);
@@ -2152,9 +2177,9 @@
       basicTable.appendChild(kvRow("Preferred name (RCV recency)", row.preferredName ? `<span class="mono">${escapeHtml(row.preferredName)}</span>` : "—"));
       basicTable.appendChild(kvRow("Clinical significance (unique)", escapeHtml(joinOrDash(row.sigs))));
       basicTable.appendChild(kvRow("Review status (unique)", escapeHtml(joinOrDash(row.review))));
-      basicTable.appendChild(kvRow("Last evaluated (unique)", escapeHtml(joinOrDash(row.lastEval))));
-      basicTable.appendChild(kvRow("Conditions (unique)", row.conditions.length
-        ? row.conditions.map(c => `<span class="tag">${escapeHtml(c)}</span>`).join(" ")
+      basicTable.appendChild(kvRow("Last evaluated (most recent)", escapeHtml(row.lastEval)));
+      basicTable.appendChild(kvRow("Conditions (unique, with submission counts)", row.conditions.length
+        ? row.conditions.map(c => `<span class="tag">${escapeHtml(c.name)} (${c.count})</span>`).join(" ")
         : "—"
       ));
 
@@ -2351,7 +2376,7 @@
           r.coords || "",
           r.variationId || "",
           (r.sigs || []).join(" | "),
-          (r.conditions || []).join(" | "),
+          (r.conditions || []).map(c => `${c.name} (${c.count})`).join(" | "),
           r.rcvCount,
           r.scvTotal,
           r.id
