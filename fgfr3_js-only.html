@@ -3,16 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MyVariant.info – ClinVar variants in FGFR3</title>
+  <title>Variants in FGFR3</title>
+  <link rel="icon" type="image/x-icon" href="https://www.dmd.nl/static/images/vertical_clip.png">
   <style>
     :root{
       /* Palette provided */
       --c1:#28509C; --c2:#ED037C; --c3:#272D72; --c4:#A9208E; --c5:#7C2F90;
       --black:#000000; --gray:#A0A0A0;
 
-      --bg:#ffffff; --panel:#ffffff;
-      --text:var(--black); --muted:#4f4f4f;
-      --border:rgba(0,0,0,0.18); --border2:rgba(0,0,0,0.10);
+      --bg:#ffffff;
+      --text:var(--black);
+      --muted:#4f4f4f;
+
+      --border:rgba(0,0,0,0.18);
+      --border2:rgba(0,0,0,0.10);
       --shadow: 0 18px 60px rgba(0,0,0,0.18);
 
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -24,6 +28,7 @@
 
     a{ color:var(--c1); text-decoration:none; }
     a:hover{ text-decoration:underline; }
+    .mono{ font-family:var(--mono); }
 
     /* Top header */
     .topbar{
@@ -51,7 +56,6 @@
       padding:4px 8px; border-radius:999px; white-space:nowrap;
     }
     .chip strong{ color:var(--black); font-weight:950; }
-    .mono{ font-family:var(--mono); }
 
     /* App layout */
     .app{
@@ -201,23 +205,190 @@
       overflow:hidden;
     }
 
-    /* Table: equal-width columns that scale together */
-    .tablewrap{
+    /* ---- NEW: Condition x Significance "matrix" ---- */
+    .matrixCard{
       border:1px solid var(--border);
       border-radius:14px;
-      overflow:auto;         /* scroll within container on very small screens */
-      max-width:100%;
       background:#fff;
       box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+      overflow:hidden;
+      margin-bottom:14px;
     }
-    table{
+    .matrixHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 12px 10px;
+      border-bottom:1px solid var(--border2);
+      background:
+        radial-gradient(900px 220px at 15% 0%, rgba(40,80,156,0.10), rgba(255,255,255,0)),
+        #fff;
+    }
+    .matrixHead h2{
+      margin:0;
+      font-size:13px;
+      font-weight:950;
+      color:var(--c3);
+      letter-spacing:.15px;
+    }
+    .matrixHead .help{ margin-top:4px; max-width:920px; }
+    .matrixWrap{
+      overflow:auto;
+    }
+    .matrix{
+      width:100%;
+      border-collapse:collapse;
+      table-layout:fixed; /* square-ish, equal columns */
+      min-width: 720px;
+    }
+    .matrix th, .matrix td{
+      border-top:1px solid var(--border2);
+      border-right:1px solid var(--border2);
+      vertical-align:top;
+      padding:10px;
+    }
+    .matrix tr:first-child th{
+      border-top:0;
+    }
+    .matrix th:last-child, .matrix td:last-child{
+      border-right:0;
+    }
+    .matrix thead th{
+      background:linear-gradient(180deg, rgba(169,32,142,0.08), rgba(255,255,255,1));
+      color:var(--c3);
+      font-weight:950;
+      text-align:center;
+      white-space:normal;
+    }
+    .matrix .rowHead{
+      background:rgba(40,80,156,0.04);
+      font-weight:950;
+      color:var(--c3);
+      text-align:left;
+      width: 34%;
+    }
+    .matrix .colHead{
+      width: 33%;
+    }
+    .cell{
+      min-height:140px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .cellTop{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .cellCount{
+      font-size:40px;
+      line-height:1;
+      font-weight:950;
+      color:var(--c3);
+      letter-spacing:-0.5px;
+    }
+    .cellMeta{
+      font-size:11px;
+      color:#444;
+      text-align:right;
+      white-space:nowrap;
+    }
+    .cellVariants{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    .vChip{
+      border:1px solid rgba(40,80,156,0.22);
+      background:rgba(40,80,156,0.05);
+      color:var(--c3);
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:11px;
+      cursor:pointer;
+      max-width: 100%;
+    }
+    .vChip:hover{
+      border-color: rgba(237,3,124,0.45);
+      color: var(--c2);
+      background: rgba(237,3,124,0.06);
+    }
+    .moreBtn{
+      border:1px dashed rgba(0,0,0,0.25);
+      background:transparent;
+      color:#333;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:11px;
+      cursor:pointer;
+    }
+    .moreBtn:hover{
+      border-color: rgba(169,32,142,0.55);
+      color: var(--c4);
+    }
+    details.cellDetails{
+      margin:0;
+    }
+    details.cellDetails > summary{
+      list-style:none;
+      cursor:pointer;
+      user-select:none;
+      font-size:11px;
+      color:var(--c1);
+      font-weight:950;
+      display:inline-block;
+    }
+    details.cellDetails > summary::-webkit-details-marker{ display:none; }
+
+    /* ---- Collapsible main table (default collapsed) ---- */
+    details.mainTableDetails{
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#fff;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+      overflow:hidden;
+      margin-top:10px; /* pushes it down */
+    }
+    details.mainTableDetails > summary{
+      cursor:pointer;
+      user-select:none;
+      padding:12px 12px;
+      font-weight:950;
+      color:var(--c3);
+      background:
+        radial-gradient(900px 220px at 15% 0%, rgba(237,3,124,0.08), rgba(255,255,255,0)),
+        #fff;
+      border-bottom:1px solid var(--border2);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    details.mainTableDetails > summary::-webkit-details-marker{ display:none; }
+    .summaryRight{
+      font-size:11px;
+      color:#444;
+      font-weight:700;
+      white-space:nowrap;
+    }
+
+    /* Table: dynamic column sizes + wrapping to minimize overflow/word breaks */
+    .tablewrap{
+      overflow:auto;         /* if needed on small screens, scroll inside */
+      max-width:100%;
+      background:#fff;
+    }
+    table#tbl{
       width:100%;
       border-collapse:collapse;
       font-size:12px;
-      table-layout:fixed;    /* key: equal distribution */
-      min-width: 900px;      /* keeps readability; scrolls within .tablewrap if needed */
+      table-layout:auto;     /* dynamic column widths */
+      min-width: 980px;      /* keeps readability; scrolls within .tablewrap if needed */
     }
-    thead th{
+    #tbl thead th{
       position:sticky; top:0; z-index:2;
       background:linear-gradient(180deg, rgba(40,80,156,0.09), rgba(255,255,255,1));
       border-bottom:1px solid var(--border);
@@ -226,28 +397,28 @@
       font-weight:950;
       color:var(--c3);
       white-space:nowrap;
-      width: calc(100% / 6); /* equal width for 6 columns */
     }
-    tbody td{
+    #tbl tbody td{
       border-top:1px solid var(--border2);
       padding:9px 10px;
       vertical-align:top;
-      overflow-wrap:anywhere;
-      word-break:break-word;
-      width: calc(100% / 6); /* equal width for 6 columns */
+
+      /* wrapping behavior */
+      white-space:normal;
+      overflow-wrap: break-word; /* wrap long tokens if necessary */
+      word-break: normal;        /* avoid aggressive word splitting */
     }
-    tbody tr:nth-child(2n){ background:rgba(40,80,156,0.03); }
+    #tbl tbody tr:nth-child(2n){ background:rgba(40,80,156,0.03); }
     .rowclick{ cursor:pointer; }
     .rowclick:hover{ background:rgba(237,3,124,0.06) !important; }
 
-    /* Variant cell typography: prominence top -> bottom */
+    /* Variant cell typography */
     .v-preferred{
       font-weight:950;
       color:var(--c3);
       font-size:12.5px;
       line-height:1.25;
       margin-bottom:4px;
-      word-break:break-word;
     }
     .v-coords{
       font-family:var(--mono);
@@ -255,7 +426,6 @@
       color:var(--black);
       opacity:.88;
       margin-bottom:2px;
-      word-break:break-word;
     }
     .v-gene{
       font-size:11px;
@@ -319,6 +489,8 @@
       border-radius:12px;
       cursor:pointer;
       font-weight:950;
+      width:auto;
+      box-shadow:none;
     }
     .closebtn:hover{ border-color: rgba(237,3,124,0.45); color: var(--c2); }
     .modalbody{ padding:12px 14px 16px; }
@@ -384,11 +556,12 @@
   <header class="topbar">
     <div class="topbar-inner">
       <div>
-        <h1>ClinVar data for variants in <span class="mono">FGFR3</span> (via MyVariant.info)</h1>
+        <h1>ClinVar data for variants in <span class="mono">FGFR3</span>*</h1>
         <div class="sub">
           Automatically loads on page open. Summary row uses preferred name derived from most-recent RCV
           (first non-blank <span class="mono">preferred_name</span> when scanning from newest → oldest).
-          Click any row for full details and RCV table.
+          Click any variant chip or row for full details and RCV table.<br>
+          *<i>via MyVariant.info</i>
         </div>
       </div>
       <div class="topbar-right">
@@ -433,7 +606,7 @@
         <div style="margin-bottom:10px;">
           <label for="filter">Text filter</label>
           <input id="filter" type="text" placeholder="filter rows…" />
-          <div class="help">Matches HGVS / coords / gene / conditions / significance.</div>
+          <div class="help">Filters the main table only. The matrix above always uses its own fixed row/column criteria.</div>
         </div>
 
         <div style="margin-bottom:10px;">
@@ -463,23 +636,58 @@
 
     <!-- MAIN CONTENT -->
     <main class="main">
-      <div class="tablewrap" aria-label="results table container">
-        <table id="tbl" aria-label="results table">
-          <thead>
-            <tr>
-              <th>Variant</th>
-              <th>ClinVar Variation ID</th>
-              <th>Clinical significance (RCV)</th>
-              <th>Conditions (RCV)</th>
-              <th>Review status / submitters</th>
-              <th>Last evaluated</th>
-            </tr>
-          </thead>
-          <tbody id="tbody">
-            <tr><td colspan="6" class="small">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- NEW MATRIX TABLE -->
+      <section class="matrixCard" aria-label="Condition x Significance matrix">
+        <div class="matrixHead">
+          <div>
+            <h2>Condition × Clinical significance</h2>
+            <div class="help">
+              Counts are <b>unique variants</b> (unique MyVariant <span class="mono">_id</span>) matching the cell’s
+              condition (row) + significance group (column). Variants may appear in multiple cells. Click chips to open details.
+            </div>
+          </div>
+          <div class="help mono" id="matrixMeta">—</div>
+        </div>
+        <div class="matrixWrap">
+          <table class="matrix" id="matrixTbl">
+            <thead>
+              <tr>
+                <th class="rowHead">Condition</th>
+                <th class="colHead">Pathogenic or Likely Pathogenic</th>
+                <th class="colHead">Variant of Uncertain Significance</th>
+              </tr>
+            </thead>
+            <tbody id="matrixBody">
+              <tr><td colspan="3" class="help">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- COLLAPSIBLE MAIN TABLE (DEFAULT COLLAPSED) -->
+      <details class="mainTableDetails" id="mainDetails">
+        <summary>
+          <span>Full variant table</span>
+          <span class="summaryRight">collapsed • click to expand</span>
+        </summary>
+        <div class="tablewrap" aria-label="results table container">
+          <table id="tbl" aria-label="results table">
+            <thead>
+              <tr>
+                <th style="min-width:340px;">Variant</th>
+                <th style="min-width:160px;">ClinVar Variation ID</th>
+                <th style="min-width:180px;">Clinical significance (RCV)</th>
+                <th style="min-width:260px;">Conditions (RCV)</th>
+                <th style="min-width:220px;">Review status / submitters</th>
+                <th style="min-width:170px;">Last evaluated</th>
+              </tr>
+            </thead>
+            <tbody id="tbody">
+              <tr><td colspan="6" class="small">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
     </main>
   </div>
 
@@ -526,6 +734,14 @@
     const FIELDS = "clinvar";
     const INITIAL_CONDITION_FUZZY = "hypochondroplasia";
 
+    // Matrix settings
+    const MATRIX_ROWS = ["Achondroplasia", "Thanatophoric Dysplasia", "Hypochondroplasia"];
+    const MATRIX_COLS = [
+      { key: "PLP", label: "Pathogenic or Likely Pathogenic" },
+      { key: "VUS", label: "Variant of Uncertain Significance" }
+    ];
+    const CELL_VARIANT_LIMIT = 6; // show first N chips, then "…"
+
     // ---- State ----
     let controller = null;
     let allRows = [];
@@ -556,6 +772,10 @@
     const basicTable = document.getElementById("basicTable");
     const rcvTable = document.getElementById("rcvTable");
     const rawJson = document.getElementById("rawJson");
+
+    const matrixBody = document.getElementById("matrixBody");
+    const matrixMeta = document.getElementById("matrixMeta");
+    const mainDetails = document.getElementById("mainDetails");
 
     // ---- Helpers ----
     function setStatus(msg){ statusEl.textContent = msg; }
@@ -751,7 +971,7 @@
       }
     }
 
-    // ---- Filter logic ----
+    // ---- Filter logic (main table only) ----
     function matchesSig(row, selectedSigs){
       if (!selectedSigs.length || selectedSigs.includes("__ALL__")) return true;
       const set = new Set((row.sigs || []).map(String));
@@ -811,9 +1031,174 @@
 
       activeFiltersEl.innerHTML = buildActiveFiltersString({ showingCount: filtered.length });
       topShowing.textContent = String(filtered.length);
+
+      // update main details summary text
+      const summaryRight = mainDetails.querySelector(".summaryRight");
+      if (summaryRight){
+        summaryRight.textContent = `${mainDetails.open ? "expanded" : "collapsed"} • showing ${filtered.length} rows`;
+      }
     }
 
-    // ---- Table render ----
+    // ---- NEW: Matrix logic ----
+    function norm(s){ return String(s || "").toLowerCase(); }
+
+    function conditionMatchesRow(row, conditionLabel){
+      const tgt = norm(conditionLabel);
+      for (const c of (row.conditions || [])){
+        if (norm(c).includes(tgt)) return true;
+      }
+      return false;
+    }
+
+    function sigMatchesGroup(row, groupKey){
+      const sigs = (row.sigs || []).map(s => norm(s));
+      if (groupKey === "PLP"){
+        // any contains "pathogenic" (covers likely pathogenic too)
+        return sigs.some(s => s.includes("pathogenic"));
+      }
+      if (groupKey === "VUS"){
+        return sigs.some(s => s.includes("uncertain") || s.includes("vus"));
+      }
+      return false;
+    }
+
+    function variantLabel(row){
+      // chip label: prefer preferredName; else coords; else id
+      const t = (row.preferredName && row.preferredName.trim()) ? row.preferredName.trim()
+              : (row.coords && row.coords.trim()) ? row.coords.trim()
+              : row.id;
+      return t;
+    }
+
+    function buildMatrixData(){
+      // Map[rowLabel][colKey] => Map<row.id, row>
+      const out = new Map();
+      for (const rowLabel of MATRIX_ROWS){
+        const m = new Map();
+        for (const col of MATRIX_COLS) m.set(col.key, new Map());
+        out.set(rowLabel, m);
+      }
+
+      for (const r of allRows){
+        for (const rowLabel of MATRIX_ROWS){
+          if (!conditionMatchesRow(r, rowLabel)) continue;
+          const perRow = out.get(rowLabel);
+          for (const col of MATRIX_COLS){
+            if (sigMatchesGroup(r, col.key)){
+              perRow.get(col.key).set(r.id, r);
+            }
+          }
+        }
+      }
+      return out;
+    }
+
+    function renderMatrix(){
+      if (!allRows.length){
+        matrixBody.innerHTML = `<tr><td colspan="3" class="help">No data loaded.</td></tr>`;
+        matrixMeta.textContent = "—";
+        return;
+      }
+
+      const data = buildMatrixData();
+      matrixMeta.textContent = `${allRows.length} total variants loaded`;
+
+      matrixBody.innerHTML = "";
+      const frag = document.createDocumentFragment();
+
+      for (const rowLabel of MATRIX_ROWS){
+        const tr = document.createElement("tr");
+
+        const th = document.createElement("th");
+        th.className = "rowHead";
+        th.textContent = rowLabel;
+        tr.appendChild(th);
+
+        for (const col of MATRIX_COLS){
+          const td = document.createElement("td");
+          const m = data.get(rowLabel).get(col.key);
+          const variants = Array.from(m.values()).sort((a,b) => variantLabel(a).localeCompare(variantLabel(b)));
+
+          const cell = document.createElement("div");
+          cell.className = "cell";
+
+          const top = document.createElement("div");
+          top.className = "cellTop";
+
+          const count = document.createElement("div");
+          count.className = "cellCount";
+          count.textContent = String(variants.length);
+
+          const meta = document.createElement("div");
+          meta.className = "cellMeta mono";
+          meta.textContent = "unique variants";
+
+          top.appendChild(count);
+          top.appendChild(meta);
+
+          const listWrap = document.createElement("div");
+          listWrap.className = "cellVariants";
+
+          const shown = variants.slice(0, CELL_VARIANT_LIMIT);
+          for (const v of shown){
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "vChip";
+            btn.title = "Open variant details";
+            btn.textContent = variantLabel(v);
+            btn.addEventListener("click", () => openVariantDetails(v));
+            listWrap.appendChild(btn);
+          }
+
+          if (variants.length > CELL_VARIANT_LIMIT){
+            const details = document.createElement("details");
+            details.className = "cellDetails";
+            const summary = document.createElement("summary");
+            summary.textContent = `… show ${variants.length - CELL_VARIANT_LIMIT} more`;
+            details.appendChild(summary);
+
+            const moreBox = document.createElement("div");
+            moreBox.className = "cellVariants";
+            moreBox.style.marginTop = "8px";
+
+            for (const v of variants.slice(CELL_VARIANT_LIMIT)){
+              const btn = document.createElement("button");
+              btn.type = "button";
+              btn.className = "vChip";
+              btn.title = "Open variant details";
+              btn.textContent = variantLabel(v);
+              btn.addEventListener("click", () => openVariantDetails(v));
+              moreBox.appendChild(btn);
+            }
+
+            details.appendChild(moreBox);
+            cell.appendChild(top);
+            cell.appendChild(listWrap);
+            cell.appendChild(details);
+          } else {
+            cell.appendChild(top);
+            cell.appendChild(listWrap);
+          }
+
+          td.appendChild(cell);
+          tr.appendChild(td);
+        }
+
+        frag.appendChild(tr);
+      }
+
+      matrixBody.appendChild(frag);
+    }
+
+    // Keep summary label updated when user toggles main table
+    mainDetails.addEventListener("toggle", () => {
+      const summaryRight = mainDetails.querySelector(".summaryRight");
+      if (summaryRight){
+        summaryRight.textContent = `${mainDetails.open ? "expanded" : "collapsed"} • showing ${topShowing.textContent || "—"} rows`;
+      }
+    });
+
+    // ---- Table render (main table) ----
     function renderTable(rows){
       tbody.innerHTML = "";
       if (!rows.length){
@@ -836,6 +1221,7 @@
           }
         });
 
+        // Variant column order: preferred_name -> coords -> gene
         const td0 = document.createElement("td");
         const pref = r.preferredName
           ? `<div class="v-preferred mono">${escapeHtml(r.preferredName)}</div>`
@@ -1055,6 +1441,14 @@
 
       tbody.innerHTML = `<tr><td colspan="6" class="small">Loading…</td></tr>`;
       activeFiltersEl.innerHTML = "Loading…";
+
+      matrixBody.innerHTML = `<tr><td colspan="3" class="help">Loading…</td></tr>`;
+      matrixMeta.textContent = "—";
+
+      // Ensure main table stays collapsed by default after refresh
+      mainDetails.open = false;
+      const summaryRight = mainDetails.querySelector(".summaryRight");
+      if (summaryRight) summaryRight.textContent = "collapsed • click to expand";
     }
 
     function setLoadingUI(loading){
@@ -1153,7 +1547,12 @@
           });
         }
 
+        // Render matrix first (independent of sidebar filters)
+        renderMatrix();
+
+        // Render main table with sidebar filters applied
         applyFiltersAndRender();
+
         setStatus(`Done. Loaded ${allRows.length} variants.`);
         setLoadingUI(false);
 
@@ -1166,12 +1565,16 @@
           setOptionsFromFreq(sigSelect, sortByFrequencyThenAlpha(sigCounts), { includeAll:true, allLabel:"All" });
           setOptionsFromFreq(condSelect, sortByFrequencyThenAlpha(condCounts), { includeAll:true, allLabel:"All" });
           setInitialSelections();
+
+          renderMatrix();
           applyFiltersAndRender();
+
         } else {
           console.error(err);
           setStatus("Error: " + (err?.message || String(err)));
           tbody.innerHTML = `<tr><td colspan="6" class="small">Error occurred. Try a smaller page size and refresh.</td></tr>`;
           activeFiltersEl.innerHTML = `<strong>Error</strong>: <span class="mono">${escapeHtml(err?.message || String(err))}</span>`;
+          matrixBody.innerHTML = `<tr><td colspan="3" class="help">Error building matrix.</td></tr>`;
         }
         setLoadingUI(false);
       }
