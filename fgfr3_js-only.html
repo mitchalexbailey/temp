@@ -186,7 +186,7 @@
     }
 
     label{ font-size:12px; font-weight:950; color:var(--c3); }
-    .help{ font-size:11px; color:#555; line-height:1.25; margin-top:6px; }
+    .help{ font-size:11px; color:#555; line-height:1.25; margin: 10px 0px 10px 20px;}
 
     button.primary{
       background:linear-gradient(135deg, var(--c1), var(--c5));
@@ -306,6 +306,7 @@
       color:#333;
       line-height:1.35;
       padding:10px 12px;
+      margin: 10px 0 10px 0;
       border-radius:12px;
       border:1px solid rgba(0,0,0,0.12);
       background:rgba(169,32,142,0.05);
@@ -1019,23 +1020,14 @@
   <div class="app" id="app">
     <aside class="sidebar" id="sidebar" aria-label="Filters sidebar">
 
-      <div class="panel">
-        <h2>Export</h2>
-        <div class="exportRow">
-          <button id="btnExportJson" class="secondary" type="button">JSON</button>
-          <button id="btnExportCsv" class="primary" type="button">CSV</button>
-        </div>
-        <div class="help" id="exportHint"></div>
-      </div>
-
-      <div class="panel">
+<!--       <div class="panel">
         <h2>Active</h2>
-        <div id="activeFilters" class="activeFilters">Loading…</div>
-      </div>
+        
+      </div> -->
 
       <div class="panel">
         <h2>Filters</h2>
-
+        <div id="activeFilters" class="activeFilters">Loading…</div>
         <div style="margin-bottom:12px;">
           <label for="filter">Search (main table)</label>
           <input id="filter" type="search" placeholder="type to filter…" />
@@ -1063,10 +1055,20 @@
           </div>
         </div>
 
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button id="btnRefresh" class="primary" type="button">Refresh data</button>
-          <button id="btnStop" class="secondary" type="button" disabled>Stop</button>
+        <div class="panel">
+          <h2>Export</h2>
+          <div class="exportRow">
+            <button id="btnExportJson" class="secondary" type="button">JSON</button>
+            <button id="btnExportCsv" class="primary" type="button">CSV</button>
+          </div>
+          <div class="help" id="exportHint"></div>
         </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button id="btnStop" class="secondary" type="button" disabled>Stop</button>
+          <button id="btnRefresh" class="primary" type="button">Refresh data</button>
+        </div>
+        
 
         <div class="help" id="status">Loading on page open…</div>
         <div class="help mono" style="margin-top:8px;">
@@ -1111,7 +1113,8 @@
         </div>
         <div class="help">
               All variants listed are based on RefSeq transcript <span class="mono">NM_000142.5</span>.
-              Variants in each cell are sorted by association strength (RCV frequency + exclusivity).
+              Variants in each cell are sorted by association strength (RCV frequency + exclusivity).<br>
+              RCVs with 3 or more different conditions listed in association with the variant were not included in the table above.
             </div>
       </details>
 
@@ -1143,7 +1146,7 @@
 
   <!-- Hovering Scroll Button -->
   <button class="scroll-btn" id="btnScrollBottom" title="Scroll to bottom">
-    <span>Detailed table below</span>
+    <span>Main table below</span>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
   </button>
 
@@ -1742,7 +1745,7 @@
       const condLabel = (conds.length === 0 || conds.includes("__ALL__")) ? "All" : conds.join(", ");
 
       const parts = [
-        `<strong>Condition:</strong> <span class="mono">${escapeHtml(condLabel)}</span>`,
+        `<strong>Currently active:</strong><hr><strong>Condition:</strong> <span class="mono">${escapeHtml(condLabel)}</span>`,
         `<strong>Sig:</strong> <span class="mono">${escapeHtml(sigLabel)}</span>`,
         `<strong>Search:</strong> <span class="mono">${escapeHtml(q || "—")}</span>`,
         `<strong>Showing:</strong> <span class="mono">${escapeHtml(String(showingCount))}</span>`
