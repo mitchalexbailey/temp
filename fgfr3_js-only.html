@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Variants in FGFR3</title>
+  <title>FGFR3 ClinVar variants</title>
   <link rel="icon" type="image/x-icon" href="https://www.dmd.nl/static/images/vertical_clip.png">
   <style>
     :root{
@@ -13,7 +13,7 @@
 
       --bg:#ffffff;
       --text:var(--black);
-      --muted:#4f4f4f;
+      --muted:#444;
 
       --border:rgba(0,0,0,0.18);
       --border2:rgba(0,0,0,0.10);
@@ -21,6 +21,9 @@
 
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+
+      --sidebarW: 320px;
+      --topbarH: 56px;
     }
     *{ box-sizing:border-box; }
     html, body{ height:100%; }
@@ -29,10 +32,13 @@
     a{ color:var(--c1); text-decoration:none; }
     a:hover{ text-decoration:underline; }
     .mono{ font-family:var(--mono); }
+    .sr-only{
+      position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0;
+    }
 
-    /* Top header */
+    /* Top header (simplified) */
     .topbar{
-      position:sticky; top:0; z-index:50;
+      position:sticky; top:0; z-index:80;
       border-bottom:1px solid var(--border);
       background:
         radial-gradient(1200px 300px at 10% 0%, rgba(40,80,156,0.12), rgba(255,255,255,0)),
@@ -41,40 +47,85 @@
       backdrop-filter: blur(8px);
     }
     .topbar-inner{
-      display:flex; align-items:flex-start; justify-content:space-between; gap:14px;
-      padding:14px 16px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:12px 16px;
       max-width:1600px; margin:0 auto;
+      min-height: var(--topbarH);
     }
-    .topbar h1{ margin:0; font-size:16px; font-weight:950; color:var(--c3); letter-spacing:.2px; }
-    .topbar .sub{ margin-top:4px; font-size:12px; color:#444; line-height:1.35; max-width:920px; }
-    .topbar-right{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; min-width:240px; }
-    .chips{ display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; }
-    .chip{
-      font-size:11px; color:var(--c3);
-      background:rgba(40,80,156,0.06);
-      border:1px solid rgba(40,80,156,0.18);
-      padding:4px 8px; border-radius:999px; white-space:nowrap;
+    .brand {
+      display:flex; 
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+      padding-left: 50px;
     }
-    .chip strong{ color:var(--black); font-weight:950; }
+    .brand h1{
+      margin:0;
+      font-size:15px;
+      font-weight:950;
+      color:var(--c3);
+      letter-spacing:.2px;
+      line-height:1.2;
+    }
+    .brand .sub{
+      margin:0;
+      font-size:12px;
+      color:#444;
+      line-height:1.25;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 980px;
+    }
+    .top-actions{
+      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    }
+    .pill{
+      font-size:11px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,0.14);
+      background:rgba(40,80,156,0.05);
+      color:var(--c3);
+      font-weight:850;
+      white-space:nowrap;
+    }
+    .pill .mono{ font-weight:950; }
+    .top-actions button{
+      width:auto;
+      padding:8px 10px;
+      border-radius:999px;
+      font-weight:950;
+      cursor:pointer;
+      border:1px solid rgba(0,0,0,0.16);
+      background:#fff;
+      color:var(--c3);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+    }
+    .top-actions button:hover{ border-color: rgba(40,80,156,0.5); }
 
     /* App layout */
     .app{
       display:grid;
-      grid-template-columns: 320px 1fr;
+      grid-template-columns: var(--sidebarW) 1fr;
       min-height: calc(100vh - 0px);
+      transition: grid-template-columns .18s ease;
     }
+    .app.sidebar-collapsed{
+      grid-template-columns: 0px 1fr;
+    }
+
     @media (max-width: 980px){
-      .topbar-right{ align-items:flex-start; min-width:0; }
-      .chips{ justify-content:flex-start; }
       .app{ grid-template-columns: 1fr; }
+      .brand .sub{ white-space:normal; }
     }
 
     /* Sidebar */
     .sidebar{
       position:sticky;
-      top:56px;
+      top:var(--topbarH);
       align-self:start;
-      height: calc(100vh - 56px);
+      height: calc(100vh - var(--topbarH));
       overflow:auto;
       border-right:1px solid var(--border);
       background:
@@ -82,12 +133,39 @@
         radial-gradient(900px 260px at 85% 10%, rgba(237,3,124,0.09), rgba(255,255,255,0)),
         #fff;
       padding:14px 14px;
+      transition: transform .18s ease, opacity .18s ease;
+      z-index:60;
     }
+    .app.sidebar-collapsed .sidebar{
+      transform: translateX(calc(-1 * var(--sidebarW)));
+      opacity: 0;
+      pointer-events: none;
+    }
+
     @media (max-width: 980px){
       .sidebar{
-        position:relative; top:0; height:auto;
-        border-right:0; border-bottom:1px solid var(--border);
+        position:fixed;
+        left:0;
+        top:var(--topbarH);
+        width:min(360px, 92vw);
+        height: calc(100vh - var(--topbarH));
+        border-right:1px solid var(--border);
+        box-shadow: 0 18px 60px rgba(0,0,0,0.22);
+        transform: translateX(-110%);
+        opacity:1;
+        pointer-events:none;
       }
+      .app.sidebar-open .sidebar{
+        transform: translateX(0);
+        pointer-events:auto;
+      }
+      .backdrop{
+        position:fixed; inset:0;
+        background:rgba(0,0,0,0.26);
+        z-index:55;
+        display:none;
+      }
+      .app.sidebar-open .backdrop{ display:block; }
     }
 
     .panel{
@@ -108,9 +186,9 @@
     }
 
     label{ font-size:12px; font-weight:950; color:var(--c3); }
-    .help{ font-size:11px; color:#555; line-height:1.25; }
+    .help{ font-size:11px; color:#555; line-height:1.25; margin-top:6px; }
 
-    button{
+    button.primary{
       background:linear-gradient(135deg, var(--c1), var(--c5));
       color:#fff; border:0;
       padding:10px 12px; border-radius:12px;
@@ -121,17 +199,20 @@
     button.secondary{
       background:transparent; color:var(--c3);
       border:1px solid var(--border); box-shadow:none;
+      padding:10px 12px; border-radius:12px;
+      font-weight:950; cursor:pointer;
+      width:100%;
     }
     button:disabled{ opacity:.55; cursor:not-allowed; }
 
-    input[type="text"]{
+    input[type="text"], input[type="search"]{
       width:100%;
       background:#fff; color:var(--text);
       border:1px solid var(--border);
       padding:10px 12px; border-radius:12px;
       outline:none;
     }
-    input[type="text"]:focus{
+    input[type="text"]:focus, input[type="search"]:focus{
       border-color: rgba(40,80,156,0.55);
       box-shadow: 0 0 0 3px rgba(40,80,156,0.12);
     }
@@ -143,49 +224,83 @@
       padding:10px 12px; border-radius:12px;
       outline:none;
     }
-    select:focus{
-      border-color: rgba(169,32,142,0.55);
-      box-shadow: 0 0 0 3px rgba(169,32,142,0.10);
-    }
-    .multisel{ padding:8px; height:160px; }
 
-    .statline{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-    }
-    .stat{
-      border:1px solid var(--border2);
-      border-radius:12px;
-      padding:10px;
-      background:rgba(40,80,156,0.03);
-    }
-    .stat .k{ font-size:11px; color:#555; }
-    .stat .v{ font-size:15px; font-weight:950; color:var(--c3); margin-top:4px; }
-
-    .progress{
-      width:100%;
-      height:10px;
-      background:#fff;
+    /* Searchable multi-select (custom) */
+    .ms{
       border:1px solid var(--border);
-      border-radius:999px;
+      border-radius:14px;
       overflow:hidden;
+      background:#fff;
+    }
+    .msTop{
+      padding:10px;
+      border-bottom:1px solid var(--border2);
+      background:rgba(40,80,156,0.04);
+    }
+    .msTop input{
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(0,0,0,0.16);
+    }
+    .msList{
+      max-height:220px;
+      overflow:auto;
+      padding:8px 10px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .msItem{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      border:1px solid rgba(0,0,0,0.10);
+      border-radius:12px;
+      padding:8px 10px;
+      cursor:pointer;
+      background:#fff;
+    }
+    .msItem:hover{
+      border-color: rgba(169,32,142,0.35);
+      background: rgba(169,32,142,0.05);
+    }
+    .msItem input{ width:16px; height:16px; cursor:pointer; }
+    .msItem .txt{
+      font-size:12px;
+      line-height:1.2;
+      flex:1 1 auto;
+      min-width:0;
+      color:var(--black);
+    }
+    .msItem .cnt{
+      font-size:11px;
+      color:#444;
+      font-family:var(--mono);
+      white-space:nowrap;
+    }
+    .msPills{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
       margin-top:8px;
     }
-    .progress > div{
-      height:100%;
-      width:0%;
-      background:linear-gradient(90deg, var(--c2), var(--c1));
-      transition:width .15s ease;
+    .chip{
+      font-size:11px;
+      color:var(--c3);
+      background:rgba(40,80,156,0.06);
+      border:1px solid rgba(40,80,156,0.18);
+      padding:4px 8px;
+      border-radius:999px;
+      white-space:nowrap;
     }
-    .status{
-      margin-top:10px;
-      font-size:12px;
-      color:#444;
-      line-height:1.35;
+    .chip button{
+      all:unset;
+      margin-left:6px;
+      cursor:pointer;
+      font-weight:950;
+      color:var(--c2);
     }
 
-    /* Active filters string (view-only) */
     .activeFilters{
       font-size:11px;
       color:#333;
@@ -198,6 +313,35 @@
     .activeFilters strong{ color:var(--c3); font-weight:950; }
     .activeFilters .mono{ color:var(--black); }
 
+    /* Export controls (compact) */
+    .exportRow{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .exportRow button{
+      width:auto;
+      flex:1 1 0;
+      min-width: 120px;
+      padding:10px 10px;
+      border-radius:12px;
+      font-weight:950;
+      cursor:pointer;
+    }
+    .exportRow .secondary{
+      background:#fff;
+      color:var(--c3);
+      border:1px solid rgba(0,0,0,0.16);
+      box-shadow:none;
+    }
+    .exportRow .primary{
+      background:linear-gradient(135deg, var(--c1), var(--c5));
+      color:#fff;
+      border:0;
+      box-shadow: 0 10px 26px rgba(40,80,156,0.18);
+    }
+
     /* Main */
     .main{
       padding:14px 16px 28px;
@@ -205,7 +349,64 @@
       overflow:hidden;
     }
 
-    /* ---- NEW: Condition x Significance "matrix" ---- */
+    /* Sidebar toggle */
+    .sidebarToggle{
+      position:fixed;
+      left:10px;
+      top:10px;
+      z-index:95;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      pointer-events:none;
+    }
+    .hamburger{
+      pointer-events:auto;
+      width:42px; height:42px;
+      border-radius:14px;
+      border:1px solid rgba(0,0,0,0.16);
+      background:#fff;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.10);
+      cursor:pointer;
+      display:grid;
+      place-items:center;
+    }
+    .hamburger:hover{ border-color: rgba(40,80,156,0.45); }
+    .hamburger svg{ width:20px; height:20px; }
+    .hamburger line{ stroke: var(--c3); stroke-width:2.4; stroke-linecap:round; }
+
+    .flag{
+      pointer-events:auto;
+      position:fixed;
+      left:0;
+      top:calc(var(--topbarH) + 84px);
+      z-index:90;
+      transform: translateX(-2px);
+      border:1px solid rgba(0,0,0,0.16);
+      border-left:0;
+      border-top-right-radius:14px;
+      border-bottom-right-radius:14px;
+      background: linear-gradient(135deg, rgba(40,80,156,0.12), rgba(237,3,124,0.10));
+      box-shadow: 0 12px 30px rgba(0,0,0,0.10);
+      cursor:pointer;
+      padding:10px 8px;
+      display:none;
+    }
+    .flag span{
+      display:inline-block;
+      font-size:11px;
+      letter-spacing:.16em;
+      font-weight:950;
+      color:var(--c3);
+      white-space:nowrap;
+    }
+    .app.sidebar-collapsed ~ .sidebarToggle .flag{ display:block; }
+    @media (max-width: 980px){
+      .flag{ display:block; }
+      .app.sidebar-open ~ .sidebarToggle .flag{ display:none; }
+    }
+
+    /* ---- Matrix ---- */
     .matrixCard{
       border:1px solid var(--border);
       border-radius:14px;
@@ -232,28 +433,22 @@
       color:var(--c3);
       letter-spacing:.15px;
     }
-    .matrixHead .help{ margin-top:4px; max-width:920px; }
-    .matrixWrap{
-      overflow:auto;
-    }
+    .matrixHead .help{ margin-top:6px; max-width:980px; }
+    .matrixWrap{ overflow:auto; }
     .matrix{
       width:100%;
       border-collapse:collapse;
-      table-layout:fixed; /* square-ish, equal columns */
-      min-width: 720px;
+      table-layout:fixed;
+      min-width: 760px; /* desktop/tablet */
     }
     .matrix th, .matrix td{
       border-top:1px solid var(--border2);
       border-right:1px solid var(--border2);
       vertical-align:top;
-      padding:10px;
+      padding: 2.5%;
     }
-    .matrix tr:first-child th{
-      border-top:0;
-    }
-    .matrix th:last-child, .matrix td:last-child{
-      border-right:0;
-    }
+    /*.matrix tr:first-child th{ border-top:0; }*/
+    .matrix th:last-child, .matrix td:last-child{ border-right:0; }
     .matrix thead th{
       background:linear-gradient(180deg, rgba(169,32,142,0.08), rgba(255,255,255,1));
       color:var(--c3);
@@ -265,14 +460,13 @@
       background:rgba(40,80,156,0.04);
       font-weight:950;
       color:var(--c3);
-      text-align:left;
-      width: 34%;
+      text-align:center;
+      width: 20%;
     }
-    .matrix .colHead{
-      width: 33%;
-    }
+    .matrix .colHead{ width: 33%; }
+
     .cell{
-      min-height:140px;
+      min-height:130px;
       display:flex;
       flex-direction:column;
       gap:10px;
@@ -305,9 +499,9 @@
       border:1px solid rgba(40,80,156,0.22);
       background:rgba(40,80,156,0.05);
       color:var(--c3);
-      padding:4px 8px;
+      padding:6px 10px;
       border-radius:999px;
-      font-size:11px;
+      font-size:12px;
       cursor:pointer;
       max-width: 100%;
     }
@@ -316,41 +510,26 @@
       color: var(--c2);
       background: rgba(237,3,124,0.06);
     }
-    .moreBtn{
-      border:1px dashed rgba(0,0,0,0.25);
-      background:transparent;
-      color:#333;
-      padding:4px 10px;
-      border-radius:999px;
-      font-size:11px;
-      cursor:pointer;
-    }
-    .moreBtn:hover{
-      border-color: rgba(169,32,142,0.55);
-      color: var(--c4);
-    }
-    details.cellDetails{
-      margin:0;
-    }
+    details.cellDetails{ margin:0; }
     details.cellDetails > summary{
       list-style:none;
       cursor:pointer;
       user-select:none;
-      font-size:11px;
+      font-size:12px;
       color:var(--c1);
       font-weight:950;
       display:inline-block;
     }
     details.cellDetails > summary::-webkit-details-marker{ display:none; }
 
-    /* ---- Collapsible main table (default collapsed) ---- */
+    /* ---- Collapsible main table ---- */
     details.mainTableDetails{
       border:1px solid var(--border);
       border-radius:14px;
       background:#fff;
       box-shadow: 0 10px 28px rgba(0,0,0,0.06);
       overflow:hidden;
-      margin-top:10px; /* pushes it down */
+      margin-top:10px;
     }
     details.mainTableDetails > summary{
       cursor:pointer;
@@ -375,9 +554,8 @@
       white-space:nowrap;
     }
 
-    /* Table: dynamic column sizes + wrapping to minimize overflow/word breaks */
     .tablewrap{
-      overflow:auto;         /* if needed on small screens, scroll inside */
+      overflow:auto;
       max-width:100%;
       background:#fff;
     }
@@ -385,8 +563,8 @@
       width:100%;
       border-collapse:collapse;
       font-size:12px;
-      table-layout:auto;     /* dynamic column widths */
-      min-width: 980px;      /* keeps readability; scrolls within .tablewrap if needed */
+      table-layout:auto;
+      min-width: 980px;
     }
     #tbl thead th{
       position:sticky; top:0; z-index:2;
@@ -402,46 +580,21 @@
       border-top:1px solid var(--border2);
       padding:9px 10px;
       vertical-align:top;
-
-      /* wrapping behavior */
       white-space:normal;
-      overflow-wrap: break-word; /* wrap long tokens if necessary */
-      word-break: normal;        /* avoid aggressive word splitting */
+      overflow-wrap: break-word;
+      word-break: normal;
     }
     #tbl tbody tr:nth-child(2n){ background:rgba(40,80,156,0.03); }
     .rowclick{ cursor:pointer; }
     .rowclick:hover{ background:rgba(237,3,124,0.06) !important; }
 
-    /* Variant cell typography */
-    .v-preferred{
-      font-weight:950;
-      color:var(--c3);
-      font-size:12.5px;
-      line-height:1.25;
-      margin-bottom:4px;
-    }
-    .v-coords{
-      font-family:var(--mono);
-      font-size:11.5px;
-      color:var(--black);
-      opacity:.88;
-      margin-bottom:2px;
-    }
-    .v-gene{
-      font-size:11px;
-      color:#555;
-    }
-
+    .v-preferred{ font-weight:950; color:var(--c3); font-size:12.5px; line-height:1.25; margin-bottom:4px; }
+    .v-coords{ font-family:var(--mono); font-size:11.5px; color:var(--black); opacity:.88; margin-bottom:2px; }
+    .v-gene{ font-size:11px; color:#555; }
     .tag{
-      display:inline-block;
-      padding:2px 8px;
-      border-radius:999px;
-      border:1px solid rgba(40,80,156,0.25);
-      background:rgba(40,80,156,0.06);
-      color:var(--c3);
-      margin:0 6px 6px 0;
-      font-size:11px;
-      white-space:nowrap;
+      display:inline-block; padding:2px 8px; border-radius:999px;
+      border:1px solid rgba(40,80,156,0.25); background:rgba(40,80,156,0.06);
+      color:var(--c3); margin:0 6px 6px 0; font-size:11px; white-space:nowrap;
     }
     .sig{ font-weight:950; }
     .sig.good{ color:var(--c1); }
@@ -494,6 +647,72 @@
     }
     .closebtn:hover{ border-color: rgba(237,3,124,0.45); color: var(--c2); }
     .modalbody{ padding:12px 14px 16px; }
+
+    /* VUS contribution UI */
+    .contribWrap{ margin-bottom:12px; }
+    .contribBtn{
+      width:100%;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid rgba(237,3,124,0.35);
+      background:linear-gradient(135deg, rgba(237,3,124,0.15), rgba(40,80,156,0.12));
+      color:var(--c3);
+      font-weight:950;
+      cursor:pointer;
+      box-shadow: 0 12px 30px rgba(237,3,124,0.12);
+    }
+    .contribBtn:hover{
+      border-color: rgba(237,3,124,0.55);
+      box-shadow: 0 14px 34px rgba(237,3,124,0.16);
+    }
+    .contribCard{
+      margin-top:10px;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:12px;
+      background:#fff;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.05);
+      display:none;
+    }
+    .contribCard.show{ display:block; }
+
+    .contribGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 760px){
+      .contribGrid{ grid-template-columns:1fr; }
+    }
+    .contribActions{
+      display:flex;
+      gap:10px;
+      margin-top:10px;
+      flex-wrap:wrap;
+    }
+    .btnInline{
+      width:auto;
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:950;
+      cursor:pointer;
+      border:0;
+      background:linear-gradient(135deg, var(--c1), var(--c5));
+      color:#fff;
+      box-shadow: 0 10px 26px rgba(40,80,156,0.18);
+    }
+    .btnInline.secondary{
+      background:#fff;
+      color:var(--c3);
+      border:1px solid rgba(0,0,0,0.16);
+      box-shadow:none;
+    }
+    .formHint{
+      font-size:11px;
+      color:#444;
+      margin-top:8px;
+      line-height:1.35;
+    }
 
     .grid{ display:grid; grid-template-columns: 1fr; gap:12px; }
     @media (min-width: 980px){ .grid{ grid-template-columns: 1fr 1fr; } }
@@ -549,101 +768,188 @@
       white-space:pre-wrap;
       word-break:break-word;
     }
+
+    /* ---------- Mobile usability improvements ---------- */
+    @media (max-width: 640px){
+      :root{ --topbarH: 64px; }
+
+      .topbar-inner{
+        padding:12px 12px;
+        align-items:flex-start;
+      }
+      .brand h1{ font-size:16px; }
+      .brand .sub{ font-size:12px; white-space:normal; max-width:100%; }
+      .pill{ display:none; } /* keep top right minimal */
+
+      .main{ padding:12px 12px 18px; }
+
+      .matrixCard{ border-radius:16px; }
+      .matrixHead h2{ font-size:15px; }
+      .matrixHead .help{ font-size:13px; line-height:1.35; }
+      .matrixWrap{ overflow:auto; }
+      .matrix{ min-width: 860px; } /* allow horizontal scroll rather than squish */
+
+      .cellCount{ font-size:44px; }
+      .vChip{ font-size:13px; padding:8px 12px; }
+
+      details.mainTableDetails > summary{
+        padding:14px 12px;
+        font-size:14px;
+      }
+      .summaryRight{ display:none; } /* simplify */
+
+      .sidebar{
+        padding:14px 12px;
+      }
+      .panel{
+        border-radius:16px;
+        padding:14px 12px;
+      }
+      .panel h2{ font-size:13px; }
+
+      input[type="text"], input[type="search"], select{
+        padding:12px 12px;
+        font-size:16px; /* avoids iOS zoom */
+        border-radius:14px;
+      }
+
+      .msTop input{ font-size:16px; }
+      .msItem{
+        padding:10px 10px;
+        border-radius:14px;
+      }
+      .msItem .txt{ font-size:14px; }
+      .msItem .cnt{ font-size:12px; }
+
+      .exportRow button{
+        padding:12px 12px;
+        font-size:14px;
+        border-radius:14px;
+      }
+
+      .overlay{ padding:10px; }
+      .modal{
+        width: 96vw;
+        max-height: 92vh;
+        border-radius:18px;
+      }
+      .modalhead h2{ font-size:16px; }
+      .modalhead .subline{ font-size:13px; }
+      .contribBtn{ padding:14px 14px; font-size:14px; }
+
+      .rcvtable th, .rcvtable td{ font-size:13px; }
+      .kv td{ font-size:13px; }
+      pre{ font-size:12px; }
+    }
   </style>
 </head>
 <body>
-  <!-- TOP HEADER -->
+  <div class="backdrop" id="backdrop" aria-hidden="true"></div>
+
   <header class="topbar">
     <div class="topbar-inner">
-      <div>
-        <h1>ClinVar data for variants in <span class="mono">FGFR3</span>*</h1>
-        <div class="sub">
-          Automatically loads on page open. Summary row uses preferred name derived from most-recent RCV
-          (first non-blank <span class="mono">preferred_name</span> when scanning from newest → oldest).
-          Click any variant chip or row for full details and RCV table.<br>
-          *<i>via MyVariant.info</i>
-        </div>
+      <div class="brand">
+        <h1>FGFR3 • ClinVar variants</h1>
+        <p class="sub">Loads automatically. Click any variant for details.</p>
       </div>
-      <div class="topbar-right">
-        <div class="chips">
-          <span class="chip">Gene: <strong>FGFR3</strong></span>
-          <span class="chip">Total: <strong id="topTotal">—</strong></span>
-          <span class="chip">Showing: <strong id="topShowing">—</strong></span>
-        </div>
-        <div class="chips">
-          <span class="chip">Condition default: <strong>Hypochondroplasia</strong></span>
-          <span class="chip">Sig default: <strong>All</strong></span>
-        </div>
+      <div class="top-actions">
+        <span class="pill">Showing <span class="mono" id="topShowing">—</span></span>
+        <button id="btnTopRefresh" type="button" title="Refresh data">Refresh</button>
       </div>
     </div>
   </header>
 
-  <div class="app">
-    <!-- LEFT SIDEBAR -->
-    <aside class="sidebar">
+  <div class="sidebarToggle" aria-label="Sidebar controls">
+    <button class="hamburger" id="btnHamburger" type="button" aria-label="Toggle filters sidebar">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <line x1="4" y1="7" x2="20" y2="7"></line>
+        <line x1="4" y1="12" x2="20" y2="12"></line>
+        <line x1="4" y1="17" x2="20" y2="17"></line>
+      </svg>
+      <span class="sr-only">Toggle filters</span>
+    </button>
+
+    <button class="flag" id="btnFlag" type="button" aria-label="Open filters sidebar">
+      <span>FILTERS</span>
+    </button>
+  </div>
+
+  <div class="app" id="app">
+    <aside class="sidebar" id="sidebar" aria-label="Filters sidebar">
+
       <div class="panel">
-        <h2>Active filters</h2>
-        <div id="activeFilters" class="activeFilters">Loading…</div>
+        <h2>Export</h2>
+        <div class="exportRow">
+          <button id="btnExportJson" class="secondary" type="button">JSON</button>
+          <button id="btnExportCsv" class="primary" type="button">CSV</button>
+        </div>
+        <div class="help" id="exportHint"></div>
       </div>
 
       <div class="panel">
-        <h2>Data</h2>
-        <button id="btnRefresh">Refresh data</button>
-        <button id="btnStop" class="secondary" disabled style="margin-top:8px;">Stop</button>
-
-        <div class="statline" style="margin-top:10px;">
-          <div class="stat"><div class="k">Total</div><div class="v" id="total">—</div></div>
-          <div class="stat"><div class="k">Fetched</div><div class="v" id="fetched">0</div></div>
-        </div>
-
-        <div class="progress" aria-label="progress"><div id="bar"></div></div>
-        <div class="status" id="status">Loading on page open…</div>
+        <h2>Active</h2>
+        <div id="activeFilters" class="activeFilters">Loading…</div>
       </div>
 
       <div class="panel">
         <h2>Filters</h2>
 
-        <div style="margin-bottom:10px;">
-          <label for="filter">Text filter</label>
-          <input id="filter" type="text" placeholder="filter rows…" />
-          <div class="help">Filters the main table only. The matrix above always uses its own fixed row/column criteria.</div>
+        <div style="margin-bottom:12px;">
+          <label for="filter">Search (main table)</label>
+          <input id="filter" type="search" placeholder="type to filter…" />
         </div>
 
-        <div style="margin-bottom:10px;">
-          <label for="sigSelect">Clinical significance</label>
-          <select id="sigSelect" class="multisel" multiple></select>
-          <div class="help">Options ordered by frequency (descending). “All” means no restriction.</div>
+        <div style="margin-bottom:12px;">
+          <label>Clinical significance</label>
+          <div class="ms" id="sigMS">
+            <div class="msTop">
+              <input id="sigSearch" type="search" placeholder="search options…" />
+              <div class="msPills" id="sigPills"></div>
+            </div>
+            <div class="msList" id="sigList" aria-label="Clinical significance options"></div>
+          </div>
         </div>
 
-        <div style="margin-bottom:10px;">
-          <label for="condSelect">Condition</label>
-          <select id="condSelect" class="multisel" multiple></select>
-          <div class="help">Options ordered by frequency (descending). Default selects fuzzy “Hypochondroplasia”.</div>
+        <div style="margin-bottom:12px;">
+          <label>Condition</label>
+          <div class="ms" id="condMS">
+            <div class="msTop">
+              <input id="condSearch" type="search" placeholder="search options…" />
+              <div class="msPills" id="condPills"></div>
+            </div>
+            <div class="msList" id="condList" aria-label="Condition options"></div>
+          </div>
         </div>
 
-        <div>
-          <label for="pageSize">Page size</label>
-          <select id="pageSize">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button id="btnRefresh" class="primary" type="button">Refresh data</button>
+          <button id="btnStop" class="secondary" type="button" disabled>Stop</button>
+        </div>
+
+        <div class="help" id="status">Loading on page open…</div>
+        <div class="help mono" style="margin-top:8px;">
+          Fetched: <span id="fetched">0</span> • Total: <span id="total">—</span>
+        </div>
+        <div class="help" style="margin-top:8px;">
+          Page size:
+          <select id="pageSize" aria-label="Page size">
             <option>100</option>
             <option>200</option>
             <option>500</option>
             <option selected>1000</option>
           </select>
-          <div class="help">Smaller page size can help with timeouts.</div>
         </div>
       </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main class="main">
-      <!-- NEW MATRIX TABLE -->
       <section class="matrixCard" aria-label="Condition x Significance matrix">
         <div class="matrixHead">
           <div>
             <h2>Condition × Clinical significance</h2>
             <div class="help">
-              Counts are <b>unique variants</b> (unique MyVariant <span class="mono">_id</span>) matching the cell’s
-              condition (row) + significance group (column). Variants may appear in multiple cells. Click chips to open details.
+              All variants listed are based on RefSeq transcript <span class="mono">NM_000142.5</span>.
+              Variants in each cell are sorted by association strength (RCV frequency + exclusivity).
             </div>
           </div>
           <div class="help mono" id="matrixMeta">—</div>
@@ -653,8 +959,8 @@
             <thead>
               <tr>
                 <th class="rowHead">Condition</th>
-                <th class="colHead">Pathogenic or Likely Pathogenic</th>
-                <th class="colHead">Variant of Uncertain Significance</th>
+                <th class="colHead">Pathogenic / Likely Pathogenic</th>
+                <th class="colHead">VUS</th>
               </tr>
             </thead>
             <tbody id="matrixBody">
@@ -664,11 +970,10 @@
         </div>
       </section>
 
-      <!-- COLLAPSIBLE MAIN TABLE (DEFAULT COLLAPSED) -->
       <details class="mainTableDetails" id="mainDetails">
         <summary>
           <span>Full variant table</span>
-          <span class="summaryRight">collapsed • click to expand</span>
+          <span class="summaryRight">collapsed</span>
         </summary>
         <div class="tablewrap" aria-label="results table container">
           <table id="tbl" aria-label="results table">
@@ -691,7 +996,6 @@
     </main>
   </div>
 
-  <!-- Modal -->
   <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-label="Variant details">
     <div class="modal" id="modal" tabindex="-1">
       <div class="modalhead">
@@ -701,10 +1005,50 @@
         </div>
         <button class="closebtn" id="closeModal" aria-label="Close">Close</button>
       </div>
+
       <div class="modalbody">
+        <div class="contribWrap" id="contribWrap" style="display:none;">
+          <button class="contribBtn" id="contribBtn" type="button">
+            Contribute evidence towards classification of this VUS
+          </button>
+
+          <div class="contribCard" id="contribCard">
+            <div class="help" style="margin-bottom:10px;">
+              This will open your email client addressed to <span class="mono">placeholder@testing.org</span>.
+            </div>
+
+            <form id="contribForm">
+              <div class="contribGrid">
+                <div>
+                  <label for="cName">Name</label>
+                  <input id="cName" type="text" autocomplete="name" required />
+                </div>
+                <div>
+                  <label for="cEmail">Email</label>
+                  <input id="cEmail" type="email" autocomplete="email" required />
+                </div>
+                <div>
+                  <label for="cAffil">Affiliation</label>
+                  <input id="cAffil" type="text" autocomplete="organization" />
+                </div>
+                <div>
+                  <label for="cNote">Note</label>
+                  <textarea id="cNote" placeholder="Evidence, literature, functional data, etc." required></textarea>
+                </div>
+              </div>
+
+              <div class="contribActions">
+                <button class="btnInline" type="submit">Send</button>
+                <button class="btnInline secondary" type="button" id="contribCancel">Cancel</button>
+              </div>
+              <div class="formHint" id="contribHint"></div>
+            </form>
+          </div>
+        </div>
+
         <div class="grid">
           <div class="card">
-            <h3>Basic information</h3>
+            <h3>Basic</h3>
             <div class="inner">
               <table class="kv" id="basicTable"></table>
             </div>
@@ -733,6 +1077,8 @@
     const QUERY = 'clinvar.gene.symbol:FGFR3 AND _exists_:clinvar';
     const FIELDS = "clinvar";
     const INITIAL_CONDITION_FUZZY = "hypochondroplasia";
+    const REFSEQ_TX = "NM_000142.5";
+    const REFSEQ_PREFIX_RE = /^NM_000142\.5\(FGFR3\):/i;
 
     // Matrix settings
     const MATRIX_ROWS = ["Achondroplasia", "Thanatophoric Dysplasia", "Hypochondroplasia"];
@@ -740,31 +1086,49 @@
       { key: "PLP", label: "Pathogenic or Likely Pathogenic" },
       { key: "VUS", label: "Variant of Uncertain Significance" }
     ];
-    const CELL_VARIANT_LIMIT = 6; // show first N chips, then "…"
+    const CELL_VARIANT_LIMIT = 6;
+
+    const CONTRIBUTION_EMAIL = "placeholder@testing.org";
 
     // ---- State ----
     let controller = null;
     let allRows = [];
     let totalHits = null;
+
     let sigCounts = new Map();
     let condCounts = new Map();
 
+    let currentModalRow = null;
+    let lastFilteredRows = [];
+
+    // Custom multiselect state (values are the raw option values)
+    let sigOptions = [];   // [{value,count}]
+    let condOptions = [];  // [{value,count}]
+    let sigSelected = new Set(); // includes "__ALL__"
+    let condSelected = new Set();
+
     // ---- DOM ----
+    const app = document.getElementById("app");
+    const backdrop = document.getElementById("backdrop");
+    const btnHamburger = document.getElementById("btnHamburger");
+    const btnFlag = document.getElementById("btnFlag");
+
+    const btnTopRefresh = document.getElementById("btnTopRefresh");
     const btnRefresh = document.getElementById("btnRefresh");
     const btnStop = document.getElementById("btnStop");
     const statusEl = document.getElementById("status");
     const totalEl = document.getElementById("total");
     const fetchedEl = document.getElementById("fetched");
-    const barEl = document.getElementById("bar");
-    const tbody = document.getElementById("tbody");
     const filterEl = document.getElementById("filter");
     const pageSizeEl = document.getElementById("pageSize");
-    const sigSelect = document.getElementById("sigSelect");
-    const condSelect = document.getElementById("condSelect");
     const activeFiltersEl = document.getElementById("activeFilters");
 
-    const topTotal = document.getElementById("topTotal");
     const topShowing = document.getElementById("topShowing");
+
+    const tbody = document.getElementById("tbody");
+    const matrixBody = document.getElementById("matrixBody");
+    const matrixMeta = document.getElementById("matrixMeta");
+    const mainDetails = document.getElementById("mainDetails");
 
     const overlay = document.getElementById("overlay");
     const modalTitle = document.getElementById("modalTitle");
@@ -773,9 +1137,31 @@
     const rcvTable = document.getElementById("rcvTable");
     const rawJson = document.getElementById("rawJson");
 
-    const matrixBody = document.getElementById("matrixBody");
-    const matrixMeta = document.getElementById("matrixMeta");
-    const mainDetails = document.getElementById("mainDetails");
+    // Contribution UI
+    const contribWrap = document.getElementById("contribWrap");
+    const contribBtn = document.getElementById("contribBtn");
+    const contribCard = document.getElementById("contribCard");
+    const contribForm = document.getElementById("contribForm");
+    const contribCancel = document.getElementById("contribCancel");
+    const contribHint = document.getElementById("contribHint");
+    const cName = document.getElementById("cName");
+    const cEmail = document.getElementById("cEmail");
+    const cAffil = document.getElementById("cAffil");
+    const cNote = document.getElementById("cNote");
+
+    // Export UI
+    const btnExportJson = document.getElementById("btnExportJson");
+    const btnExportCsv = document.getElementById("btnExportCsv");
+    const exportHint = document.getElementById("exportHint");
+
+    // Custom multiselect DOM
+    const sigSearch = document.getElementById("sigSearch");
+    const sigList = document.getElementById("sigList");
+    const sigPills = document.getElementById("sigPills");
+
+    const condSearch = document.getElementById("condSearch");
+    const condList = document.getElementById("condList");
+    const condPills = document.getElementById("condPills");
 
     // ---- Helpers ----
     function setStatus(msg){ statusEl.textContent = msg; }
@@ -836,6 +1222,7 @@
       }
       return String(v);
     }
+    function norm(s){ return String(s || "").toLowerCase(); }
 
     function pickMostRecentPreferredNameFromRcv(rcvArray){
       const rcv = asArray(rcvArray);
@@ -945,30 +1332,128 @@
       arr.sort((a,b) => (b.count - a.count) || a.value.localeCompare(b.value));
       return arr;
     }
-    function setOptionsFromFreq(selectEl, freqArr, { includeAll=false, allLabel="All" } = {}){
-      selectEl.innerHTML = "";
-      if (includeAll){
-        const opt = document.createElement("option");
-        opt.value = "__ALL__";
-        opt.textContent = allLabel;
-        selectEl.appendChild(opt);
-      }
-      for (const { value, count } of freqArr){
-        const opt = document.createElement("option");
-        opt.value = value;
-        opt.textContent = `${value} (${count})`;
-        selectEl.appendChild(opt);
+
+    // ---- Custom searchable multiselect ----
+    function setAllRule(set, val){
+      if (val === "__ALL__"){
+        set.clear();
+        set.add("__ALL__");
+      } else {
+        if (set.has("__ALL__")) set.delete("__ALL__");
+        if (set.has(val)) set.delete(val);
+        else set.add(val);
+        if (set.size === 0) set.add("__ALL__");
       }
     }
 
-    function selectedValues(selectEl){
-      return Array.from(selectEl.selectedOptions).map(o => o.value);
-    }
-    function enforceAllRule(selectEl){
-      const vals = selectedValues(selectEl);
-      if (vals.includes("__ALL__") && vals.length > 1){
-        for (const opt of Array.from(selectEl.options)) opt.selected = (opt.value === "__ALL__");
+    function renderMS({ options, selected, listEl, pillsEl, searchText }){
+      const q = norm(searchText || "");
+      listEl.innerHTML = "";
+
+      // Always show "All" at top
+      const base = [{ value:"__ALL__", count:null, label:"All" }, ...options.map(o => ({...o, label:`${o.value}`}))];
+
+      for (const opt of base){
+        const label = opt.label;
+        const show = (opt.value === "__ALL__") ? true : norm(label).includes(q);
+        if (!show) continue;
+
+        const row = document.createElement("label");
+        row.className = "msItem";
+        row.tabIndex = 0;
+
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = selected.has(opt.value);
+        cb.addEventListener("click", (e) => e.stopPropagation());
+
+        const txt = document.createElement("div");
+        txt.className = "txt";
+        txt.textContent = label;
+
+        const cnt = document.createElement("div");
+        cnt.className = "cnt";
+        cnt.textContent = (opt.value === "__ALL__") ? "" : `(${opt.count})`;
+
+        row.appendChild(cb);
+        row.appendChild(txt);
+        row.appendChild(cnt);
+
+        const toggle = () => {
+          setAllRule(selected, opt.value);
+          renderSelectedPills(selected, pillsEl);
+          // rerender lists to update checks
+          renderMS({ options, selected, listEl, pillsEl, searchText });
+          applyFiltersAndRender();
+        };
+
+        row.addEventListener("click", toggle);
+        row.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " "){
+            e.preventDefault();
+            toggle();
+          }
+        });
+
+        listEl.appendChild(row);
       }
+
+      renderSelectedPills(selected, pillsEl);
+    }
+
+    function renderSelectedPills(selected, pillsEl){
+      pillsEl.innerHTML = "";
+      const vals = Array.from(selected.values());
+
+      // If All is selected, show a single pill
+      if (vals.includes("__ALL__")){
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        chip.textContent = "All";
+        pillsEl.appendChild(chip);
+        return;
+      }
+
+      // show up to 4 pills, then "+N"
+      const max = 4;
+      const shown = vals.slice(0, max);
+      for (const v of shown){
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        chip.textContent = v;
+
+        const x = document.createElement("button");
+        x.type = "button";
+        x.textContent = "×";
+        x.title = "Remove";
+        x.addEventListener("click", (e) => {
+          e.stopPropagation();
+          setAllRule(selected, v); // toggles
+          renderSelectedPills(selected, pillsEl);
+          applyFiltersAndRender();
+          // rerender list checkboxes by triggering a synthetic re-render via searches
+          // (lists are small enough; this is fine)
+          renderMS({ options: (pillsEl === sigPills ? sigOptions : condOptions),
+                     selected,
+                     listEl: (pillsEl === sigPills ? sigList : condList),
+                     pillsEl,
+                     searchText: (pillsEl === sigPills ? sigSearch.value : condSearch.value) });
+        });
+        chip.appendChild(x);
+
+        pillsEl.appendChild(chip);
+      }
+
+      if (vals.length > max){
+        const more = document.createElement("span");
+        more.className = "chip";
+        more.textContent = `+${vals.length - max}`;
+        pillsEl.appendChild(more);
+      }
+    }
+
+    function selectedValues(set){
+      return Array.from(set.values());
     }
 
     // ---- Filter logic (main table only) ----
@@ -992,25 +1477,22 @@
         row.variationId || "",
         (row.sigs || []).join(" | "),
         (row.conditions || []).join(" | "),
-        (row.review || []).join(" | "),
-        (row.submitters || []).join(" | "),
-        (row.lastEval || []).join(" | "),
       ].join(" || ").toLowerCase();
       return hay.includes(q);
     }
 
     function buildActiveFiltersString({ showingCount }){
       const q = filterEl.value.trim();
-      const sigs = selectedValues(sigSelect);
-      const conds = selectedValues(condSelect);
+      const sigs = selectedValues(sigSelected);
+      const conds = selectedValues(condSelected);
 
       const sigLabel = (sigs.length === 0 || sigs.includes("__ALL__")) ? "All" : sigs.join(", ");
       const condLabel = (conds.length === 0 || conds.includes("__ALL__")) ? "All" : conds.join(", ");
 
       const parts = [
         `<strong>Condition:</strong> <span class="mono">${escapeHtml(condLabel)}</span>`,
-        `<strong>Clinical significance:</strong> <span class="mono">${escapeHtml(sigLabel)}</span>`,
-        `<strong>Text:</strong> <span class="mono">${escapeHtml(q || "—")}</span>`,
+        `<strong>Sig:</strong> <span class="mono">${escapeHtml(sigLabel)}</span>`,
+        `<strong>Search:</strong> <span class="mono">${escapeHtml(q || "—")}</span>`,
         `<strong>Showing:</strong> <span class="mono">${escapeHtml(String(showingCount))}</span>`
       ];
       return parts.join("<br/>");
@@ -1018,8 +1500,8 @@
 
     function applyFiltersAndRender(){
       const q = filterEl.value.trim().toLowerCase();
-      const selSigs = selectedValues(sigSelect);
-      const selConds = selectedValues(condSelect);
+      const selSigs = selectedValues(sigSelected);
+      const selConds = selectedValues(condSelected);
 
       const filtered = allRows.filter(r =>
         matchesSig(r, selSigs) &&
@@ -1027,51 +1509,127 @@
         matchesText(r, q)
       );
 
+      lastFilteredRows = filtered;
+
       renderTable(filtered);
 
       activeFiltersEl.innerHTML = buildActiveFiltersString({ showingCount: filtered.length });
       topShowing.textContent = String(filtered.length);
 
-      // update main details summary text
       const summaryRight = mainDetails.querySelector(".summaryRight");
       if (summaryRight){
-        summaryRight.textContent = `${mainDetails.open ? "expanded" : "collapsed"} • showing ${filtered.length} rows`;
+        summaryRight.textContent = mainDetails.open ? "expanded" : "collapsed";
       }
     }
 
-    // ---- NEW: Matrix logic ----
-    function norm(s){ return String(s || "").toLowerCase(); }
+    // ---- Sidebar toggle logic ----
+    function setSidebarState({ open }){
+      const isMobile = window.matchMedia("(max-width: 980px)").matches;
 
-    function conditionMatchesRow(row, conditionLabel){
-      const tgt = norm(conditionLabel);
-      for (const c of (row.conditions || [])){
-        if (norm(c).includes(tgt)) return true;
+      if (isMobile){
+        if (open){
+          app.classList.add("sidebar-open");
+          backdrop.setAttribute("aria-hidden", "false");
+          document.body.style.overflow = "hidden";
+        } else {
+          app.classList.remove("sidebar-open");
+          backdrop.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
+        }
+      } else {
+        if (open) app.classList.remove("sidebar-collapsed");
+        else app.classList.add("sidebar-collapsed");
+        app.classList.remove("sidebar-open");
+        backdrop.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
       }
-      return false;
     }
 
+    function toggleSidebar(){
+      const isMobile = window.matchMedia("(max-width: 980px)").matches;
+      if (isMobile){
+        setSidebarState({ open: !app.classList.contains("sidebar-open") });
+      } else {
+        setSidebarState({ open: app.classList.contains("sidebar-collapsed") });
+      }
+    }
+
+    btnHamburger.addEventListener("click", toggleSidebar);
+    btnFlag.addEventListener("click", toggleSidebar);
+    backdrop.addEventListener("click", () => setSidebarState({ open:false }));
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape"){
+        if (window.matchMedia("(max-width: 980px)").matches && app.classList.contains("sidebar-open")){
+          setSidebarState({ open:false });
+        }
+      }
+    });
+
+    function initSidebarDefault(){
+      const mobile = window.matchMedia("(max-width: 980px)").matches;
+      if (mobile) setSidebarState({ open:false });
+      else setSidebarState({ open:true });
+    }
+
+    // ---- Matrix logic: association strength sorting ----
     function sigMatchesGroup(row, groupKey){
       const sigs = (row.sigs || []).map(s => norm(s));
-      if (groupKey === "PLP"){
-        // any contains "pathogenic" (covers likely pathogenic too)
-        return sigs.some(s => s.includes("pathogenic"));
-      }
-      if (groupKey === "VUS"){
-        return sigs.some(s => s.includes("uncertain") || s.includes("vus"));
-      }
+      if (groupKey === "PLP") return sigs.some(s => s.includes("pathogenic"));
+      if (groupKey === "VUS") return sigs.some(s => s.includes("uncertain") || s.includes("vus"));
       return false;
     }
 
-    function variantLabel(row){
-      // chip label: prefer preferredName; else coords; else id
+    function stripRefseqPrefix(label){
+      if (!label) return label;
+      return String(label).replace(REFSEQ_PREFIX_RE, "").trim();
+    }
+
+    function variantLabelShort(row){
+      // For matrix chips: prefer short HGVS/protein representation (strip "NM_000142.5(FGFR3):")
+      const base = (row.preferredName && row.preferredName.trim()) ? stripRefseqPrefix(row.preferredName.trim())
+                 : (row.coords && row.coords.trim()) ? row.coords.trim()
+                 : row.id;
+      return base;
+    }
+
+    function variantLabelFull(row){
+      // For tables/modal
       const t = (row.preferredName && row.preferredName.trim()) ? row.preferredName.trim()
               : (row.coords && row.coords.trim()) ? row.coords.trim()
               : row.id;
       return t;
     }
 
+    function conditionMatch(condText, targetLabel){
+      const a = norm(condText);
+      const b = norm(targetLabel);
+      return a.includes(b);
+    }
+
+    function conditionAssociationScore(rawClinvar, conditionLabel){
+      const rcvArr = asArray(safeGet(rawClinvar, "rcv", null));
+      let matchCount = 0;
+      let exclSum = 0;
+      let onlyBonus = 0;
+
+      for (const rcv of rcvArr){
+        const conds = uniq(extractConditionsFromRcv(rcv));
+        if (!conds.length) continue;
+
+        const has = conds.some(c => conditionMatch(c, conditionLabel));
+        if (!has) continue;
+
+        matchCount += 1;
+        const k = conds.length;
+        exclSum += (1 / k);
+        if (k === 1) onlyBonus += 1;
+      }
+
+      const score = (matchCount * 1000) + (exclSum * 100) + (onlyBonus * 50);
+      return { score, matchCount, exclSum, onlyBonus };
+    }
+
     function buildMatrixData(){
-      // Map[rowLabel][colKey] => Map<row.id, row>
       const out = new Map();
       for (const rowLabel of MATRIX_ROWS){
         const m = new Map();
@@ -1080,12 +1638,17 @@
       }
 
       for (const r of allRows){
+        const raw = r.rawClinvar || null;
+        if (!raw) continue;
+
         for (const rowLabel of MATRIX_ROWS){
-          if (!conditionMatchesRow(r, rowLabel)) continue;
+          const assoc = conditionAssociationScore(raw, rowLabel);
+          if (assoc.matchCount <= 0) continue;
+
           const perRow = out.get(rowLabel);
           for (const col of MATRIX_COLS){
             if (sigMatchesGroup(r, col.key)){
-              perRow.get(col.key).set(r.id, r);
+              perRow.get(col.key).set(r.id, { row: r, assoc });
             }
           }
         }
@@ -1101,7 +1664,7 @@
       }
 
       const data = buildMatrixData();
-      matrixMeta.textContent = `${allRows.length} total variants loaded`;
+      matrixMeta.textContent = `${allRows.length} variants`;
 
       matrixBody.innerHTML = "";
       const frag = document.createDocumentFragment();
@@ -1117,7 +1680,15 @@
         for (const col of MATRIX_COLS){
           const td = document.createElement("td");
           const m = data.get(rowLabel).get(col.key);
-          const variants = Array.from(m.values()).sort((a,b) => variantLabel(a).localeCompare(variantLabel(b)));
+
+          const variants = Array.from(m.values()).sort((a,b) => {
+            const da = a.assoc.score;
+            const db = b.assoc.score;
+            if (db !== da) return db - da;
+            if (b.assoc.matchCount !== a.assoc.matchCount) return b.assoc.matchCount - a.assoc.matchCount;
+            if (b.assoc.exclSum !== a.assoc.exclSum) return b.assoc.exclSum - a.assoc.exclSum;
+            return variantLabelShort(a.row).localeCompare(variantLabelShort(b.row));
+          });
 
           const cell = document.createElement("div");
           cell.className = "cell";
@@ -1131,7 +1702,7 @@
 
           const meta = document.createElement("div");
           meta.className = "cellMeta mono";
-          meta.textContent = "unique variants";
+          meta.textContent = "unique";
 
           top.appendChild(count);
           top.appendChild(meta);
@@ -1144,11 +1715,14 @@
             const btn = document.createElement("button");
             btn.type = "button";
             btn.className = "vChip";
-            btn.title = "Open variant details";
-            btn.textContent = variantLabel(v);
-            btn.addEventListener("click", () => openVariantDetails(v));
+            btn.title = `RCV matches: ${v.assoc.matchCount} | exclusivity Σ: ${v.assoc.exclSum.toFixed(2)}`;
+            btn.textContent = variantLabelShort(v.row);
+            btn.addEventListener("click", () => openVariantDetails(v.row));
             listWrap.appendChild(btn);
           }
+
+          cell.appendChild(top);
+          cell.appendChild(listWrap);
 
           if (variants.length > CELL_VARIANT_LIMIT){
             const details = document.createElement("details");
@@ -1165,19 +1739,14 @@
               const btn = document.createElement("button");
               btn.type = "button";
               btn.className = "vChip";
-              btn.title = "Open variant details";
-              btn.textContent = variantLabel(v);
-              btn.addEventListener("click", () => openVariantDetails(v));
+              btn.title = `RCV matches: ${v.assoc.matchCount} | exclusivity Σ: ${v.assoc.exclSum.toFixed(2)}`;
+              btn.textContent = variantLabelShort(v.row);
+              btn.addEventListener("click", () => openVariantDetails(v.row));
               moreBox.appendChild(btn);
             }
 
             details.appendChild(moreBox);
-            cell.appendChild(top);
-            cell.appendChild(listWrap);
             cell.appendChild(details);
-          } else {
-            cell.appendChild(top);
-            cell.appendChild(listWrap);
           }
 
           td.appendChild(cell);
@@ -1190,15 +1759,7 @@
       matrixBody.appendChild(frag);
     }
 
-    // Keep summary label updated when user toggles main table
-    mainDetails.addEventListener("toggle", () => {
-      const summaryRight = mainDetails.querySelector(".summaryRight");
-      if (summaryRight){
-        summaryRight.textContent = `${mainDetails.open ? "expanded" : "collapsed"} • showing ${topShowing.textContent || "—"} rows`;
-      }
-    });
-
-    // ---- Table render (main table) ----
+    // ---- Main table render ----
     function renderTable(rows){
       tbody.innerHTML = "";
       if (!rows.length){
@@ -1221,7 +1782,6 @@
           }
         });
 
-        // Variant column order: preferred_name -> coords -> gene
         const td0 = document.createElement("td");
         const pref = r.preferredName
           ? `<div class="v-preferred mono">${escapeHtml(r.preferredName)}</div>`
@@ -1287,7 +1847,23 @@
     }
     function joinOrDash(arr){ return (arr && arr.length) ? arr.join(" • ") : "—"; }
 
+    function isVUSRow(row){
+      const sigs = (row?.sigs || []).map(s => norm(s));
+      return sigs.some(s => s.includes("uncertain") || s.includes("vus"));
+    }
+
+    function resetContributionUI(){
+      contribWrap.style.display = "none";
+      contribCard.classList.remove("show");
+      contribHint.textContent = "";
+      cName.value = "";
+      cEmail.value = "";
+      cAffil.value = "";
+      cNote.value = "";
+    }
+
     function openVariantDetails(row){
+      currentModalRow = row;
       const raw = row.rawClinvar || null;
       const variationId = row.variationId && row.variationId !== "—" ? row.variationId : null;
       const clinvarLink = variationId ? buildClinVarLink(variationId) : null;
@@ -1296,6 +1872,11 @@
       modalSubtitle.innerHTML = clinvarLink
         ? `ClinVar variation: <a class="mono" href="${clinvarLink}" target="_blank" rel="noopener">${escapeHtml(variationId)}</a>`
         : `ClinVar variation: —`;
+
+      resetContributionUI();
+      if (isVUSRow(row)){
+        contribWrap.style.display = "block";
+      }
 
       basicTable.innerHTML = "";
       basicTable.appendChild(kvRow("MyVariant _id", `<span class="mono">${escapeHtml(row.id)}</span>`));
@@ -1320,7 +1901,6 @@
       rcvTable.innerHTML = "";
 
       const headers = ["RCV","Clinical significance","Conditions","Review status","Last evaluated","# submitters","preferred_name"];
-
       const thead = document.createElement("thead");
       const hr = document.createElement("tr");
       for (const h of headers){
@@ -1400,12 +1980,202 @@
     function closeModal(){
       overlay.classList.remove("show");
       document.body.style.overflow = "";
+      currentModalRow = null;
+      resetContributionUI();
     }
     document.getElementById("closeModal").addEventListener("click", closeModal);
     overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
     window.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && overlay.classList.contains("show")) closeModal();
     });
+
+    // ---- Contribution behavior ----
+    contribBtn.addEventListener("click", () => {
+      contribCard.classList.toggle("show");
+      contribHint.textContent = "";
+      if (contribCard.classList.contains("show")){
+        setTimeout(() => cName.focus(), 0);
+      }
+    });
+    contribCancel.addEventListener("click", () => {
+      contribCard.classList.remove("show");
+      contribHint.textContent = "";
+    });
+    function encodeMailto(s){ return encodeURIComponent(String(s || "")); }
+
+    contribForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!currentModalRow){
+        contribHint.textContent = "No variant selected.";
+        return;
+      }
+
+      const name = cName.value.trim();
+      const email = cEmail.value.trim();
+      const affil = cAffil.value.trim();
+      const note = cNote.value.trim();
+
+      if (!name || !email || !note){
+        contribHint.textContent = "Please fill in Name, Email, and Note.";
+        return;
+      }
+
+      const label = variantLabelFull(currentModalRow);
+      const clinvarVarId = (currentModalRow.variationId && currentModalRow.variationId !== "—") ? currentModalRow.variationId : "";
+      const clinvarLink = clinvarVarId ? `https://www.ncbi.nlm.nih.gov/clinvar/variation/${encodeURIComponent(clinvarVarId)}/` : "";
+
+      const subject = `FGFR3 VUS evidence contribution: ${label}`;
+      const bodyLines = [
+        "Evidence contribution request",
+        "-----------------------------",
+        `Variant label: ${label}`,
+        `MyVariant _id: ${currentModalRow.id}`,
+        `ClinVar variation_id: ${clinvarVarId || "—"}`,
+        `ClinVar link: ${clinvarLink || "—"}`,
+        "",
+        "Contributor details",
+        "-------------------",
+        `Name: ${name}`,
+        `Email: ${email}`,
+        `Affiliation: ${affil || "—"}`,
+        "",
+        "Note / evidence",
+        "---------------",
+        note,
+        "",
+        "(Generated from the FGFR3 ClinVar browser page)"
+      ];
+
+      const mailto = `mailto:${CONTRIBUTION_EMAIL}?subject=${encodeMailto(subject)}&body=${encodeMailto(bodyLines.join("\n"))}`;
+      contribHint.textContent = "Opening your email client…";
+      window.location.href = mailto;
+    });
+
+    // ---- EXPORT ----
+    function downloadBlob({ data, filename, mime }){
+      const blob = new Blob([data], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 800);
+    }
+
+    function buildExportMeta(){
+      const q = filterEl.value.trim();
+      const sigs = selectedValues(sigSelected);
+      const conds = selectedValues(condSelected);
+
+      const sigLabel = (sigs.length === 0 || sigs.includes("__ALL__")) ? "All" : sigs;
+      const condLabel = (conds.length === 0 || conds.includes("__ALL__")) ? "All" : conds;
+
+      return {
+        exported_at: new Date().toISOString(),
+        gene: "FGFR3",
+        refseq_transcript: REFSEQ_TX,
+        filters: {
+          clinical_significance: sigLabel,
+          condition: condLabel,
+          text: q || null
+        }
+      };
+    }
+
+    function exportAsJson(){
+      exportHint.textContent = "";
+      if (!allRows.length){ exportHint.textContent = "No data loaded yet."; return; }
+
+      const rows = lastFilteredRows || [];
+      const meta = buildExportMeta();
+      const payload = {
+        meta,
+        count: rows.length,
+        rows: rows.map(r => ({
+          id: r.id,
+          variationId: r.variationId,
+          geneSymbol: r.geneSymbol,
+          preferredName: r.preferredName,
+          coords: r.coords,
+          sigs: r.sigs,
+          review: r.review,
+          submitters: r.submitters,
+          lastEval: r.lastEval,
+          conditions: r.conditions,
+          clinvar: r.rawClinvar
+        }))
+      };
+
+      const dateTag = meta.exported_at.replaceAll(":", "").replaceAll("-", "").slice(0, 15);
+      downloadBlob({
+        data: JSON.stringify(payload, null, 2),
+        filename: `FGFR3_clinvar_filtered_${dateTag}.json`,
+        mime: "application/json"
+      });
+      exportHint.textContent = `Downloaded JSON (${rows.length} rows).`;
+    }
+
+    function csvEscape(v){
+      const s = (v == null) ? "" : String(v);
+      const needs = /[",\n\r]/.test(s);
+      const esc = s.replaceAll('"', '""');
+      return needs ? `"${esc}"` : esc;
+    }
+
+    function exportAsCsv(){
+      exportHint.textContent = "";
+      if (!allRows.length){ exportHint.textContent = "No data loaded yet."; return; }
+
+      const rows = lastFilteredRows || [];
+      const header = [
+        "variant_preferred_name",
+        "variant_coords",
+        "gene_symbol",
+        "clinvar_variation_id",
+        "clinvar_variation_url",
+        "clinical_significance_rcv_unique",
+        "conditions_rcv_unique",
+        "review_status_unique",
+        "number_submitters_unique",
+        "last_evaluated_unique",
+        "myvariant_id"
+      ];
+
+      const lines = [];
+      lines.push(header.map(csvEscape).join(","));
+
+      for (const r of rows){
+        const varUrl = (r.variationId && r.variationId !== "—") ? `https://www.ncbi.nlm.nih.gov/clinvar/variation/${encodeURIComponent(r.variationId)}/` : "";
+        const line = [
+          r.preferredName || "",
+          r.coords || "",
+          r.geneSymbol || "",
+          (r.variationId && r.variationId !== "—") ? r.variationId : "",
+          varUrl,
+          (r.sigs || []).join(" | "),
+          (r.conditions || []).join(" | "),
+          (r.review || []).join(" | "),
+          (r.submitters || []).join(" | "),
+          (r.lastEval || []).join(" | "),
+          r.id || ""
+        ];
+        lines.push(line.map(csvEscape).join(","));
+      }
+
+      const meta = buildExportMeta();
+      const dateTag = meta.exported_at.replaceAll(":", "").replaceAll("-", "").slice(0, 15);
+      downloadBlob({
+        data: lines.join("\n"),
+        filename: `FGFR3_clinvar_summary_filtered_${dateTag}.csv`,
+        mime: "text/csv"
+      });
+      exportHint.textContent = `Downloaded CSV (${rows.length} rows).`;
+    }
+
+    btnExportJson.addEventListener("click", exportAsJson);
+    btnExportCsv.addEventListener("click", exportAsCsv);
 
     // ---- Network ----
     async function fetchPage({ from, size, signal }){
@@ -1429,59 +2199,67 @@
       totalHits = null;
       sigCounts = new Map();
       condCounts = new Map();
+      lastFilteredRows = [];
+
+      sigOptions = [];
+      condOptions = [];
+      sigSelected = new Set(["__ALL__"]);
+      condSelected = new Set(["__ALL__"]);
 
       totalEl.textContent = "—";
       fetchedEl.textContent = "0";
-      barEl.style.width = "0%";
-      topTotal.textContent = "—";
       topShowing.textContent = "—";
-
-      sigSelect.innerHTML = "";
-      condSelect.innerHTML = "";
+      exportHint.textContent = "";
 
       tbody.innerHTML = `<tr><td colspan="6" class="small">Loading…</td></tr>`;
       activeFiltersEl.innerHTML = "Loading…";
-
       matrixBody.innerHTML = `<tr><td colspan="3" class="help">Loading…</td></tr>`;
       matrixMeta.textContent = "—";
 
-      // Ensure main table stays collapsed by default after refresh
+      // reset custom MS UI
+      sigSearch.value = "";
+      condSearch.value = "";
+      sigList.innerHTML = "";
+      condList.innerHTML = "";
+      sigPills.innerHTML = "";
+      condPills.innerHTML = "";
+
       mainDetails.open = false;
-      const summaryRight = mainDetails.querySelector(".summaryRight");
-      if (summaryRight) summaryRight.textContent = "collapsed • click to expand";
     }
 
     function setLoadingUI(loading){
       btnRefresh.disabled = loading;
+      btnTopRefresh.disabled = loading;
       btnStop.disabled = !loading;
       pageSizeEl.disabled = loading;
-      sigSelect.disabled = loading;
-      condSelect.disabled = loading;
+      btnExportJson.disabled = loading;
+      btnExportCsv.disabled = loading;
     }
 
     btnStop.addEventListener("click", () => {
       if (controller){
         controller.abort();
-        setStatus("Stopped by user. Partial results shown.");
+        setStatus("Stopped. Partial results shown.");
       }
     });
 
     function setInitialSelections(){
-      const allSig = Array.from(sigSelect.options).find(o => o.value === "__ALL__");
-      if (allSig) allSig.selected = true;
+      // Default: Sig All, Condition fuzzy Hypochondroplasia
+      sigSelected = new Set(["__ALL__"]);
 
       const target = INITIAL_CONDITION_FUZZY.toLowerCase();
       let any = false;
-      for (const opt of Array.from(condSelect.options)){
-        if (opt.value !== "__ALL__" && opt.value.toLowerCase().includes(target)){
-          opt.selected = true;
+      condSelected = new Set();
+      for (const o of condOptions){
+        if (o.value.toLowerCase().includes(target)){
+          condSelected.add(o.value);
           any = true;
         }
       }
-      if (!any){
-        const allCond = Array.from(condSelect.options).find(o => o.value === "__ALL__");
-        if (allCond) allCond.selected = true;
-      }
+      if (!any) condSelected.add("__ALL__");
+
+      renderMS({ options: sigOptions, selected: sigSelected, listEl: sigList, pillsEl: sigPills, searchText: sigSearch.value });
+      renderMS({ options: condOptions, selected: condSelected, listEl: condList, pillsEl: condPills, searchText: condSearch.value });
     }
 
     async function loadAllData(){
@@ -1495,7 +2273,7 @@
       let from = 0;
 
       try{
-        setStatus("Querying MyVariant.info…");
+        setStatus("Loading…");
 
         while (true){
           const data = await fetchPage({ from, size, signal });
@@ -1503,7 +2281,6 @@
           if (totalHits == null){
             totalHits = data?.total ?? 0;
             totalEl.textContent = String(totalHits);
-            topTotal.textContent = String(totalHits);
           }
 
           const hits = Array.isArray(data?.hits) ? data.hits : [];
@@ -1516,56 +2293,44 @@
           from += hits.length;
           fetchedEl.textContent = String(from);
 
-          const pct = totalHits ? clamp((from / totalHits) * 100, 0, 100) : 0;
-          barEl.style.width = pct.toFixed(1) + "%";
-          setStatus(`Fetched ${from} / ${totalHits}…`);
-
-          if (from >= totalHits) break;
+          setStatus(`Loaded ${from}${totalHits ? " / " + totalHits : ""}`);
+          if (totalHits && from >= totalHits) break;
         }
 
-        // Populate filters by frequency
         buildCounts();
-        setOptionsFromFreq(sigSelect, sortByFrequencyThenAlpha(sigCounts), { includeAll:true, allLabel:"All" });
-        setOptionsFromFreq(condSelect, sortByFrequencyThenAlpha(condCounts), { includeAll:true, allLabel:"All" });
+        sigOptions = sortByFrequencyThenAlpha(sigCounts);   // [{value,count}]
+        condOptions = sortByFrequencyThenAlpha(condCounts);
 
         setInitialSelections();
 
-        // Wire listeners once
         if (!window.__filtersWired){
           window.__filtersWired = true;
 
           filterEl.addEventListener("input", applyFiltersAndRender);
 
-          sigSelect.addEventListener("change", () => {
-            enforceAllRule(sigSelect);
-            applyFiltersAndRender();
+          sigSearch.addEventListener("input", () => {
+            renderMS({ options: sigOptions, selected: sigSelected, listEl: sigList, pillsEl: sigPills, searchText: sigSearch.value });
           });
-
-          condSelect.addEventListener("change", () => {
-            enforceAllRule(condSelect);
-            applyFiltersAndRender();
+          condSearch.addEventListener("input", () => {
+            renderMS({ options: condOptions, selected: condSelected, listEl: condList, pillsEl: condPills, searchText: condSearch.value });
           });
         }
 
-        // Render matrix first (independent of sidebar filters)
         renderMatrix();
-
-        // Render main table with sidebar filters applied
         applyFiltersAndRender();
 
-        setStatus(`Done. Loaded ${allRows.length} variants.`);
+        setStatus(`Ready`);
         setLoadingUI(false);
 
       }catch(err){
         if (err?.name === "AbortError"){
           setStatus("Stopped. Partial results shown.");
 
-          // Populate what we have
           buildCounts();
-          setOptionsFromFreq(sigSelect, sortByFrequencyThenAlpha(sigCounts), { includeAll:true, allLabel:"All" });
-          setOptionsFromFreq(condSelect, sortByFrequencyThenAlpha(condCounts), { includeAll:true, allLabel:"All" });
-          setInitialSelections();
+          sigOptions = sortByFrequencyThenAlpha(sigCounts);
+          condOptions = sortByFrequencyThenAlpha(condCounts);
 
+          setInitialSelections();
           renderMatrix();
           applyFiltersAndRender();
 
@@ -1581,11 +2346,25 @@
     }
 
     btnRefresh.addEventListener("click", loadAllData);
+    btnTopRefresh.addEventListener("click", loadAllData);
 
-    // Auto-load on page open
+    // ---- Collapsible table label ----
+    mainDetails.addEventListener("toggle", () => {
+      const summaryRight = mainDetails.querySelector(".summaryRight");
+      if (summaryRight){
+        summaryRight.textContent = mainDetails.open ? "expanded" : "collapsed";
+      }
+    });
+
+    // ---- Auto-load ----
     window.addEventListener("DOMContentLoaded", () => {
-      setStatus("Loading on page open…");
+      initSidebarDefault();
       loadAllData();
+    });
+
+    // Sidebar default behavior on resize
+    window.addEventListener("resize", () => {
+      initSidebarDefault();
     });
   </script>
 </body>
