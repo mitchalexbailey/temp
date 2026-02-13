@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>FGFR3 Variants</title>
   <link rel="icon" type="image/x-icon" href="https://www.dmd.nl/static/images/vertical_clip.png">
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
   <style>
     :root{
       /* Palette provided */
@@ -476,6 +477,69 @@
     }
     .matrix .colHead{ width: 33%; }
 
+      .matrixHeadTop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+  }
+  .matrixTitle {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 950;
+    color: var(--c3);
+    letter-spacing: .15px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chartToggles {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+    /* --- Toggle headers: identical sizing + modern index badge --- */
+    .toggleHeader {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 0px solid rgba(0,0,0,0);
+      background: #fff;
+      /*box-shadow: 0 10px 24px rgba(0,0,0,0.06);*/
+      font-weight: 250;
+      color: gray; /* var(--c3); */
+      cursor: pointer;
+      user-select: none;
+      line-height: 1;
+      white-space: nowrap;
+      font-size: 12px; /* identical */
+    }
+    .toggleHeader[aria-pressed="true"]{
+      border-color: rgba(40,80,156,0);
+      background: rgba(40,80,156,0.1);
+      color: var(--c3);
+      font-weight: 950;
+    }
+    .toggleBadge{
+      font-family: Arial, Helvetica, sans-serif; /* clean, modern */
+      font-weight: 900;
+      font-size: 18px;        /* oversized but clean */
+      line-height: 1;
+      width: 22px;            /* fixed width = perfect alignment */
+      height: 22px;
+      display: grid;
+      place-items: center;    /* perfectly middle aligned */
+      color: var(--c3);
+      opacity: .9;
+    }
+    /* end toggle headers */
     .cell{
       min-height:130px;
       display:flex;
@@ -1011,19 +1075,10 @@
       </svg>
       <span class="sr-only">Toggle filters</span>
     </button>
-
-<!--     <button class="flag" id="btnFlag" type="button" aria-label="Open filters sidebar">
-      <span class='mono'>FILTERS</span>
-    </button> -->
   </div>
 
   <div class="app" id="app">
     <aside class="sidebar" id="sidebar" aria-label="Filters sidebar">
-
-<!--       <div class="panel">
-        <h2>Active</h2>
-        
-      </div> -->
 
       <div class="panel">
         <h2>Filters</h2>
@@ -1087,14 +1142,43 @@
     </aside>
 
     <main class="main">
-      <details class="matrixCard" id="matrixDetails" open aria-label="Condition x Significance matrix">
+      <details class="matrixCard" id="chartDetails" open aria-label="Classification Trends">
+        <summary class="matrixHead">
+          <div class="matrixHeadTop">
+            <h2 class="matrixTitle">Cumulative Variant Count Over Time</h2>
+
+            <!-- toggles moved into the section header bar -->
+            <div class="chartToggles" aria-label="Chart toggles">
+              <button id="toggleByClass" type="button" class="toggleHeader" aria-pressed="true" title="View by classification">
+                <span class="toggleBadge">A</span>
+                <span>By Classification</span>
+              </button>
+
+              <button id="toggleByCond" type="button" class="toggleHeader" aria-pressed="false" title="View by condition">
+                <span class="toggleBadge">B</span>
+                <span>By Condition</span>
+              </button>
+            </div>
+          </div>
+
+          <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end;">
+            <div class="summaryRight" style="margin-top: 20%;">expanded</div>
+          </div>
+        </summary>
+
+        <div id="plotlyChart" style="width: 100%; height: 400px; padding: 10px;">
+          <div class="help" style="text-align:center; padding:50px;">Load data to generate chart...</div>
+        </div>
+      </details>
+
+      <details class="matrixCard" id="matrixDetails" aria-label="Condition x Significance matrix">
         <summary class="matrixHead">
           <div>
             <h2>Condition × Clinical significance</h2>
           </div>
           <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end;">
-            <div class="help mono" id="matrixMeta">—</div>
-            <div class="summaryRight" style="margin-top: 4px;">expanded</div>
+            <!-- <div class="help mono" id="matrixMeta">—</div> -->
+            <div class="summaryRight" style="margin-top: 20%;">collapsed</div>
           </div>
         </summary>
         <div class="matrixWrap">
@@ -1214,7 +1298,7 @@
         <div class="grid">
           <div class="card" style="margin-top:12px;">
             <h3>RCVs (Reference Accessions)</h3>
-            <div class="help" style="padding: 0 12px 10px;">Click an RCV row to load individual lab submissions (SCVs) below.</div>
+            <div class="help" style="padding: 0 12px 10px;">Click an RCV row to load individual lab submissions (SCVs) below. Sorted newest to oldest.</div>
             <div class="inner" style="overflow:auto; max-height:340px;">
               <table class="rcvtable" id="rcvTable"></table>
             </div>
@@ -1258,7 +1342,7 @@
     const API_BASE = "https://myvariant.info/v1/query";
     const QUERY = 'clinvar.gene.symbol:FGFR3 AND _exists_:clinvar';
     const FIELDS = "clinvar";
-    const INITIAL_CONDITION_FUZZY = "hypochondroplasia";
+    // const INITIAL_CONDITION_FUZZY = null;
     const REFSEQ_TX = "NM_000142.5";
     const REFSEQ_PREFIX_RE = /^NM_000142\.5\(FGFR3\):/i;
 
@@ -1293,7 +1377,6 @@
     const app = document.getElementById("app");
     const backdrop = document.getElementById("backdrop");
     const btnHamburger = document.getElementById("btnHamburger");
-    // const btnFlag = document.getElementById("btnFlag");
 
     const btnTopRefresh = document.getElementById("btnTopRefresh");
     const btnRefresh = document.getElementById("btnRefresh");
@@ -1309,7 +1392,8 @@
 
     const tbody = document.getElementById("tbody");
     const matrixBody = document.getElementById("matrixBody");
-    const matrixMeta = document.getElementById("matrixMeta");
+    // const matrixMeta = document.getElementById("matrixMeta");
+    const chartDetails = document.getElementById("chartDetails");
     const matrixDetails = document.getElementById("matrixDetails");
     const mainDetails = document.getElementById("mainDetails");
 
@@ -1451,6 +1535,9 @@
           });
         });
 
+        // Sort SCV results newest to oldest
+        results.sort((a, b) => parseDateToMs(b.date) - parseDateToMs(a.date));
+
         body.innerHTML = "";
         if (results.length === 0) {
           body.innerHTML = '<tr><td colspan="5" class="help">No individual submissions found.</td></tr>';
@@ -1554,7 +1641,7 @@
       const review = uniq(rcv.map(r => safeGet(r, "review_status", null)));
       const submitters = uniq(rcv.map(r => safeGet(r, "number_submitters", null))).map(String);
       
-      // Calculate most recent evaluated date
+      // Calculate single most recent evaluated date
       const lastEvalDates = rcv.map(r => safeGet(r, "last_evaluated", null)).filter(Boolean);
       let mostRecentEval = "—";
       if (lastEvalDates.length > 0) {
@@ -1787,9 +1874,13 @@
         matchesText(r, q)
       );
 
+      // Default main table sort: Newest evaluation first
+      filtered.sort((a, b) => parseDateToMs(b.lastEval) - parseDateToMs(a.lastEval));
+
       lastFilteredRows = filtered;
 
       renderTable(filtered);
+      renderTimelineChart(filtered); // Update plot with filtered data
 
       activeFiltersEl.innerHTML = buildActiveFiltersString({ showingCount: filtered.length });
       topShowing.textContent = String(filtered.length);
@@ -1802,6 +1893,11 @@
       const summaryRightMatrix = matrixDetails.querySelector(".summaryRight");
       if (summaryRightMatrix){
         summaryRightMatrix.textContent = matrixDetails.open ? "expanded" : "collapsed";
+      }
+
+      const summaryRightChart = chartDetails.querySelector(".summaryRight");
+      if (summaryRightChart){
+        summaryRightChart.textContent = chartDetails.open ? "expanded" : "collapsed";
       }
     }
 
@@ -1838,8 +1934,6 @@
     }
 
     btnHamburger.addEventListener("click", toggleSidebar);
-    // btnFlag.addEventListener("click", toggleSidebar);
-    backdrop.addEventListener("click", () => setSidebarState({ open:false }));
     window.addEventListener("keydown", (e) => {
       if (e.key === "Escape"){
         if (window.matchMedia("(max-width: 980px)").matches && app.classList.contains("sidebar-open")){
@@ -1874,13 +1968,6 @@
       return base;
     }
 
-    function variantLabelFull(row){
-      const t = (row.preferredName && row.preferredName.trim()) ? row.preferredName.trim()
-              : (row.coords && row.coords.trim()) ? row.coords.trim()
-              : row.id;
-      return t;
-    }
-
     function conditionMatch(condText, targetLabel){
       const a = norm(condText);
       const b = norm(targetLabel);
@@ -1890,7 +1977,9 @@
     function conditionAssociationScore(rawClinvar, conditionLabel){
       const rcvArr = asArray(safeGet(rawClinvar, "rcv", null));
       let matchCount = 0;
-      let exclSum = 0;      let onlyBonus = 0;
+      let totalSubmissions = 0;
+      let exclSum = 0;      
+      let onlyBonus = 0;
 
       for (const rcv of rcvArr){
         const conds = uniq(extractConditionsFromRcv(rcv));
@@ -1899,14 +1988,17 @@
         const has = conds.some(c => conditionMatch(c, conditionLabel));
         if (!has) continue;
 
+        const subCount = parseInt(rcv.number_submitters) || 1;
         matchCount += 1;
+        totalSubmissions += subCount;
         const k = conds.length;
         exclSum += (1 / k);
         if (k === 1) onlyBonus += 1;
       }
 
-      const score = (matchCount * 1000) + (exclSum * 100) + (onlyBonus * 50);
-      return { score, matchCount, exclSum, onlyBonus };
+      // We prioritize matchCount and totalSubmissions for sorting
+      const score = (totalSubmissions * 1000) + (matchCount * 100) + (exclSum * 10);
+      return { score, matchCount, totalSubmissions, exclSum, onlyBonus };
     }
 
     function buildMatrixData(){
@@ -1939,17 +2031,26 @@
     function renderMatrix(){
       if (!allRows.length){
         matrixBody.innerHTML = `<tr><td colspan="3" class="help">No data loaded.</td></tr>`;
-        matrixMeta.textContent = "—";
+        // matrixMeta.textContent = "—";
         return;
       }
 
+      // Sort MATRIX_ROWS by global frequency rank
+      const sortedMatrixRows = [...MATRIX_ROWS].sort((a, b) => {
+        const rankA = condOptions.findIndex(o => o.value === a);
+        const rankB = condOptions.findIndex(o => o.value === b);
+        const finalA = rankA === -1 ? 9999 : rankA;
+        const finalB = rankB === -1 ? 9999 : rankB;
+        return finalA - finalB;
+      });
+
       const data = buildMatrixData();
-      matrixMeta.textContent = `${allRows.length} variants`;
+      // matrixMeta.textContent = `${allRows.length} variants`;
 
       matrixBody.innerHTML = "";
       const frag = document.createDocumentFragment();
 
-      for (const rowLabel of MATRIX_ROWS){
+      for (const rowLabel of sortedMatrixRows){
         const tr = document.createElement("tr");
 
         const th = document.createElement("th");
@@ -1961,12 +2062,10 @@
           const td = document.createElement("td");
           const m = data.get(rowLabel).get(col.key);
 
+          // Variants in each cell are sorted by their submission count for this specific row condition
           const variants = Array.from(m.values()).sort((a,b) => {
-            const da = a.assoc.score;
-            const db = b.assoc.score;
-            if (db !== da) return db - da;
+            if (b.assoc.totalSubmissions !== a.assoc.totalSubmissions) return b.assoc.totalSubmissions - a.assoc.totalSubmissions;
             if (b.assoc.matchCount !== a.assoc.matchCount) return b.assoc.matchCount - a.assoc.matchCount;
-            if (b.assoc.exclSum !== a.assoc.exclSum) return b.assoc.exclSum - a.assoc.exclSum;
             return variantLabelShort(a.row).localeCompare(variantLabelShort(b.row));
           });
 
@@ -1995,7 +2094,7 @@
             const btn = document.createElement("button");
             btn.type = "button";
             btn.className = "vChip";
-            btn.title = `RCV matches: ${v.assoc.matchCount} | exclusivity Σ: ${v.assoc.exclSum.toFixed(2)}`;
+            btn.title = `Submissions for this condition: ${v.assoc.totalSubmissions} (across ${v.assoc.matchCount} RCVs)`;
             btn.textContent = variantLabelShort(v.row);
             btn.addEventListener("click", () => openVariantDetails(v.row));
             listWrap.appendChild(btn);
@@ -2019,7 +2118,7 @@
               const btn = document.createElement("button");
               btn.type = "button";
               btn.className = "vChip";
-              btn.title = `RCV matches: ${v.assoc.matchCount} | exclusivity Σ: ${v.assoc.exclSum.toFixed(2)}`;
+              btn.title = `Submissions for this condition: ${v.assoc.totalSubmissions} (across ${v.assoc.matchCount} RCVs)`;
               btn.textContent = variantLabelShort(v.row);
               btn.addEventListener("click", () => openVariantDetails(v.row));
               moreBox.appendChild(btn);
@@ -2038,6 +2137,335 @@
 
       matrixBody.appendChild(frag);
     }
+
+    /**
+     * Renders cumulative classification chart using Plotly
+     * Updated to accept an optional 'rows' parameter to handle filtered data.
+     */
+    // ---- Timeline chart mode + listeners (FULL REPLACEMENT) ----
+// Requires these existing helpers from your file:
+//   asArray, safeGet, uniq, parseDateToMs, norm
+// Also expects your header toggle buttons exist:
+//   <button id="toggleByClass" ...>
+//   <button id="toggleByCond" ...>
+
+    let timelineMode = "classification"; // "classification" | "condition"
+
+    function setTimelineMode(mode){
+      timelineMode = (mode === "condition") ? "condition" : "classification";
+
+      const byClass = document.getElementById("toggleByClass");
+      const byCond  = document.getElementById("toggleByCond");
+
+      if (byClass) byClass.setAttribute("aria-pressed", timelineMode === "classification" ? "true" : "false");
+      if (byCond)  byCond.setAttribute("aria-pressed",  timelineMode === "condition" ? "true" : "false");
+
+      // Re-render using the current filtered set
+      renderTimelineChart(lastFilteredRows);
+    }
+
+    // Wire listeners once
+    (function initTimelineToggles(){
+      const byClass = document.getElementById("toggleByClass");
+      const byCond  = document.getElementById("toggleByCond");
+      if (byClass) byClass.addEventListener("click", () => setTimelineMode("classification"));
+      if (byCond)  byCond.addEventListener("click", () => setTimelineMode("condition"));
+    })();
+
+    /**
+     * Builds earliest+latest timeline events per variant, and provides:
+     *  - firstMs: earliest evaluated date
+     *  - sigAtFirst: normalized clinical significance at earliest
+     *  - sigAtLast: normalized clinical significance at latest
+     *  - conds: unique list of conditions across all RCVs
+     */
+    function buildVariantTimelineFacts(row){
+      const rcvs = asArray(row.rawClinvar?.rcv);
+
+      let firstMs = null;
+      let lastMs = null;
+      let sigAtFirst = "";
+      let sigAtLast = "";
+
+      const condSet = new Set();
+
+      for (const r of rcvs){
+        // date
+        const ms = parseDateToMs(r?.last_evaluated);
+        if (ms != null){
+          if (firstMs == null || ms < firstMs){
+            firstMs = ms;
+            sigAtFirst = norm(r?.clinical_significance);
+          }
+          if (lastMs == null || ms > lastMs){
+            lastMs = ms;
+            sigAtLast = norm(r?.clinical_significance);
+          }
+        }
+
+        // conditions (keep light/robust)
+        const condArr = asArray(r?.conditions);
+        for (const c of condArr){
+          const name =
+            (typeof c === "string") ? c :
+            safeGet(c, "name", null) ??
+            safeGet(c, "preferred_name", null) ??
+            safeGet(c, "label", null);
+
+          if (name && String(name).trim()) condSet.add(String(name).trim());
+        }
+      }
+
+      if (firstMs == null) return null;
+
+      return {
+        id: row.id,
+        firstMs,
+        lastMs: lastMs ?? firstMs,
+        sigAtFirst,
+        sigAtLast,
+        conds: Array.from(condSet.values())
+      };
+    }
+
+    function renderTimelineChart(rows) {
+      const dataRows = rows || lastFilteredRows || [];
+      const chartDiv = document.getElementById("plotlyChart");
+
+      if (!dataRows.length || typeof Plotly === "undefined") {
+        chartDiv.innerHTML =
+          '<div class="help" style="text-align:center; padding:50px;"></div>';
+        return;
+      }
+
+      // ---- Common: extract per-variant facts (first/last dates + labels) ----
+      const facts = [];
+      for (const row of dataRows){
+        const f = buildVariantTimelineFacts(row);
+        if (f) facts.push(f);
+      }
+
+      if (!facts.length){
+        chartDiv.innerHTML =
+          '<div class="help" style="text-align:center; padding:50px;"></div>';
+        return;
+      }
+
+      // ---- Build events depending on mode ----
+      // Each event contributes to "current live set" of variants for that mode.
+      // After sorting events, we walk chronologically and record cumulative counts.
+      const events = [];
+
+      // ========= Mode 1: BY CLASSIFICATION (your original stacked categories) =========
+      const categories = [
+        { label: "Pathogenic / Likely Pathogenic", match: "pathogenic", color: "#ED037C" },
+        { label: "VUS", match: "uncertain", color: "#7C2F90" },
+        { label: "Benign / Likely Benign", match: "benign", color: "#28509C" },
+        { label: "Conflicting / Other", match: "", color: "#A0A0A0" }
+      ];
+
+      // ========= Mode 2: BY CONDITION (top N conditions among filtered rows) =========
+      // We'll stack Top 6 conditions by frequency (within filtered data), plus "Other".
+      const TOP_N_CONDITIONS = 6;
+
+      function buildTopConditions(){
+        const counts = new Map();
+        for (const f of facts){
+          for (const c of f.conds){
+            counts.set(c, (counts.get(c) || 0) + 1);
+          }
+        }
+        const sorted = Array.from(counts.entries())
+          .sort((a,b) => (b[1] - a[1]) || a[0].localeCompare(b[0]))
+          .slice(0, TOP_N_CONDITIONS)
+          .map(([name]) => name);
+
+        // Palette for conditions (pleasant, distinct; uses your existing theme colors + neutrals)
+        // If you want strict palette control, swap these.
+        const palette = ["#28509C", "#ED037C", "#7C2F90", "#272D72", "#A9208E", "#A0A0A0"];
+
+        const condCats = sorted.map((name, i) => ({
+          label: name,
+          key: name,
+          color: palette[i % palette.length]
+        }));
+
+        condCats.push({ label: "Other", key: "__OTHER__", color: "#A0A0A0" });
+        return condCats;
+      }
+
+      // Create events:
+      if (timelineMode === "classification"){
+        for (const f of facts){
+          // add at first
+          events.push({ t: f.firstMs, id: f.id, kind: "add", sig: f.sigAtFirst });
+
+          // change at last (only if differs and last != first)
+          if (f.lastMs != null && f.lastMs !== f.firstMs && f.sigAtLast && f.sigAtLast !== f.sigAtFirst){
+            events.push({ t: f.lastMs, id: f.id, kind: "change", sig: f.sigAtLast });
+          }
+        }
+      } else {
+        // By condition: each variant belongs to 1 bucket: top condition (first matching) or Other.
+        const condCats = buildTopConditions();
+        const topSet = new Set(condCats.filter(c => c.key !== "__OTHER__").map(c => c.key));
+
+        for (const f of facts){
+          // Determine bucket for this variant (pick the "best" condition deterministically)
+          // If multiple conds: prefer ones in top set; if multiple in top set, alphabetical
+          const conds = (f.conds || []).slice();
+          let bucket = "__OTHER__";
+          const topMatches = conds.filter(c => topSet.has(c)).sort((a,b) => a.localeCompare(b));
+          if (topMatches.length) bucket = topMatches[0];
+
+          // Store bucket on events
+          events.push({ t: f.firstMs, id: f.id, kind: "add", bucket });
+          // No "change" concept here (unless you want “condition changes over time”, which your data doesn’t really imply)
+        }
+
+        // Attach condCats so we can use them later
+        renderTimelineChart.__condCats = condCats;
+      }
+
+      events.sort((a,b) => a.t - b.t);
+
+      // ---- Walk events and create timeline points ----
+      const timeline = [];
+
+      if (timelineMode === "classification"){
+        const currentStates = new Map(); // id -> category index
+
+        for (const ev of events){
+          const catIdx = categories.findIndex(c => (ev.sig || "").includes(c.match));
+          const finalIdx = (catIdx === -1) ? (categories.length - 1) : catIdx;
+
+          currentStates.set(ev.id, finalIdx);
+
+          const counts = new Array(categories.length).fill(0);
+          currentStates.forEach(idx => { counts[idx] += 1; });
+
+          timeline.push({ date: new Date(ev.t), counts });
+        }
+
+        if (!timeline.length){
+          chartDiv.innerHTML =
+            '<div class="help" style="text-align:center; padding:50px;">Insufficient date information to build timeline.</div>';
+          return;
+        }
+
+        const traces = categories.map((cat, i) => ({
+          x: timeline.map(t => t.date),
+          y: timeline.map(t => t.counts[i]),
+          name: cat.label,
+          type: "scatter",
+          mode: "lines",
+          stackgroup: "one",
+          line: { color: cat.color, width: 2 },
+          fillcolor: cat.color + "44"
+        }));
+
+        const maxDate = timeline[timeline.length - 1].date;
+
+        const layout = {
+          margin: { l: 40, r: 20, t: 30, b: 40 },
+          hovermode: "x unified",
+          paper_bgcolor: "rgba(0,0,0,0)",
+          plot_bgcolor: "rgba(0,0,0,0)",
+          font: { family: "var(--mono)" },
+          showlegend: true,
+          legend: {
+            orientation: "v",
+            x: 0.01,
+            y: 0.99,
+            xanchor: "left",
+            yanchor: "top",
+            bgcolor: "rgba(0,0,0,0)"
+          },
+          xaxis: {
+            showgrid: false,
+            zeroline: false,
+            rangeslider: { visible: true, thickness: 0.05 },
+            range: [ new Date("2010-01-01"), maxDate ]
+          },
+          yaxis: {
+            showgrid: false,
+            zeroline: false,
+            title: "Cumulative Variants"
+          }
+        };
+
+        Plotly.newPlot("plotlyChart", traces, layout, { responsive: true, displayModeBar: false });
+        return;
+      }
+
+      // ---- Condition mode timeline ----
+      const condCats = renderTimelineChart.__condCats || [];
+      const keyToIdx = new Map(condCats.map((c, i) => [c.key, i]));
+
+      const currentBuckets = new Map(); // id -> bucket key
+
+      for (const ev of events){
+        currentBuckets.set(ev.id, ev.bucket);
+
+        const counts = new Array(condCats.length).fill(0);
+        currentBuckets.forEach(bucketKey => {
+          const idx = keyToIdx.get(bucketKey) ?? keyToIdx.get("__OTHER__");
+          if (idx != null) counts[idx] += 1;
+        });
+
+        timeline.push({ date: new Date(ev.t), counts });
+      }
+
+      if (!timeline.length){
+        chartDiv.innerHTML =
+          '<div class="help" style="text-align:center; padding:50px;">Insufficient date information to build timeline.</div>';
+        return;
+      }
+
+      const traces = condCats.map((cat, i) => ({
+        x: timeline.map(t => t.date),
+        y: timeline.map(t => t.counts[i]),
+        name: cat.label,
+        type: "scatter",
+        mode: "lines",
+        stackgroup: "one",
+        line: { color: cat.color, width: 2 },
+        fillcolor: cat.color + "44"
+      }));
+
+      const maxDate = timeline[timeline.length - 1].date;
+
+      const layout = {
+        margin: { l: 40, r: 20, t: 30, b: 40 },
+        hovermode: "x unified",
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        font: { family: "var(--mono)" },
+        showlegend: true,
+        legend: {
+          orientation: "v",
+          x: 0.01,
+          y: 0.99,
+          xanchor: "left",
+          yanchor: "top",
+          bgcolor: "rgba(0,0,0,0)"
+        },
+        xaxis: {
+          showgrid: false,
+          zeroline: false,
+          rangeslider: { visible: true, thickness: 0.05 },
+          range: [ new Date("2010-01-01"), maxDate ]
+        },
+        yaxis: {
+          showgrid: false,
+          zeroline: false,
+          title: "Cumulative Variants"
+        }
+      };
+
+      Plotly.newPlot("plotlyChart", traces, layout, { responsive: true, displayModeBar: false });
+    }
+    // end chart //
 
     // ---- Main table render ----
     function renderTable(rows){
@@ -2098,7 +2526,6 @@
         tr.appendChild(td2);
 
         const td3 = document.createElement("td");
-        // Show sorted conditions with SCV counts
         td3.innerHTML = r.conditions.length
           ? r.conditions.slice(0, 10).map(c => `<span class="tag">${escapeHtml(c.name)} (${c.count})</span>`).join("")
             + (r.conditions.length > 10 ? `<div class="help">+ ${r.conditions.length - 10} more…</div>` : "")
@@ -2112,7 +2539,6 @@
         tr.appendChild(td4);
 
         const td5 = document.createElement("td");
-        // Only most recent date
         td5.textContent = r.lastEval;
         tr.appendChild(td5);
 
@@ -2133,7 +2559,6 @@
       tr.appendChild(tdV);
       return tr;
     }
-    function joinOrDash(arr){ return (arr && arr.length) ? arr.join(" • ") : "—"; }
 
     function isVUSRow(row){
       const sigs = (row?.sigs || []).map(s => norm(s));
@@ -2185,10 +2610,14 @@
 
       rawJson.textContent = raw ? JSON.stringify(raw, null, 2) : "null";
 
-      // Build RCV Table
-      const rcvArr = asArray(safeGet(raw, "rcv", null));
-      rcvTable.innerHTML = "";
+      const rcvArr = [...asArray(safeGet(raw, "rcv", null))];
+      rcvArr.sort((a, b) => {
+        const dateA = parseDateToMs(safeGet(a, "last_evaluated", null) || safeGet(a, "date_last_evaluated", null));
+        const dateB = parseDateToMs(safeGet(b, "last_evaluated", null) || safeGet(b, "date_last_evaluated", null));
+        return dateB - dateA;
+      });
 
+      rcvTable.innerHTML = "";
       const headers = ["RCV Accession","Clinical significance","Conditions","Last evaluated","Submissions"];
       const thead = document.createElement("thead");
       const hr = document.createElement("tr");
@@ -2210,7 +2639,6 @@
           tr.className = "rowclick";
           tr.style.cursor = "pointer";
           tr.title = "Click to load SCVs for this RCV";
-
           tr.addEventListener("click", () => getSCVsForRCV(rcvId));
 
           const sig = safeGet(rcv, "clinical_significance", null);
@@ -2229,7 +2657,6 @@
       }
       rcvTable.appendChild(tb);
 
-      // Reset SCV Table
       document.getElementById("scvStatus").innerHTML = "Select an RCV above to view individual evidence details...";
       document.getElementById("scvTableBody").innerHTML = '<tr><td colspan="5" class="help">No RCV selected.</td></tr>';
 
@@ -2250,10 +2677,8 @@
       if (e.key === "Escape" && overlay.classList.contains("show")) closeModal();
     });
 
-    // ---- Contribution behavior ----
     const TO_PLACEHOLDER = "TEST_SUCCESS";
     function encodeMailto(s){ return encodeURIComponent(String(s || "")); }
-
     function buildVariantSubject(row){
       const mvId = row?.id ? `MyVariant:${row.id}` : "";
       const cvId = (row?.variationId && row.variationId !== "—") ? `ClinVar:${row.variationId}` : "";
@@ -2265,7 +2690,6 @@
       const subj = `Evidence contribution (${buildVariantSubject(row)})`;
       const clinvarVarId = (row?.variationId && row.variationId !== "—") ? row.variationId : "";
       const clinvarLink = clinvarVarId ? `https://www.ncbi.nlm.nih.gov/clinvar/variation/${encodeURIComponent(clinvarVarId)}/` : "";
-
       const bodyLines = [
         "Evidence contribution (placeholder)",
         "----------------------------------",
@@ -2287,7 +2711,6 @@
         "",
         "(Generated from the FGFR3 variant detail modal)"
       ];
-
       return `mailto:${encodeMailto(TO_PLACEHOLDER)}?cc=${encodeMailto(email)}&subject=${encodeMailto(subj)}&body=${encodeMailto(bodyLines.join("\n"))}`;
     }
 
@@ -2305,17 +2728,14 @@
         contribHint.textContent = "No variant selected.";
         return;
       }
-
       const name = cName.value.trim();
       const email = cEmail.value.trim();
       const affil = cAffil.value.trim();
       const note = cNote.value.trim();
-
       if (!name || !email || !note){
         contribHint.textContent = "Please fill in Name, Email, and Notes.";
         return;
       }
-
       window.location.href = buildContributionEmail({ row: currentModalRow, name, email, affil, note });
       contribHint.textContent = "Opening your default email app…";
     });
@@ -2325,7 +2745,6 @@
       contribHint.textContent = "";
     });
 
-    // ---- EXPORT ----
     function downloadBlob({ data, filename, mime }){
       const blob = new Blob([data], { type: mime });
       const url = URL.createObjectURL(blob);
@@ -2368,7 +2787,7 @@
     function exportAsCsv(){
       if (!allRows.length) return;
       const rows = lastFilteredRows || [];
-      const header = ["preferred_name","coords","clinvar_id","significance","conditions","rcv_count","scv_count","id"];
+      const header = ["preferred_name","coords","clinvar_id","significance","conditions","rcv_count","scv_count","last_evaluated","id"];
       const lines = [header.map(csvEscape).join(",")];
       rows.forEach(r => {
         lines.push([
@@ -2379,6 +2798,7 @@
           (r.conditions || []).map(c => `${c.name} (${c.count})`).join(" | "),
           r.rcvCount,
           r.scvTotal,
+          r.lastEval,
           r.id
         ].map(csvEscape).join(","));
       });
@@ -2390,7 +2810,6 @@
     btnExportJson.addEventListener("click", exportAsJson);
     btnExportCsv.addEventListener("click", exportAsCsv);
 
-    // ---- Network ----
     async function fetchPage({ from, size, signal }){
       const url = new URL(API_BASE);
       url.searchParams.set("q", QUERY);
@@ -2421,6 +2840,7 @@
       matrixBody.innerHTML = `<tr><td colspan="3" class="help">Loading…</td></tr>`;
       sigPills.innerHTML = "";
       condPills.innerHTML = "";
+      document.getElementById('plotlyChart').innerHTML = '<div class="help" style="text-align: center; padding: 50px;"></div>';
     }
 
     function setLoadingUI(loading){
@@ -2465,16 +2885,15 @@
           condSearch.addEventListener("input", () => renderMS({ options: condOptions, selected: condSelected, listEl: condList, pillsEl: condPills, searchText: condSearch.value }));
         }
 
-        // Set Initial Condition filter if found
-        const target = INITIAL_CONDITION_FUZZY.toLowerCase();
-        condOptions.forEach(o => { if (o.value.toLowerCase().includes(target)) condSelected.add(o.value); });
-        if (condSelected.size > 1) condSelected.delete("__ALL__");
+        // const target = INITIAL_CONDITION_FUZZY.toLowerCase();
+        // condOptions.forEach(o => { if (o.value.toLowerCase().includes(target)) condSelected.add(o.value); });
+        // if (condSelected.size > 1) condSelected.delete("__ALL__");
 
         renderMS({ options: sigOptions, selected: sigSelected, listEl: sigList, pillsEl: sigPills, searchText: sigSearch.value });
         renderMS({ options: condOptions, selected: condSelected, listEl: condList, pillsEl: condPills, searchText: condSearch.value });
 
         renderMatrix();
-        applyFiltersAndRender();
+        applyFiltersAndRender(); // This will trigger renderTimelineChart with initial filter
         setStatus("Ready");
         setLoadingUI(false);
       } catch(err){
@@ -2488,7 +2907,6 @@
     btnTopRefresh.addEventListener("click", loadAllData);
     btnStop.addEventListener("click", () => controller && controller.abort());
 
-    // Scroll button click
     document.getElementById('btnScrollBottom').onclick = () => {
       window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
     };
@@ -2503,13 +2921,20 @@
       if (summaryRight) summaryRight.textContent = matrixDetails.open ? "expanded" : "collapsed";
     });
 
+    chartDetails.addEventListener("toggle", () => {
+      const summaryRight = chartDetails.querySelector(".summaryRight");
+      if (summaryRight) {
+        summaryRight.textContent = chartDetails.open ? "expanded" : "collapsed";
+        if (chartDetails.open) renderTimelineChart(lastFilteredRows);
+      }
+    });
+
     window.addEventListener("DOMContentLoaded", () => {
       initSidebarDefault();
       loadAllData();
     });
     window.addEventListener("resize", initSidebarDefault);
     btnHamburger.addEventListener("click", toggleSidebar);
-    // btnFlag.addEventListener("click", toggleSidebar);
   </script>
 </body>
 </html>
