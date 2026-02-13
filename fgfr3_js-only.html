@@ -1144,27 +1144,27 @@
     <main class="main">
       <details class="matrixCard" id="chartDetails" open aria-label="Classification Trends">
         <summary class="matrixHead">
-          <div class="matrixHeadTop">
-            <h2 class="matrixTitle">Cumulative Variant Count Over Time</h2>
-
-            <!-- toggles moved into the section header bar -->
-            <div class="chartToggles" aria-label="Chart toggles">
-              <button id="toggleByClass" type="button" class="toggleHeader" aria-pressed="true" title="View by classification">
-                <span class="toggleBadge">A</span>
-                <span>By Classification</span>
-              </button>
-
-              <button id="toggleByCond" type="button" class="toggleHeader" aria-pressed="false" title="View by condition">
-                <span class="toggleBadge">B</span>
-                <span>By Condition</span>
-              </button>
-            </div>
+          <div>
+            <h2>Cumulative Variant Count Over Time</h2>
           </div>
 
           <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end;">
             <div class="summaryRight" style="margin-top: 20%;">▾ collapse</div>
           </div>
         </summary>
+
+        <!-- toggles moved into the section header bar -->
+        <div class="chartToggles" aria-label="Chart toggles" style="margin: 1% 1% 0 1%">
+          <button id="toggleByClass" type="button" class="toggleHeader" aria-pressed="true" title="View by classification">
+            <span class="toggleBadge">A</span>
+            <span>By Classification</span>
+          </button>
+
+          <button id="toggleByCond" type="button" class="toggleHeader" aria-pressed="false" title="View by condition">
+            <span class="toggleBadge">B</span>
+            <span>By Condition</span>
+          </button>
+        </div>
 
         <div id="plotlyChart" style="width: 100%; height: 400px; padding: 10px;">
           <div class="help" style="text-align:center; padding:50px;">Load data to generate chart...</div>
