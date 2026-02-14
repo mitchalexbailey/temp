@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quick Lolli</title>
+    <title>GeneVariant Viz Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     <style>
         :root {
@@ -74,9 +74,7 @@
             background: white;
         }
 
-        .slider-group {
-            min-width: 180px;
-        }
+        .slider-group { min-width: 180px; }
 
         button {
             padding: 10px 20px;
@@ -94,10 +92,9 @@
         button:hover { opacity: 0.85; }
         button.secondary { background: #e8e8ed; color: var(--text); }
 
-        /* New Side-by-Side Layout */
+        /* Side-by-Side Layout */
         .viz-main-layout {
             display: flex;
-            gap: 0; /* Merged visually */
             background: var(--card);
             border-radius: 16px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
@@ -129,19 +126,8 @@
 
         #viz-container { width: 100%; height: 100%; cursor: move; }
 
-        .legend-section {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .legend-title {
-            font-weight: 700;
-            color: #86868b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 4px;
-        }
+        .legend-section { display: flex; flex-direction: column; gap: 6px; }
+        .legend-title { font-weight: 700; color: #86868b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
 
         .legend-item {
             display: flex;
@@ -200,44 +186,14 @@
             cursor: pointer;
         }
 
-        .console-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            width: 100%;
-        }
-
-        .console-panel {
-            background: var(--console-bg);
-            border-radius: 12px;
-            color: var(--console-text);
-            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-            height: 300px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .console-header {
-            background: #2c2c2e;
-            padding: 8px 15px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #aeaeae;
-            display: flex;
-            justify-content: space-between;
-        }
-
+        .console-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
+        .console-panel { background: var(--console-bg); border-radius: 12px; color: var(--console-text); font-family: monospace; height: 300px; display: flex; flex-direction: column; overflow: hidden; }
+        .console-header { background: #2c2c2e; padding: 8px 15px; font-size: 11px; text-transform: uppercase; color: #aeaeae; display: flex; justify-content: space-between; }
         #api-log { padding: 10px; overflow-y: auto; font-size: 12px; flex-grow: 1; white-space: pre-wrap; }
         .log-entry { margin-bottom: 8px; border-bottom: 1px solid #3a3a3c; padding-bottom: 4px; }
-        .log-status { color: #fff; font-weight: bold; }
-        .log-url { color: #5e5ce6; }
-
         .inspector-split { display: flex; height: 100%; flex-grow: 1; }
         .inspector-sidebar { width: 150px; border-right: 1px solid #3a3a3c; padding: 10px; overflow-y: auto; }
         .var-link { display: block; padding: 6px; cursor: pointer; font-size: 11px; color: #aeaeae; border-radius: 4px; }
-        .var-link:hover { background: #2c2c2e; color: var(--console-text); }
         .var-link.active { background: var(--accent); color: white; }
         .inspector-window { flex-grow: 1; padding: 10px; overflow-y: auto; font-size: 12px; }
 
@@ -258,29 +214,12 @@
         }
 
         .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 1000;
         }
-
-        .modal {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            max-width: 800px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            position: relative;
-        }
-
+        .modal { background: white; padding: 30px; border-radius: 20px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative; }
         .detail-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px; }
         .detail-table th, .detail-table td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
-        .detail-table th { background: #f9f9fb; font-weight: 600; }
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; text-transform: uppercase; font-weight: 700; }
     </style>
 </head>
@@ -290,7 +229,7 @@
     <header>
         <div>
             <h1 style="margin:0; font-weight: 800; letter-spacing: -0.02em;">GeneVariant <span style="color:var(--accent)">Viz Pro</span></h1>
-            <p style="margin: 4px 0 0 0; color: #86868b;">Lollipop Plotter with Sidebar Legend & Full Dragging</p>
+            <p style="margin: 4px 0 0 0; color: #86868b;">Lollipop Plotter with Sidebar Legend & Exon Mapping</p>
         </div>
         <div style="display: flex; gap: 10px;">
             <button class="secondary" onclick="exportSVG()">Export SVG</button>
@@ -360,13 +299,9 @@
 
     <div class="console-section">
         <div class="console-panel">
-            <div class="console-header">
-                <span>API Activity Log</span>
-                <span onclick="clearLogs()" style="cursor:pointer">Clear</span>
-            </div>
+            <div class="console-header"><span>API Activity Log</span><span onclick="clearLogs()" style="cursor:pointer">Clear</span></div>
             <div id="api-log"></div>
         </div>
-
         <div class="console-panel">
             <div class="console-header">Live Variable Inspector</div>
             <div class="inspector-split">
@@ -376,7 +311,7 @@
                     <span class="var-link" onclick="inspectVar('hiddenCategories')">hiddenCategories</span>
                     <span class="var-link" onclick="inspectVar('shapeMap')">shapeMap</span>
                 </div>
-                <div class="inspector-window" id="inspector-output">Click a variable to inspect...</div>
+                <div class="inspector-window" id="inspector-output">Click a variable to inspect current value...</div>
             </div>
         </div>
     </div>
@@ -394,8 +329,19 @@
 </div>
 
 <script>
+    /** --- POSITIONING & STYLE VARIABLES --- **/
+    const PLOT_VERTICAL_OFFSET_RATIO = 0.72; // Moved down further to improve visual balance
+    const LOLLIPOP_HEAD_SIZE = 80;
+    const BACKBONE_HEIGHT = 20;
+    const BACKBONE_STROKE_COLOR = "#000000";
+    const BACKBONE_STROKE_WIDTH = 2;
+    const CALLOUT_STAGGER_HEIGHT = 16;
+    const CALLOUT_FONT_SIZE = "10px";
+    const CALLOUT_LABEL_COLOR = "#86868b";
+    const EXON_GAP_SIZE = 2; // Gaps between exons in pixels
+
     let rawData = [];
-    let geneInfo = { length: 1000, features: [], exonJunctions: [] };
+    let geneInfo = { length: 1000, features: [], exons: [], canonicalTranscript: "N/A" };
     let zoomTransform = d3.zoomIdentity;
     let selectedFeatureTypes = new Set(['DOMAIN', 'TRANSMEM']);
     let shapeMap = {};
@@ -427,7 +373,6 @@
                 .attr("class", `legend-item ${isHidden ? 'hidden' : ''}`)
                 .on("click", () => toggleCategory(type))
                 .on("dblclick", () => soloCategory(type, 'type'));
-
             const svg = item.append("div").attr("class", "swatch-shape").append("svg").attr("width", 14).attr("height", 14).append("g").attr("transform", "translate(7,7)");
             svg.append("path").attr("d", d3.symbol().type(shapeMap[type]).size(40)).attr("fill", "#636366");
             item.append("span").text(type);
@@ -467,7 +412,6 @@
             });
         }
 
-        // 3. Backbone
         if (selectedFeatureTypes.size > 0) {
             const bbSection = legendArea.append("div").attr("class", "legend-section");
             bbSection.append("div").attr("class", "legend-title").text("Backbone Features");
@@ -490,16 +434,10 @@
         let allPossible = [];
         if (source === 'type') allPossible = Object.keys(shapeMap);
         else allPossible = [...new Set(rawData.map(d => d.primaryCondition))];
-
         const others = allPossible.filter(c => c !== cat);
         const isCurrentlySolo = others.every(c => hiddenCategories.has(c)) && !hiddenCategories.has(cat);
-
-        if (isCurrentlySolo) {
-            hiddenCategories.clear();
-        } else {
-            hiddenCategories.clear();
-            others.forEach(c => hiddenCategories.add(c));
-        }
+        if (isCurrentlySolo) hiddenCategories.clear();
+        else { hiddenCategories.clear(); others.forEach(c => hiddenCategories.add(c)); }
         render();
     }
 
@@ -536,7 +474,6 @@
         const searchResp = await fetch(searchUrl);
         const searchJson = await searchResp.json();
         logAPI(searchUrl, searchResp.status, searchJson);
-
         if (!searchJson.results?.length) return null;
         const entry = searchJson.results[0]; 
         const accession = entry.primaryAccession || entry.accession;
@@ -544,37 +481,25 @@
         const entryResp = await fetch(entryUrl);
         const fullEntry = await entryResp.json();
         logAPI(entryUrl, entryResp.status, fullEntry);
-
         return {
             length: fullEntry.sequence?.length || 1000,
             features: (fullEntry.features || []).map(f => ({
-                type: f.type,
-                description: f.description,
-                begin: f.location?.start?.value,
-                end: f.location?.end?.value
+                type: f.type, description: f.description, begin: f.location?.start?.value, end: f.location?.end?.value
             }))
         };
     }
 
-    function calculateExonJunctions(exonsData) {
-        if (!exonsData || !exonsData.hg38) return [];
-        const transcript = exonsData.hg38[0];
-        const cdsStart = transcript.cdsstart;
-        const cdsEnd = transcript.cdsend;
-        const strand = exonsData.strand;
-        let codingExons = transcript.exons.filter(e => e.end > cdsStart && e.start < cdsEnd);
-        codingExons.sort((a, b) => a.start - b.start);
-        if (strand === -1) codingExons.reverse();
-        let junctions = [];
-        let cumulativeNT = 0;
-        for (let i = 0; i < codingExons.length - 1; i++) {
-            let e = codingExons[i];
-            let overlapStart = Math.max(e.start, cdsStart);
-            let overlapEnd = Math.min(e.end, cdsEnd);
-            cumulativeNT += (overlapEnd - overlapStart);
-            junctions.push(cumulativeNT / 3);
+    function findExons(features) {
+        let exons = [];
+        function recurse(obj) {
+            if (Array.isArray(obj)) { obj.forEach(recurse); }
+            else if (obj && typeof obj === 'object') {
+                if (obj.type === 'exon') exons.push(obj);
+                if (obj.features) recurse(obj.features);
+            }
         }
-        return junctions;
+        recurse(features);
+        return exons;
     }
 
     function updateFeatureControls() {
@@ -591,11 +516,6 @@
         });
     }
 
-    function toggleFeatureType(cb) {
-        cb.checked ? selectedFeatureTypes.add(cb.value) : selectedFeatureTypes.delete(cb.value);
-        render();
-    }
-
     async function loadGeneData() {
         const gene = document.getElementById('geneSearch')?.value.trim().toUpperCase() || 'FGFR3';
         const size = document.getElementById('sizeSlider')?.value || 100;
@@ -604,24 +524,45 @@
 
         try {
             const uniprot = await fetchUniprotCanonicalHumanFeatures(gene);
-            const mygeneUrl = `https://mygene.info/v3/query?q=symbol:${gene}&fields=exons,strand&species=human`;
-            const mygeneRes = await fetch(mygeneUrl);
-            const mygeneData = await mygeneRes.json();
-            logAPI(mygeneUrl, mygeneRes.status, mygeneData);
-            let junctions = [];
-            if (mygeneData.hits && mygeneData.hits[0]) junctions = calculateExonJunctions(mygeneData.hits[0]);
-
-            if(uniprot) { 
-                geneInfo = { ...uniprot, exonJunctions: junctions }; 
-                updateFeatureControls(); 
-            }
-
             const varUrl = `https://myvariant.info/v1/query?q=clinvar.gene.symbol:${gene}+AND+_exists_:clinvar&fields=clinvar,snpeff&size=${size}`;
             const varRes = await fetch(varUrl);
             const vJson = await varRes.json();
             logAPI(varUrl, varRes.status, vJson);
-            
             if(!vJson.hits?.length) throw new Error("No variants found.");
+
+            let detectedTranscript = "N/A";
+            vJson.hits.some(h => {
+                const cv = h.clinvar || {};
+                const rcvs = Array.isArray(cv.rcv) ? cv.rcv : (cv.rcv ? [cv.rcv] : []);
+                const hgvsP = rcvs[0]?.preferred_name || h.snpeff?.ann?.[0]?.hgvs_p || "";
+                if (hgvsP.startsWith("NM_")) {
+                    detectedTranscript = hgvsP.split('(')[0];
+                    return true;
+                }
+                return false;
+            });
+
+            let exonSegments = [];
+            if (detectedTranscript !== "N/A") {
+                const mutUrl = `https://mutalyzer.nl/api/reference_model/?reference_id=${detectedTranscript}&siblings=false&ancestors=true&descendants=true`;
+                const mutRes = await fetch(mutUrl);
+                const mutData = await mutRes.json();
+                logAPI(mutUrl, mutRes.status, mutData);
+                
+                const exonFeatures = findExons(mutData.annotations?.features || []);
+                exonSegments = exonFeatures.map(e => ({
+                    id: e.id || e.name || "exon",
+                    start_nt: (e.location?.start?.position || 0),
+                    end_nt: (e.location?.end?.position || 0),
+                    start: (e.location?.start?.position || 0) / 3,
+                    end: (e.location?.end?.position || 0) / 3
+                })).sort((a, b) => a.start - b.start);
+            }
+
+            if(uniprot) { 
+                geneInfo = { ...uniprot, exons: exonSegments, canonicalTranscript: detectedTranscript }; 
+                updateFeatureControls(); 
+            }
 
             shapeMap = {};
             hiddenCategories.clear();
@@ -632,25 +573,22 @@
                 const cv = h.clinvar || {};
                 const rcvs = Array.isArray(cv.rcv) ? [...cv.rcv] : (cv.rcv ? [cv.rcv] : []);
                 rcvs.sort((a, b) => (new Date(b.last_evaluated || 0)) - (new Date(a.last_evaluated || 0)));
-                const hgvsN = cv.hgvs?.nucleotide || "";
-                const nmMatch = hgvsN.match(/NM_\d+/);
-                const targetNM = nmMatch ? nmMatch[0] : null;
                 let annList = Array.isArray(h.snpeff?.ann) ? h.snpeff.ann : (h.snpeff?.ann ? [h.snpeff.ann] : []);
-                let bestAnn = annList.find(ann => targetNM && ann.feature_id?.includes(targetNM)) || annList.find(ann => ann.effect);
+                let bestAnn = annList.find(ann => detectedTranscript !== "N/A" && ann.feature_id?.includes(detectedTranscript)) || annList.find(ann => ann.effect);
                 const type = (bestAnn?.effect || "other").toLowerCase();
                 uniqueTypesFound.add(type);
 
                 const condMap = {};
                 const uniqConds = [];
                 rcvs.forEach(r => {
-                    const cRaw = r.name || r.trait_name || "";
+                    const cRaw = r.conditions.name || r.name || r.trait_name || "";
                     const name = cRaw.toLowerCase().trim();
                     if (name && !garbage.some(g => name.includes(g))) {
                         condMap[cRaw] = (condMap[cRaw] || 0) + 1;
                         if (!uniqConds.includes(cRaw)) uniqConds.push(cRaw);
                     }
                 });
-
+                console.log(condMap)
                 const sortedConds = Object.entries(condMap).sort((a, b) => b[1] - a[1]);
                 let primaryCondition = 'Unknown';
                 if (sortedConds.length > 0) {
@@ -667,15 +605,12 @@
 
                 return {
                     id: h._id, pos, hgvs_p: hgvsP, hgvs_g: h._id,
-                    submissions: rcvs.length || 1,
-                    significance: rcvs[0]?.clinical_significance ?? "Unknown",
-                    type, primaryCondition, raw: h,
-                    allConditions: uniqConds.length > 0 ? uniqConds.join(", ") : "Not provided"
+                    submissions: rcvs.length || 1, significance: rcvs[0]?.clinical_significance ?? "Unknown",
+                    type, primaryCondition, raw: h, allConditions: uniqConds.length > 0 ? uniqConds.join(", ") : "Not provided"
                 };
             });
 
             Array.from(uniqueTypesFound).sort().forEach((t, i) => shapeMap[t] = availableSymbols[i % availableSymbols.length]);
-
             d3.select("#viz-container").call(zoom);
             render();
         } catch (e) { alert("Error: " + e.message); }
@@ -691,9 +626,8 @@
         const width = rect.width, height = rect.height, margin = { top: 0, right: 50, bottom: 0, left: 50 };
         const svg = container.append("svg").attr("width", width).attr("height", height);
         
-        // Full Draggable Group
         const g = svg.append("g")
-            .attr("transform", `translate(${zoomTransform.x + margin.left}, ${zoomTransform.y + height/3})`);
+            .attr("transform", `translate(${zoomTransform.x + margin.left}, ${zoomTransform.y + height * PLOT_VERTICAL_OFFSET_RATIO})`);
 
         const xScale = d3.scaleLinear().domain([0, geneInfo.length]).range([0, width - margin.left - margin.right]);
         const rescaledX = zoomTransform.rescaleX(xScale);
@@ -710,29 +644,35 @@
             return !hiddenCategories.has(d.type);
         });
 
+        // Dynamic BOLD Title
+        svg.append("text")
+            .attr("x", 20).attr("y", 35).attr("font-weight", "800").attr("font-size", "16px").attr("fill", "var(--text)")
+            .text(`${(document.getElementById('geneSearch')?.value || "N/A").toUpperCase()} [${geneInfo.canonicalTranscript}] — ${visible.length} Variants Displayed`);
+
         const yScale = d3.scaleLinear().domain([0, d3.max(rawData, d => d.submissions) || 1]).range([0, -maxHeightVal]);
-        const centerY = 0; // Relative to translation
+        const centerY = 0; 
 
-        // Backbone Segments
-        let lastPos = 0;
-        const segments = [];
-        geneInfo.exonJunctions.forEach(j => { segments.push({ start: lastPos, end: j }); lastPos = j; });
-        segments.push({ start: lastPos, end: geneInfo.length });
-
-        segments.forEach(s => {
+        // Fragmented Backbone with Thick Borders
+        if (geneInfo.exons.length > 0) {
+            geneInfo.exons.forEach(s => {
+                g.append("rect")
+                    .attr("x", rescaledX(s.start)).attr("y", centerY - (BACKBONE_HEIGHT / 2))
+                    .attr("width", Math.max(1, rescaledX(s.end) - rescaledX(s.start) - EXON_GAP_SIZE))
+                    .attr("height", BACKBONE_HEIGHT).attr("rx", 2)
+                    .attr("fill", bbColor).attr("fill-opacity", 0.6)
+                    .attr("stroke", BACKBONE_STROKE_COLOR).attr("stroke-width", BACKBONE_STROKE_WIDTH)
+                    .on("mouseover", (e) => showExonTooltip(e, s))
+                    .on("mousemove", moveTooltip)
+                    .on("mouseout", hideTooltip);
+            });
+        } else {
             g.append("rect")
-                .attr("x", rescaledX(s.start))
-                .attr("y", centerY - 10)
-                .attr("width", Math.max(1, rescaledX(s.end) - rescaledX(s.start) - 1))
-                .attr("height", 20)
-                .attr("rx", 2)
-                .attr("fill", bbColor)
-                .attr("fill-opacity", 0.6)
-                .attr("stroke", "#d2d2d7")
-                .style("pointer-events", "none");
-        });
+                .attr("x", rescaledX(0)).attr("y", centerY - (BACKBONE_HEIGHT / 2))
+                .attr("width", rescaledX(geneInfo.length) - rescaledX(0)).attr("height", BACKBONE_HEIGHT)
+                .attr("rx", 2).attr("fill", bbColor).attr("fill-opacity", 0.6)
+                .attr("stroke", BACKBONE_STROKE_COLOR).attr("stroke-width", BACKBONE_STROKE_WIDTH);
+        }
 
-        // Features & Call-outs
         const palette = d3.scaleOrdinal(d3.schemeSet3);
         geneInfo.features.forEach((f, i) => {
             if (selectedFeatureTypes.has(f.type)) {
@@ -741,16 +681,15 @@
 
                 if (f.description) {
                     const mid = rescaledX((f.begin + f.end) / 2);
-                    const labelY = centerY + 80 + (i % 8 * 16);
+                    const labelY = centerY + 80 + (i % 8 * CALLOUT_STAGGER_HEIGHT);
                     g.append("line").attr("x1", mid).attr("y1", centerY + 15).attr("x2", mid).attr("y2", labelY - 8).attr("stroke", "#d2d2d7").attr("stroke-width", 0.5);
-                    g.append("text").attr("x", mid).attr("y", labelY).attr("text-anchor", "middle").attr("font-size", "10px").attr("fill", "#86868b").text(f.description.length > 35 ? f.description.substring(0, 32) + "..." : f.description);
+                    g.append("text").attr("x", mid).attr("y", labelY).attr("text-anchor", "middle").attr("font-size", CALLOUT_FONT_SIZE).attr("fill", CALLOUT_LABEL_COLOR).text(f.description.length > 35 ? f.description.substring(0, 32) + "..." : f.description);
                 }
             }
         });
 
         g.append("g").attr("transform", `translate(0, ${centerY + 25})`).call(d3.axisBottom(rescaledX).ticks(10).tickFormat(d => d + " aa"));
 
-        // Lollipops
         const lolls = g.selectAll(".v-group").data(visible).enter().append("g");
         lolls.each(function(d) {
             const h = heightMode === 'freq' ? yScale(d.submissions) : -60;
@@ -758,10 +697,9 @@
             const op = searching ? (match ? 1 : 0.1) : 1;
             const node = d3.select(this);
             node.append("line").attr("x1", rescaledX(d.pos)).attr("x2", rescaledX(d.pos)).attr("y1", centerY - 10).attr("y2", centerY + h).attr("stroke", match ? "var(--accent)" : "#8e8e93").attr("stroke-width", (match ? 2 : 1)/zoomTransform.k).attr("opacity", op);
-            node.append("path").attr("transform", `translate(${rescaledX(d.pos)}, ${centerY + h})`).attr("d", d3.symbol().type(shapeMap[d.type] || d3.symbolCircle).size(80)()).attr("fill", getColor(d)).attr("stroke", match ? "black" : "white").attr("stroke-width", match ? 2.5 : 1).attr("opacity", op).style("cursor", "pointer")
+            node.append("path").attr("transform", `translate(${rescaledX(d.pos)}, ${centerY + h})`).attr("d", d3.symbol().type(shapeMap[d.type] || d3.symbolCircle).size(LOLLIPOP_HEAD_SIZE)()).attr("fill", getColor(d)).attr("stroke", match ? "black" : "white").attr("stroke-width", match ? 2.5 : 1).attr("opacity", op).style("cursor", "pointer")
                 .on("mouseover", (e) => showTooltip(e, d)).on("mousemove", moveTooltip).on("mouseout", hideTooltip).on("click", () => showDetails(d));
         });
-
         updateLegend();
     }
 
@@ -787,6 +725,11 @@
 
     function showFeatureTooltip(e, f) {
         const p = getRel(e); d3.select("#tooltip").style("visibility", "visible").style("left", (p.x + 15) + "px").style("top", (p.y - 10) + "px").html(`<strong>${f.type}</strong>: ${f.description || "N/A"}<br>AA ${f.begin}-${f.end}`);
+    }
+
+    function showExonTooltip(e, s) {
+        const p = getRel(e); d3.select("#tooltip").style("visibility", "visible").style("left", (p.x + 15) + "px").style("top", (p.y - 10) + "px")
+            .html(`<strong>${s.id}</strong><br>AA Range: ${Math.round(s.start)} - ${Math.round(s.end)}<br>NT Start: ${s.start_nt}<br>NT End: ${s.end_nt}`);
     }
 
     function moveTooltip(e) { const p = getRel(e); d3.select("#tooltip").style("left", (p.x + 15) + "px").style("top", (p.y - 10) + "px"); }
