@@ -17,6 +17,14 @@
             --vus: #ffcc00;
             --console-bg: #1c1c1e;
             --console-text: #00ff00;
+            /* Requested Palette */
+            --p1: #28509C;
+            --p2: #ED037C;
+            --p3: #272D72;
+            --p4: #A9208E;
+            --p5: #7C2F90;
+            --p6: #000000;
+            --p7: #A0A0A0;
         }
 
         body {
@@ -53,17 +61,8 @@
             align-items: flex-start;
         }
 
-        .input-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .input-item label {
-            font-size: 11px;
-            font-weight: 600;
-            color: #86868b;
-        }
+        .input-item { display: flex; flex-direction: column; gap: 4px; }
+        .input-item label { font-size: 11px; font-weight: 600; color: #86868b; }
 
         input[type="text"], select {
             padding: 10px 14px;
@@ -92,7 +91,6 @@
         button:hover { opacity: 0.85; }
         button.secondary { background: #e8e8ed; color: var(--text); }
 
-        /* Side-by-Side Layout */
         .viz-main-layout {
             display: flex;
             background: var(--card);
@@ -217,9 +215,10 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 1000;
         }
-        .modal { background: white; padding: 30px; border-radius: 20px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative; }
-        .detail-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px; }
-        .detail-table th, .detail-table td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
+        .modal { background: white; padding: 30px; border-radius: 20px; max-width: 900px; width: 95%; max-height: 85vh; overflow-y: auto; position: relative; }
+        .detail-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 13px; }
+        .detail-table th, .detail-table td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border); }
+        .raw-json-block { background: #f8f8f8; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 11px; overflow-x: auto; border: 1px solid var(--border); margin-top: 15px; }
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; text-transform: uppercase; font-weight: 700; }
     </style>
 </head>
@@ -229,7 +228,7 @@
     <header>
         <div>
             <h1 style="margin:0; font-weight: 800; letter-spacing: -0.02em;">Quick <span style="color:var(--accent)">Lolli</span></h1>
-            <p style="margin: 4px 0 0 0; color: #86868b;">Lollipop Plotter with Sidebar Legend & Exon Mapping</p>
+            <p style="margin: 4px 0 0 0; color: #86868b;">Lollipop Plotter with Side Legend & Exon Mapping</p>
         </div>
         <div style="display: flex; gap: 10px;">
             <button class="secondary" onclick="exportSVG()">Export SVG</button>
@@ -267,7 +266,7 @@
             <select id="colorMode" onchange="render()">
                 <option value="clinvar">ClinVar Status (Latest)</option>
                 <option value="condition">Primary Condition</option>
-                <option value="type">Variant Type</option>
+                <option value="type">Variant Type (Top 4)</option>
             </select>
         </div>
         <div class="control-item">
@@ -330,7 +329,7 @@
 
 <script>
     /** --- POSITIONING & STYLE VARIABLES --- **/
-    const PLOT_VERTICAL_OFFSET_RATIO = 0.72; // Moved down further to improve visual balance
+    const PLOT_VERTICAL_OFFSET_RATIO = 0.72; 
     const LOLLIPOP_HEAD_SIZE = 80;
     const BACKBONE_HEIGHT = 20;
     const BACKBONE_STROKE_COLOR = "#000000";
@@ -338,7 +337,10 @@
     const CALLOUT_STAGGER_HEIGHT = 16;
     const CALLOUT_FONT_SIZE = "10px";
     const CALLOUT_LABEL_COLOR = "#86868b";
-    const EXON_GAP_SIZE = 2; // Gaps between exons in pixels
+    const EXON_GAP_SIZE = 2;
+
+    // Requested Hex Palette: 28509C, ED037C, 272D72, A9208E, 7C2F90, 000000, A0A0A0
+    const CUSTOM_PALETTE = ["#28509C", "#ED037C", "#272D72", "#A9208E", "#7C2F90", "#000000", "#A0A0A0"];
 
     let rawData = [];
     let geneInfo = { length: 1000, features: [], exons: [], canonicalTranscript: "N/A" };
@@ -346,7 +348,9 @@
     let selectedFeatureTypes = new Set(['DOMAIN', 'TRANSMEM']);
     let shapeMap = {};
     let hiddenCategories = new Set();
-    let conditionColorScale = d3.scaleOrdinal(d3.schemeTableau10);
+    
+    // Scale for conditions
+    let conditionColorScale = d3.scaleOrdinal(CUSTOM_PALETTE);
 
     const availableSymbols = [
         d3.symbolCircle, d3.symbolTriangle, d3.symbolSquare, 
@@ -375,7 +379,7 @@
                 .on("dblclick", () => soloCategory(type, 'type'));
             const svg = item.append("div").attr("class", "swatch-shape").append("svg").attr("width", 14).attr("height", 14).append("g").attr("transform", "translate(7,7)");
             svg.append("path").attr("d", d3.symbol().type(shapeMap[type]).size(40)).attr("fill", "#636366");
-            item.append("span").text(type);
+            item.append("span").text(type.charAt(0).toUpperCase() + type.slice(1));
         });
 
         // 2. Colors
@@ -390,13 +394,13 @@
             });
         } else if (colorMode === 'type') {
             const types = Object.keys(shapeMap);
-            const typeScale = d3.scaleOrdinal(d3.schemeCategory10);
+            const paletteScale = d3.scaleOrdinal(CUSTOM_PALETTE);
             types.forEach(t => {
                 const isHidden = hiddenCategories.has(t);
                 const item = colorSection.append("div").attr("class", `legend-item ${isHidden ? 'hidden' : ''}`)
                     .on("click", () => toggleCategory(t))
                     .on("dblclick", () => soloCategory(t, 'type'));
-                item.append("div").attr("class", "swatch-circle").style("background", typeScale(t));
+                item.append("div").attr("class", "swatch-circle").style("background", paletteScale(t));
                 item.append("span").text(t);
             });
         } else {
@@ -524,6 +528,7 @@
 
         try {
             const uniprot = await fetchUniprotCanonicalHumanFeatures(gene);
+            
             const varUrl = `https://myvariant.info/v1/query?q=clinvar.gene.symbol:${gene}+AND+_exists_:clinvar&fields=clinvar,snpeff&size=${size}`;
             const varRes = await fetch(varUrl);
             const vJson = await varRes.json();
@@ -548,7 +553,6 @@
                 const mutRes = await fetch(mutUrl);
                 const mutData = await mutRes.json();
                 logAPI(mutUrl, mutRes.status, mutData);
-                
                 const exonFeatures = findExons(mutData.annotations?.features || []);
                 exonSegments = exonFeatures.map(e => ({
                     id: e.id || e.name || "exon",
@@ -566,29 +570,51 @@
 
             shapeMap = {};
             hiddenCategories.clear();
-            let uniqueTypesFound = new Set();
+            
+            // --- VARIANT TYPE FREQUENCY ANALYSIS ---
+            let typeCounts = {};
+            vJson.hits.forEach(h => {
+                const cv = h.clinvar || {};
+                const nmMatch = (cv.hgvs?.nucleotide || "").match(/NM_\d+/);
+                const targetNM = nmMatch ? nmMatch[0] : (detectedTranscript !== "N/A" ? detectedTranscript : null);
+                let annList = Array.isArray(h.snpeff?.ann) ? h.snpeff.ann : (h.snpeff?.ann ? [h.snpeff.ann] : []);
+                let bestAnn = annList.find(ann => targetNM && ann.feature_id?.includes(targetNM)) || annList.find(ann => ann.effect);
+                const rawEffect = (bestAnn?.effect || "other").toLowerCase();
+                const type = rawEffect.split('_')[0];
+                typeCounts[type] = (typeCounts[type] || 0) + 1;
+            });
+
+            // Determine Top 4
+            const sortedTypeEntries = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
+            const top4Types = sortedTypeEntries.slice(0, 4).map(e => e[0]);
+
             const garbage = ['not provided', 'not specified', 'not available', 'none', 'unknown', '-', 'unspecified'];
 
             rawData = vJson.hits.map(h => {
                 const cv = h.clinvar || {};
                 const rcvs = Array.isArray(cv.rcv) ? [...cv.rcv] : (cv.rcv ? [cv.rcv] : []);
                 rcvs.sort((a, b) => (new Date(b.last_evaluated || 0)) - (new Date(a.last_evaluated || 0)));
+
+                const nmMatch = (cv.hgvs?.nucleotide || "").match(/NM_\d+/);
+                const targetNM = nmMatch ? nmMatch[0] : (detectedTranscript !== "N/A" ? detectedTranscript : null);
                 let annList = Array.isArray(h.snpeff?.ann) ? h.snpeff.ann : (h.snpeff?.ann ? [h.snpeff.ann] : []);
-                let bestAnn = annList.find(ann => detectedTranscript !== "N/A" && ann.feature_id?.includes(detectedTranscript)) || annList.find(ann => ann.effect);
-                const type = (bestAnn?.effect || "other").toLowerCase();
-                uniqueTypesFound.add(type);
+                let bestAnn = annList.find(ann => targetNM && ann.feature_id?.includes(targetNM)) || annList.find(ann => ann.effect);
+                
+                // Consolidation Logic
+                const rawEffect = (bestAnn?.effect || "other").toLowerCase();
+                const firstWord = rawEffect.split('_')[0];
+                const type = top4Types.includes(firstWord) ? firstWord : "other";
 
                 const condMap = {};
                 const uniqConds = [];
                 rcvs.forEach(r => {
-                    const cRaw = r.conditions.name || r.name || r.trait_name || "";
+                    const cRaw = r.name || r.trait_name || "";
                     const name = cRaw.toLowerCase().trim();
                     if (name && !garbage.some(g => name.includes(g))) {
                         condMap[cRaw] = (condMap[cRaw] || 0) + 1;
                         if (!uniqConds.includes(cRaw)) uniqConds.push(cRaw);
                     }
                 });
-                console.log(condMap)
                 const sortedConds = Object.entries(condMap).sort((a, b) => b[1] - a[1]);
                 let primaryCondition = 'Unknown';
                 if (sortedConds.length > 0) {
@@ -610,7 +636,10 @@
                 };
             });
 
-            Array.from(uniqueTypesFound).sort().forEach((t, i) => shapeMap[t] = availableSymbols[i % availableSymbols.length]);
+            // Build dynamic shape map
+            const finalUniqueTypes = [...new Set(rawData.map(d => d.type))].sort();
+            finalUniqueTypes.forEach((t, i) => shapeMap[t] = availableSymbols[i % availableSymbols.length]);
+
             d3.select("#viz-container").call(zoom);
             render();
         } catch (e) { alert("Error: " + e.message); }
@@ -631,7 +660,6 @@
 
         const xScale = d3.scaleLinear().domain([0, geneInfo.length]).range([0, width - margin.left - margin.right]);
         const rescaledX = zoomTransform.rescaleX(xScale);
-        
         const colorMode = document.getElementById('colorMode')?.value || 'clinvar';
         const heightMode = document.getElementById('heightMode')?.value || 'freq';
         const searchInput = document.getElementById('highlightFilter')?.value.toLowerCase() || '';
@@ -644,7 +672,7 @@
             return !hiddenCategories.has(d.type);
         });
 
-        // Dynamic BOLD Title
+        // BOLD Title
         svg.append("text")
             .attr("x", 20).attr("y", 35).attr("font-weight", "800").attr("font-size", "16px").attr("fill", "var(--text)")
             .text(`${(document.getElementById('geneSearch')?.value || "N/A").toUpperCase()} [${geneInfo.canonicalTranscript}] — ${visible.length} Variants Displayed`);
@@ -652,7 +680,7 @@
         const yScale = d3.scaleLinear().domain([0, d3.max(rawData, d => d.submissions) || 1]).range([0, -maxHeightVal]);
         const centerY = 0; 
 
-        // Fragmented Backbone with Thick Borders
+        // Backbone
         if (geneInfo.exons.length > 0) {
             geneInfo.exons.forEach(s => {
                 g.append("rect")
@@ -661,9 +689,7 @@
                     .attr("height", BACKBONE_HEIGHT).attr("rx", 2)
                     .attr("fill", bbColor).attr("fill-opacity", 0.6)
                     .attr("stroke", BACKBONE_STROKE_COLOR).attr("stroke-width", BACKBONE_STROKE_WIDTH)
-                    .on("mouseover", (e) => showExonTooltip(e, s))
-                    .on("mousemove", moveTooltip)
-                    .on("mouseout", hideTooltip);
+                    .on("mouseover", (e) => showExonTooltip(e, s)).on("mousemove", moveTooltip).on("mouseout", hideTooltip);
             });
         } else {
             g.append("rect")
@@ -674,6 +700,8 @@
         }
 
         const palette = d3.scaleOrdinal(d3.schemeSet3);
+        const variantPalette = d3.scaleOrdinal(CUSTOM_PALETTE);
+
         geneInfo.features.forEach((f, i) => {
             if (selectedFeatureTypes.has(f.type)) {
                 g.append("rect").attr("x", rescaledX(f.begin)).attr("y", centerY - 15).attr("width", Math.max(2, rescaledX(f.end)-rescaledX(f.begin))).attr("height", 30).attr("rx", 4).attr("fill", palette(f.type)).attr("opacity", 0.6)
@@ -697,15 +725,15 @@
             const op = searching ? (match ? 1 : 0.1) : 1;
             const node = d3.select(this);
             node.append("line").attr("x1", rescaledX(d.pos)).attr("x2", rescaledX(d.pos)).attr("y1", centerY - 10).attr("y2", centerY + h).attr("stroke", match ? "var(--accent)" : "#8e8e93").attr("stroke-width", (match ? 2 : 1)/zoomTransform.k).attr("opacity", op);
-            node.append("path").attr("transform", `translate(${rescaledX(d.pos)}, ${centerY + h})`).attr("d", d3.symbol().type(shapeMap[d.type] || d3.symbolCircle).size(LOLLIPOP_HEAD_SIZE)()).attr("fill", getColor(d)).attr("stroke", match ? "black" : "white").attr("stroke-width", match ? 2.5 : 1).attr("opacity", op).style("cursor", "pointer")
+            node.append("path").attr("transform", `translate(${rescaledX(d.pos)}, ${centerY + h})`).attr("d", d3.symbol().type(shapeMap[d.type] || d3.symbolCircle).size(80)()).attr("fill", getColor(d, variantPalette)).attr("stroke", match ? "black" : "white").attr("stroke-width", match ? 2.5 : 1).attr("opacity", op).style("cursor", "pointer")
                 .on("mouseover", (e) => showTooltip(e, d)).on("mousemove", moveTooltip).on("mouseout", hideTooltip).on("click", () => showDetails(d));
         });
         updateLegend();
     }
 
-    function getColor(d) {
+    function getColor(d, palette) {
         const mode = document.getElementById('colorMode')?.value || 'clinvar';
-        if (mode === 'type') return d3.scaleOrdinal(d3.schemeCategory10)(d.type);
+        if (mode === 'type') return palette(d.type);
         if (mode === 'condition') return d.primaryCondition === 'Multiple' ? '#9467bd' : (d.primaryCondition === 'Unknown' ? '#8e8e93' : conditionColorScale(d.primaryCondition));
         const sig = String(d.significance).toLowerCase();
         if(sig.includes("pathogenic")) return "var(--pathogenic)";
@@ -729,7 +757,7 @@
 
     function showExonTooltip(e, s) {
         const p = getRel(e); d3.select("#tooltip").style("visibility", "visible").style("left", (p.x + 15) + "px").style("top", (p.y - 10) + "px")
-            .html(`<strong>${s.id}</strong><br>AA Range: ${Math.round(s.start)} - ${Math.round(s.end)}<br>NT Start: ${s.start_nt}<br>NT End: ${s.end_nt}`);
+            .html(`<strong>Exon Segment</strong><br>AA Range: ${Math.round(s.start)} - ${Math.round(s.end)}<br>NT Start: ${s.start_nt}<br>NT End: ${s.end_nt}`);
     }
 
     function moveTooltip(e) { const p = getRel(e); d3.select("#tooltip").style("left", (p.x + 15) + "px").style("top", (p.y - 10) + "px"); }
@@ -737,7 +765,17 @@
 
     function showDetails(d) {
         document.getElementById('modalTitle').innerText = "Variant Analysis";
-        document.getElementById('modalContent').innerHTML = `<table class="detail-table"><tr><th>Preferred Name</th><td>${d.hgvs_p}</td></tr><tr><th>HGVS Genomic</th><td><code>${d.hgvs_g}</code></td></tr><tr><th>Significance</th><td><span class="badge" style="background:${getColor(d)}">${d.significance}</span></td></tr><tr><th>Condition</th><td>${d.primaryCondition}</td></tr><tr><th>All Traits</th><td>${d.allConditions}</td></tr></table>`;
+        document.getElementById('modalContent').innerHTML = `
+            <table class="detail-table">
+                <tr><th>Preferred Name</th><td>${d.hgvs_p}</td></tr>
+                <tr><th>HGVS Genomic</th><td><code>${d.hgvs_g}</code></td></tr>
+                <tr><th>Significance</th><td><span class="badge" style="background:${getColor(d, d3.scaleOrdinal(CUSTOM_PALETTE))}">${d.significance}</span></td></tr>
+                <tr><th>Condition</th><td>${d.primaryCondition}</td></tr>
+                <tr><th>All Traits</th><td>${d.allConditions}</td></tr>
+            </table>
+            <h3>Raw ClinVar Record</h3>
+            <div class="raw-json-block"><pre>${JSON.stringify(d.raw, null, 2)}</pre></div>
+        `;
         document.getElementById('modalOverlay').style.display = 'flex';
         document.getElementById('exportBtn').onclick = () => { 
             const b = new Blob([JSON.stringify(d.raw, null, 2)], { type: 'application/json' }); 
