@@ -598,6 +598,7 @@
         <div class="matrixCard detail-view" id="chartDetails" style="display:none;">
           <div class="matrixHead">
             <div><h2>Cumulative Variant Count Over Time</h2></div>
+            <button class="secondary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="toggleSection('chartDetails')">Collapse ▲</button>
           </div>
           <div class="chartToggles">
             <button id="toggleByClass" class="toggleHeader" aria-pressed="true">By Classification</button>
@@ -610,6 +611,7 @@
         <div class="matrixCard detail-view" id="variantTimelineDetails" style="display:none;">
           <div class="matrixHead">
             <div><h2>Variant Timelines</h2></div>
+            <button class="secondary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="toggleSection('variantTimelineDetails')">Collapse ▲</button>
           </div>
           <div class="matrixWrap"><div id="variantTimelineChart" style="width:100%; min-height:400px; padding:10px;"></div></div>
         </div>
@@ -618,6 +620,7 @@
         <div class="matrixCard detail-view" id="matrixDetails" style="display:none;">
           <div class="matrixHead">
             <div><h2>Condition × Clinical significance</h2></div>
+            <button class="secondary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="toggleSection('matrixDetails')">Collapse ▲</button>
           </div>
           <div class="matrixWrap">
             <table class="matrix" id="matrixTbl">
@@ -939,19 +942,36 @@
       const details = document.querySelectorAll(".detail-view");
       squares.forEach(sq => sq.classList.remove("active"));
 
+      // Identify the triggering square
+      const sqMap = {'chartDetails':'sqCount', 'variantTimelineDetails':'sqTimeline', 'matrixDetails':'sqMatrix'};
+      const sqId = sqMap[id];
+      const sqEl = document.getElementById(sqId);
+
       if (activeSectionId === id) {
+        // Collapse
         expansionArea.classList.remove("show");
         activeSectionId = null;
+        // Scroll back to square
+        if(sqEl) sqEl.scrollIntoView({behavior: 'smooth', block: 'center'});
       } else {
+        // Expand
         expansionArea.classList.add("show");
         details.forEach(d => d.style.display = "none");
-        document.getElementById(id).style.display = "block";
+        const sec = document.getElementById(id);
+        sec.style.display = "block";
         activeSectionId = id;
-        const sqId = id === 'chartDetails' ? 'sqCount' : id === 'variantTimelineDetails' ? 'sqTimeline' : 'sqMatrix';
-        document.getElementById(sqId).classList.add("active");
+        
+        if(sqEl) sqEl.classList.add("active");
+        
         if (id === 'chartDetails') renderCumulativeChart();
         if (id === 'variantTimelineDetails') renderVariantTimelineChart(lastFilteredRows);
         if (id === 'matrixDetails') renderMatrix();
+
+        // Scroll to section
+        setTimeout(() => {
+            const top = sec.getBoundingClientRect().top + window.scrollY - 80; // 80px margin for header
+            window.scrollTo({top: top, behavior: 'smooth'});
+        }, 50);
       }
     }
 
