@@ -753,11 +753,15 @@
       const backdrop = document.getElementById('backdrop');
       if (open) {
         app.classList.add('sidebar-open');
+        // Remove collapsed class so opacity becomes 1 and pointer-events auto
+        app.classList.remove('sidebar-collapsed'); 
         backdrop.classList.add('show');
         document.body.style.overflow = 'hidden';
         backdrop.setAttribute('aria-hidden', 'false');
       } else {
         app.classList.remove('sidebar-open');
+        // Re-add collapsed class to reset state (and ensure it stays collapsed if resized to desktop)
+        app.classList.add('sidebar-collapsed');
         backdrop.classList.remove('show');
         document.body.style.overflow = '';
         backdrop.setAttribute('aria-hidden', 'true');
@@ -1266,8 +1270,8 @@
       const sigColorMap = {
         'pathogenic': 'red',
         'likely pathogenic': 'orange',
-        'uncertain significance': 'olive',
-        'vus': 'olive',
+        'uncertain significance': 'grey',
+        'vus': 'grey',
         'likely benign': 'lightblue',
         'benign': 'blue'
       };
@@ -1291,7 +1295,7 @@
           const sig = norm(rcv.clinical_significance);
           let color = 'grey', symbol = 'circle';
           for (let k in sigColorMap) if (sig.includes(k)) color = sigColorMap[k];
-          if (sig.includes('conflict')) { color = 'grey'; symbol = 'triangle-up'; }
+          if (sig.includes('conflict')) { color = '#ff9900'; symbol = 'triangle-up'; }
 
           traces.push({
             x: [new Date(parseDateToMs(rcv.last_evaluated))],
@@ -1310,10 +1314,10 @@
       const dummyCats = [
         {name: 'Pathogenic', color: 'red'},
         {name: 'Likely Pathogenic', color: 'orange'},
-        {name: 'VUS/Uncertain', color: 'olive'},
+        {name: 'VUS/Uncertain', color: 'grey'},
         {name: 'Likely Benign', color: 'lightblue'},
         {name: 'Benign', color: 'blue'},
-        {name: 'Conflicting', color: 'grey'}
+        {name: 'Conflicting', color: '#ff9900'}
       ];
       dummyCats.forEach(c => traces.push({ x:[null], y:[null], mode:'markers', name:c.name, marker:{color:c.color} }));
 
