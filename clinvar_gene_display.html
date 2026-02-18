@@ -453,6 +453,16 @@
       fill: currentColor;
     }
 
+    /* Example Genes Styles */
+    .example-genes { margin-top: 24px; display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; }
+    .example-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .example-btn {
+      background: #f0f4ff; border: 1px solid rgba(40,80,156,0.2);
+      color: var(--c3); padding: 8px 16px; border-radius: 99px;
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    }
+    .example-btn:hover { background: #e0eaff; border-color: var(--c1); transform: translateY(-1px); }
+
     #lollipopFrame {
       flex: 1;
       width: 100%;
@@ -478,6 +488,10 @@
         <button id="btnSubmitGene" type="submit" class="primary" style="margin-top: 16px; width: 100%; padding: 16px; font-size: 18px;">Analyze Gene</button>
       </form>
     </div>
+
+    <!-- Example Genes Container -->
+    <div id="exampleGenes" class="example-genes" style="display:none;"></div>
+
     <div id="hgncStatus" style="margin-top: 20px; font-size: 12px; color: #888;">Fetching HGNC dataset...</div>
   </div>
 
@@ -824,6 +838,27 @@
         hgncData = await response.json(); // Now expects JSON
 
         document.getElementById("hgncStatus").textContent = `Loaded ${hgncData.length} genes. Ready.`;
+        
+        // Populate Example Genes
+        const exContainer = document.getElementById("exampleGenes");
+        const fixed = ["FGFR3", "GALNS", "ARSB", "TPP1"];
+        const randoms = [];
+        if (hgncData.length > 0) {
+          // Shuffle or pick random indices
+          for(let i=0; i<4; i++) {
+             const r = hgncData[Math.floor(Math.random() * hgncData.length)];
+             if(r && r.value) randoms.push(r.value);
+          }
+        }
+        
+        const mkBtn = (g) => `<button class="example-btn" onclick="selectGene('${g}', '${g}')">${g}</button>`;
+        
+        exContainer.innerHTML = `
+          <div class="example-row">${fixed.map(mkBtn).join('')}</div>
+          <div class="example-row">${randoms.map(mkBtn).join('')}</div>
+        `;
+        exContainer.style.display = "flex";
+
       } catch (e) {
         document.getElementById("hgncStatus").textContent = "Error loading HGNC data. Gene autocomplete disabled.";
       }
