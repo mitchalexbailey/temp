@@ -1280,18 +1280,30 @@
       return sevs.length ? Math.max(...sevs) : 0;
     }
 
+    function getMostRecentSeverity(row) {
+      const rcvs = asArray(row.rawClinvar?.rcv);
+      if (!rcvs.length) return 0;
+      // Sort by date descending to find most recent
+      // Note: Copying array to avoid mutating original order if it matters elsewhere
+      const sorted = [...rcvs].sort((a, b) => (parseDateToMs(b.last_evaluated) || 0) - (parseDateToMs(a.last_evaluated) || 0));
+      return getSeverity(sorted[0].clinical_significance);
+    }
+
     function renderVariantTimelineChart(rows) {
       const container = document.getElementById("variantTimelineChart");
       if (!container) return;
 
-      if (!rows || !rows.length) {
-        container.innerHTML = '<div class="help" style="text-align:center; padding:50px;">No variants to display.</div>';
+      // 1) Remove all variants with only one SCV right at the start
+      const multiSubRows = (rows || []).filter(r => (r.scvTotal || 0) > 1);
+
+      if (!multiSubRows.length) {
+        container.innerHTML = '<div class="help" style="text-align:center; padding:50px;">No variants with multiple submissions to display.</div>';
         return;
       }
 
-      // 1. Initial Sort
-      // Sort by Severity Score (Desc) then SCV Count (Desc)
-      const candidates = [...rows].sort((a, b) => {
+      // Selection Logic (from previous requirements):
+      // Sort by Severity Score (Desc) then SCV Count (Desc) for selection priority
+      const candidates = [...multiSubRows].sort((a, b) => {
         const scoreA = getVariantScore(a);
         const scoreB = getVariantScore(b);
         if (scoreA !== scoreB) return scoreB - scoreA;
@@ -1304,8 +1316,7 @@
       if (candidates.length <= 30) {
         displayRows = candidates;
       } else {
-        // Logic Step 2: Filter for variants with > 2 unique classifications
-        // row.sigs contains unique classifications strings
+        // Logic Step 2: Filter for variants with > 2 unique classifications (kept >= 2 from previous implementation logic)
         const complex = candidates.filter(r => (r.sigs || []).length >= 2);
 
         if (complex.length === 0) {
@@ -1336,6 +1347,14 @@
         container.innerHTML = '<div class="help" style="text-align:center; padding:50px;">No variants met the display criteria.</div>';
         return;
       }
+
+      // 2) Sort by severity of the most recent point right before plotting
+      displayRows.sort((a, b) => {
+        const sevA = getMostRecentSeverity(a);
+        const sevB = getMostRecentSeverity(b);
+        if (sevA !== sevB) return sevB - sevA; // Descending
+        return (b.scvTotal || 0) - (a.scvTotal || 0); // Tie-break
+      });
 
       const sigColorMap = {
         'pathogenic': 'red',
