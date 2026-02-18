@@ -725,17 +725,28 @@
     function moveTooltip(e) { const p = getRel(e); d3.select("#tooltip").style("left", (p.x + 15) + "px").style("top", (p.y - 10) + "px"); }
     function hideTooltip() { d3.select("#tooltip").style("visibility", "hidden"); }
 
+    function capitalizeFirstLetter(str) {
+      if (str && typeof str === "string") {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+      }
+      return str;
+    }
+
     function showDetails(d) {
+        console.log(d)
         const condList = Object.entries(d.condCounts).map(([name, count]) => `${name} [${count}]`).join("<br>");
         const clinvarLink = d.variant_id ? `<a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${d.variant_id}" target="_blank" style="color:var(--accent); font-weight:bold">${d.variant_id}</a>` : "N/A";
         
         document.getElementById('modalContent').innerHTML = `
             <table class="detail-table">
                 <tr><th>Preferred Name</th><td>${d.hgvs_p}</td></tr>
+                <tr><th>Other Name(s)</th><td>${d.hgvs_g}</td></tr>
+                <tr><th>Submissions</th><td>${d.submissions}</td></tr>
                 <tr><th>ClinVar ID</th><td>${clinvarLink}</td></tr>
                 <tr><th>Significance</th><td><span class="badge" style="background:${getColor(d, d3.scaleOrdinal(CUSTOM_PALETTE_ARRAY))}">${d.significance}</span></td></tr>
-                <tr><th>Associated Conditions</th><td>${condList || "None provided"}</td></tr>
-                <tr><th>Variant Type</th><td>${d.type}</td></tr>
+                <tr><th>Top Condition</th><td>${d.primaryCondition}</td></tr>
+                <tr><th>All Associated Conditions</th><td>${condList || "None provided"}</td></tr>
+                <tr><th>Variant Type</th><td>${capitalizeFirstLetter(d.type)}</td></tr>
             </table>
             <h3>Pretty Print Raw ClinVar Record</h3>
             <div class="raw-json-block"><pre>${JSON.stringify(d.raw, null, 2)}</pre></div>
