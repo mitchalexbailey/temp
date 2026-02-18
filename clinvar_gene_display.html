@@ -1410,6 +1410,23 @@
       });
     }
 
+    // Helper to avoid inline JS complexity in Matrix
+    function openDetailsById(id) {
+        const row = allRows.find(x => x.id === id);
+        if (row) openDetails(row);
+    }
+
+    function toggleMatrixHidden(id, count, btn) {
+        const el = document.getElementById(id);
+        if (el.style.display === 'none') {
+            el.style.display = 'contents';
+            btn.textContent = 'Show Less';
+        } else {
+            el.style.display = 'none';
+            btn.textContent = `Show +${count}`;
+        }
+    }
+
     // --- Matrix Render (updated with stopwords) ---
     function renderMatrix(){
       matrixBody.innerHTML = "";
@@ -1438,16 +1455,39 @@
           }).map(r => ({ r, score: conditionAssociationScore(r, rowLabel).score }))
             .sort((a,b) => b.score - a.score);
 
+          // NEW LOGIC: Toggle hidden items
+          const visibleCount = 6;
+          const visible = matches.slice(0, visibleCount);
+          const hidden = matches.slice(visibleCount);
+          const hiddenId = `mx-${Math.random().toString(36).substr(2,9)}`;
+
+          let variantsHtml = visible.map(m => `
+            <button class="vChip" onclick="event.stopPropagation(); openDetailsById('${m.r.id.replace(/'/g, "\\'")}')">
+              ${escapeHtml(stripPrefix(m.r.preferredName || m.r.coords || m.r.id))}
+            </button>`).join('');
+
+          if (hidden.length > 0) {
+            variantsHtml += `
+              <div id="${hiddenId}" style="display:none;">
+                ${hidden.map(m => `
+                  <button class="vChip" onclick="event.stopPropagation(); openDetailsById('${m.r.id.replace(/'/g, "\\'")}')">
+                    ${escapeHtml(stripPrefix(m.r.preferredName || m.r.coords || m.r.id))}
+                  </button>`).join('')}
+              </div>
+              <button class="vChip" style="background:#f0f0f0; border-color:#ccc; font-weight:800; color:#555;" 
+                onclick="event.stopPropagation(); toggleMatrixHidden('${hiddenId}', ${hidden.length}, this)">
+                Show +${hidden.length}
+              </button>
+            `;
+          }
+
           tr.innerHTML += `
             <td>
               <div class="cell">
                 <div class="cellCount">${matches.length}</div>
                 <div class="cellMeta">variants</div>
                 <div class="cellVariants">
-                  ${matches.slice(0, 6).map(m => `
-                    <button class="vChip" onclick="event.stopPropagation(); openDetails(allRows.find(x=>x.id==='${m.r.id}'))">
-                      ${escapeHtml(stripPrefix(m.r.preferredName || m.r.coords || m.r.id))}
-                    </button>`).join('')}
+                  ${variantsHtml}
                 </div>
               </div>
             </td>`;
@@ -1461,6 +1501,7 @@
       const dataRows = rows || lastFilteredRows;
       const chartDiv = document.getElementById("plotlyChart");
       if (!dataRows.length || !chartDiv) return;
+      if (typeof Plotly === 'undefined') return;
 
       const dates = [];
       dataRows.forEach(r => asArray(r.rawClinvar.rcv).forEach(rcv => {
@@ -1545,6 +1586,10 @@
     function renderVariantTimelineChart(rows) {
       const container = document.getElementById("variantTimelineChart");
       if (!container) return;
+      if (typeof Plotly === 'undefined') {
+          container.innerHTML = '<div class="help" style="text-align:center; padding:50px;">Chart library failed to load.</div>';
+          return;
+      }
 
       // 1) Remove all variants with only one SCV right at the start
       const multiSubRows = (rows || []).filter(r => (r.scvTotal || 0) > 1);
