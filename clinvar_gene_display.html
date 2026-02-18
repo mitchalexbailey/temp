@@ -79,7 +79,7 @@
     .brand {
       display:flex; flex-direction:column; gap:4px;
       min-width:0;
-      padding-left: 50px;
+      padding-left: 0; /* Removed padding since burger moved */
     }
     .brand h1{
       margin:0;
@@ -100,7 +100,6 @@
       max-width: 980px;
     }
     @media (max-width: 600px) {
-      .brand { padding-left: 42px; }
       .brand h1 { font-size: 13px; }
       .brand .sub { display: none; }
     }
@@ -160,7 +159,11 @@
       position:sticky; top:var(--topbarH); align-self:start;
       height: calc(100vh - var(--topbarH)); overflow:auto;
       border-right:1px solid var(--border);
-      background: #fff; padding:14px; transition: transform .18s ease, opacity .18s ease; z-index:60;
+      background: #fff; 
+      padding:14px; 
+      /* Add top padding to clear the floating filter label */
+      padding-top: 50px; 
+      transition: transform .18s ease, opacity .18s ease; z-index:60;
     }
     .app.sidebar-collapsed .sidebar{ transform: translateX(calc(-1 * var(--sidebarW))); opacity: 0; pointer-events: none; }
 
@@ -198,10 +201,45 @@
     .main{ padding:14px 16px 28px; min-width:0; overflow:hidden; }
 
     /* Sidebar toggle */
-    .sidebarToggle{ position:fixed; left:10px; top:10px; z-index:95; display:flex; gap:10px; align-items:center; pointer-events:none; }
-    .hamburger{ pointer-events:auto; width:42px; height:42px; border-radius:14px; border:1px solid rgba(0,0,0,0.16); background:#fff; box-shadow: 0 12px 30px rgba(0,0,0,0.10); cursor:pointer; display:grid; place-items:center; }
-    .hamburger svg{ width:20px; height:20px; }
-    .hamburger line{ stroke: var(--c3); stroke-width:2.4; stroke-linecap:round; }
+    .sidebarToggle{ 
+      position:fixed; 
+      left:16px; 
+      top:calc(var(--topbarH) + 16px); 
+      z-index:95; 
+      display:flex; 
+      gap:10px; 
+      align-items:center; 
+      pointer-events:none; 
+    }
+    
+    .hamburger{ 
+      pointer-events:auto; 
+      padding: 8px 16px;
+      border-radius: 99px; /* Pill shape */
+      border:1px solid rgba(0,0,0,0.12); 
+      background: rgba(255,255,255,0.85); /* Semi-transparent */
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+      cursor:pointer; 
+      
+      /* Font styling */
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--c3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hamburger:hover {
+        background: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+    .hamburger svg{ display: none; } /* Hide old SVG if present */
 
     /* Layout grid for analytics squares */
     .dashboard-grid {
@@ -461,11 +499,12 @@
 
   <div class="sidebarToggle">
     <button class="hamburger" id="btnHamburger" type="button" aria-label="Toggle filters">
-      <svg viewBox="0 0 24 24" width="20" height="20"><line x1="4" y1="7" x2="20" y2="7" stroke="currentColor" stroke-width="2"/><line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2"/><line x1="4" y1="17" x2="20" y2="17" stroke="currentColor" stroke-width="2"/></svg>
+      FILTERS
     </button>
   </div>
 
-  <div class="app" id="app">
+  <!-- App now collapsed by default -->
+  <div class="app sidebar-collapsed" id="app">
     <aside class="sidebar" id="sidebar">
       <div class="panel">
         <h2>Filters</h2>
