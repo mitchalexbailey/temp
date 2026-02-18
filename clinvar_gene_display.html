@@ -1266,8 +1266,8 @@
       const sigColorMap = {
         'pathogenic': 'red',
         'likely pathogenic': 'orange',
-        'uncertain significance': 'grey',
-        'vus': 'grey',
+        'uncertain significance': 'olive',
+        'vus': 'olive',
         'likely benign': 'lightblue',
         'benign': 'blue'
       };
@@ -1291,7 +1291,7 @@
           const sig = norm(rcv.clinical_significance);
           let color = 'grey', symbol = 'circle';
           for (let k in sigColorMap) if (sig.includes(k)) color = sigColorMap[k];
-          if (sig.includes('conflict')) { color = '#ff9900'; symbol = 'triangle-up'; }
+          if (sig.includes('conflict')) { color = 'grey'; symbol = 'triangle-up'; }
 
           traces.push({
             x: [new Date(parseDateToMs(rcv.last_evaluated))],
@@ -1310,10 +1310,10 @@
       const dummyCats = [
         {name: 'Pathogenic', color: 'red'},
         {name: 'Likely Pathogenic', color: 'orange'},
-        {name: 'VUS/Uncertain', color: 'grey'},
+        {name: 'VUS/Uncertain', color: 'olive'},
         {name: 'Likely Benign', color: 'lightblue'},
         {name: 'Benign', color: 'blue'},
-        {name: 'Conflicting', color: '#ff9900'}
+        {name: 'Conflicting', color: 'grey'}
       ];
       dummyCats.forEach(c => traces.push({ x:[null], y:[null], mode:'markers', name:c.name, marker:{color:c.color} }));
 
