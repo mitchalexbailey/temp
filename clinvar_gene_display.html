@@ -43,9 +43,7 @@
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       padding: 20px; text-align: center;
     }
-    .gene-search-box {
-      width: min(500px, 90vw); position: relative;
-    }
+    .gene-search-box { width: min(500px, 90vw); position: relative; }
     .gene-search-box input {
       width: 100%; padding: 16px 20px; border-radius: 14px; border: 2px solid var(--border);
       font-size: 18px; font-weight: 700; outline: none;
@@ -57,12 +55,10 @@
       max-height: 300px; overflow-y: auto; box-shadow: var(--shadow);
       display: none; text-align: left; z-index: 1001;
     }
-    .autocomplete-item {
-      padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border2);
-    }
+    .autocomplete-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border2); }
     .autocomplete-item:hover { background: rgba(40, 80, 156, 0.05); }
     .autocomplete-item .sym { font-weight: 950; color: var(--c3); }
-    .autocomplete-item .desc { font-size: 11px; color: #666; display: block; margin-top: 2px; line-height: 1.2; }
+    .autocomplete-item .desc { font-size: 12px; color: #666; margin-left: 8px; }
 
     /* Top header */
     .topbar{
@@ -81,10 +77,7 @@
       min-height: var(--topbarH);
     }
     .brand {
-      display:flex; 
-      flex-direction:column;
-      justify-content: center;
-      gap:4px;
+      display:flex; flex-direction:column; gap:4px;
       min-width:0;
       padding-left: 50px;
     }
@@ -111,9 +104,7 @@
       .brand h1 { font-size: 13px; }
       .brand .sub { display: none; }
     }
-    .top-actions{
-      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-    }
+    .top-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .pill{
       font-size:11px;
       padding:6px 10px;
@@ -146,21 +137,22 @@
     }
     .app.sidebar-collapsed{ grid-template-columns: 0px 1fr; }
 
-    @media (max-width: 980px){ 
-      .app{ display: block; min-height: auto; } /* Change to block to prevent phantom grid row spacing */
-      .app .sidebar {
-        display: none; /* Fully remove from flow when closed */
-        position: fixed !important;
-        left: 0; top: var(--topbarH);
+    /* Mobile sidebar overlay behavior (added; does not affect desktop) */
+    @media (max-width: 980px){
+      .app{ display:block; min-height:auto; }
+      .app .sidebar{
+        display:none;
+        position:fixed !important;
+        left:0; top: var(--topbarH);
         width: 100%; max-width: 320px;
         height: calc(100% - var(--topbarH));
-        background: #fff;
-        z-index: 1000;
+        background:#fff;
+        z-index:1000;
         transform: translateX(-100%);
-        transition: transform 0.3s ease;
+        transition: transform .3s ease;
       }
-      .app.sidebar-open .sidebar { display: block; transform: translateX(0); box-shadow: 20px 0 50px rgba(0,0,0,0.2); }
-      .backdrop.show { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 900; }
+      .app.sidebar-open .sidebar{ display:block; transform: translateX(0); box-shadow: 20px 0 50px rgba(0,0,0,0.2); }
+      .backdrop.show{ display:block; position:fixed; inset:0; background: rgba(0,0,0,0.3); z-index:900; }
     }
 
     /* Sidebar */
@@ -185,7 +177,7 @@
     button:disabled{ opacity:.55; cursor:not-allowed; }
 
     input[type="text"], input[type="search"]{ width:100%; background:#fff; color:var(--text); border:1px solid var(--border); padding:10px 12px; border-radius:12px; outline:none; }
-    
+
     /* Custom multiselect */
     .ms{ border:1px solid var(--border); border-radius:14px; overflow:hidden; background:#fff; }
     .msTop{ padding:10px; border-bottom:1px solid var(--border2); background:rgba(40,80,156,0.04); }
@@ -219,11 +211,7 @@
       margin-bottom: 24px;
     }
     @media (max-width: 1200px) { .dashboard-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 600px) { 
-      .dashboard-grid { grid-template-columns: 1fr; margin-bottom: 16px; }
-      .dashboard-square { aspect-ratio: 3 / 1; }
-      .main { padding: 8px 12px 28px; }
-    }
+    @media (max-width: 600px)  { .dashboard-grid { grid-template-columns: 1fr; margin-bottom: 16px; } }
 
     .dashboard-square {
       aspect-ratio: 2 / 1;
@@ -261,32 +249,31 @@
       letter-spacing: 0.5px;
       margin-top: 4px;
     }
-    .dashboard-square .icon-placeholder {
-      font-size: 32px;
-      opacity: 0.8;
+    .dashboard-square .preview-icon {
+      width: 100%;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      object-fit: contain;
     }
+    .dashboard-square .icon-placeholder { font-size: 24px; opacity: 0.3; }
 
     /* Detail expansion container */
-    .expansion-container {
-      display: none;
-      margin-bottom: 24px;
-      width: 100%;
-    }
-    .expansion-container.show {
-      display: block;
-    }
+    .expansion-container { display:none; margin-bottom:24px; width:100%; }
+    .expansion-container.show { display:block; }
 
     /* Charts & Matrix */
     .matrixCard{ border:1px solid var(--border); border-radius:14px; background:#fff; box-shadow: 0 10px 28px rgba(0,0,0,0.06); overflow:hidden; margin-bottom:14px; }
-    .matrixHead{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding: 12px; border-bottom:1px solid var(--border2); background: #fff; user-select: none; }
+    .matrixHead{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; padding: 12px; border-bottom:1px solid var(--border2); background: #fff; user-select: none; }
     .matrixHead h2{ margin:0; font-size:15px; font-weight:950; color:var(--c3); }
-    .matrixWrap{ overflow:auto; width: 100%; }
-    .matrix{ width:100%; border-collapse:collapse; table-layout:fixed; min-width: 600px; }
+    .matrixWrap{ overflow:auto; width:100%; }
+    .matrix{ width:100%; border-collapse:collapse; table-layout:fixed; min-width: 760px; }
     .matrix th, .matrix td{ border-top:1px solid var(--border2); border-right:1px solid var(--border2); vertical-align:top; padding: 12px; }
     .matrix .rowHead{ background:rgba(40,80,156,0.04); font-weight:950; color:var(--c3); text-align:center; width: 200px; }
     .matrix thead th{ background: #fafafa; color:var(--c3); font-weight:950; text-align:center; }
-    
-    .chartToggles{ display: flex; gap: 8px; margin: 10px; flex-wrap: wrap; }
+
+    .chartToggles{ display: flex; gap: 8px; margin: 10px; flex-wrap:wrap; }
     .toggleHeader{ border-radius: 999px; padding: 6px 12px; border: 1px solid var(--border); background: #fff; cursor: pointer; font-size: 12px; font-weight: 800; color: gray; }
     .toggleHeader[aria-pressed="true"]{ background: rgba(40,80,156,0.1); color: var(--c3); border-color: var(--c3); }
 
@@ -300,11 +287,11 @@
     .mainTableContainer { border:1px solid var(--border); border-radius:14px; background:#fff; overflow:hidden; }
     .mainTableHead { padding: 16px; border-bottom: 1px solid var(--border2); background: #fafafa; }
     .mainTableHead h2 { margin: 0; font-size: 16px; font-weight: 950; color: var(--c3); }
-    .tablewrap{ overflow-x:auto; width: 100%; background:#fff; -webkit-overflow-scrolling: touch; }
+    .tablewrap{ overflow:auto; max-width:100%; background:#fff; -webkit-overflow-scrolling: touch; }
     table#tbl{ width:100%; border-collapse:collapse; font-size:12px; min-width: 980px; table-layout: fixed; }
     #tbl thead th{ position:sticky; top:0; z-index:2; background:#fafafa; border-bottom:1px solid var(--border); padding:10px; text-align:left; font-weight:950; color:var(--c3); }
-    
-    /* Column Widths */
+
+    /* Column Widths (from attached version) */
     #tbl th:nth-child(1) { width: 30%; }
     #tbl th:nth-child(2) { width: 14%; }
     #tbl th:nth-child(3) { width: 14%; }
@@ -318,6 +305,7 @@
     .rowclick:hover{ background:rgba(237,3,124,0.03) !important; }
 
     .v-preferred{ font-weight:800; color:var(--c3); margin-bottom:2px; }
+    .v-coords{ font-family:var(--mono); font-size:11px; color:#333; }
     .v-id-label{ font-family:var(--mono); font-size:10px; color:#666; }
     .tag{ display:inline-block; padding:2px 8px; border-radius:4px; background:rgba(40,80,156,0.06); border:1px solid rgba(40,80,156,0.1); margin:0 4px 4px 0; font-size:10px; white-space: normal; line-height: 1.4; }
     .sig{ font-weight:950; font-size: 11px;}
@@ -334,14 +322,21 @@
     .rcvtable{ width:100%; border-collapse:collapse; font-size:11px; }
     .rcvtable th{ text-align:left; padding:8px; background:#f9f9f9; border-bottom:1px solid var(--border2); }
     .rcvtable td{ padding:8px; border-bottom:1px solid var(--border2); vertical-align: top; }
-    
+
     .scroll-btn { position: fixed; bottom: 24px; right: 24px; z-index: 9000; background: var(--c1); color: #fff; border: 0; padding: 10px 16px; border-radius: 999px; cursor: pointer; font-size: 12px; font-weight: 800; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-    
+
     .count-pill {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 800; background: rgba(40,80,156,0.08); color: var(--c1); border: 1px solid rgba(40,80,156,0.15); white-space: nowrap;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+      background: rgba(40,80,156,0.08);
+      color: var(--c1);
+      border: 1px solid rgba(40,80,156,0.15);
+      white-space: nowrap;
     }
     .scv-pill { background: rgba(237,3,124,0.06); color: var(--c2); border-color: rgba(237,3,124,0.15); }
 
@@ -356,23 +351,7 @@
       .modalbody { padding: 12px; }
     }
 
-    .contribWrap { margin-bottom: 15px; }
-    .contribBtn { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--c2); background: rgba(237,3,124,0.05); color: var(--c2); font-weight: 950; cursor: pointer; transition: background 0.2s; }
-    .contribBtn:hover { background: rgba(237,3,124,0.1); }
-    .contribCard { display: none; margin-top: 10px; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: #fff; }
-    .contribCard.show { display: block; }
-    .contribGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 600px) { .contribGrid { grid-template-columns: 1fr; } }
-    .contribField { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
-    .contribField label { font-size: 11px; font-weight: 900; color: var(--c3); }
-    .contribField input, .contribField textarea { padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; }
-    .contribField textarea { height: 100px; resize: vertical; }
-    .contribActions { display: flex; gap: 10px; margin-top: 10px; }
-    .btnInline { padding: 8px 16px; border-radius: 8px; font-weight: 950; cursor: pointer; border: none; }
-    .btnInline.primary { background: var(--c1); color: #fff; }
-    .btnInline.secondary { background: #eee; color: #333; }
-
-    /* Gemini Feature Styles */
+    /* --- AI / Gemini styles (added) --- */
     .ai-insight-box {
       background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
       border: 1px solid #cce4ff;
@@ -412,18 +391,13 @@
       font-size: 11px;
       font-weight: 950;
       cursor: pointer;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 6px;
       box-shadow: 0 4px 12px rgba(40, 80, 156, 0.15);
     }
-    .ai-btn:hover {
-      opacity: 0.9;
-    }
-    .ai-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    .ai-btn:hover { opacity: 0.9; }
+    .ai-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -435,14 +409,17 @@
       <p style="color: #666;">Enter a HGNC gene symbol to begin analysis of evaluation history and phenotypes.</p>
     </div>
     <div class="gene-search-box">
-      <input type="text" id="geneSearchInput" placeholder="e.g. FGFR3, BRCA1, TP53..." autocomplete="off">
-      <div id="geneAutocomplete" class="autocomplete-list"></div>
-      <button id="btnSubmitGene" class="primary" style="margin-top: 16px; width: 100%; padding: 16px; font-size: 18px;">Analyze Gene</button>
+      <!-- Form added so Enter submits (and still works with button) -->
+      <form id="geneForm" style="margin:0;">
+        <input type="text" id="geneSearchInput" placeholder="e.g. FGFR3, BRCA1, TP53..." autocomplete="off">
+        <div id="geneAutocomplete" class="autocomplete-list"></div>
+        <button id="btnSubmitGene" type="submit" class="primary" style="margin-top: 16px; width: 100%; padding: 16px; font-size: 18px;">Analyze Gene</button>
+      </form>
     </div>
-    <div id="hgncStatus" style="margin-top: 20px; font-size: 12px; color: #888;">Initializing gene list...</div>
+    <div id="hgncStatus" style="margin-top: 20px; font-size: 12px; color: #888;">Fetching HGNC dataset...</div>
   </div>
 
-  <div class="backdrop" id="backdrop" aria-hidden="true" onclick="toggleSidebarMobile(false)"></div>
+  <div class="backdrop" id="backdrop" aria-hidden="true"></div>
 
   <header class="topbar">
     <div class="topbar-inner">
@@ -459,7 +436,7 @@
   </header>
 
   <div class="sidebarToggle">
-    <button class="hamburger" id="btnHamburger" type="button" aria-label="Toggle filters" onclick="toggleSidebarMobile()">
+    <button class="hamburger" id="btnHamburger" type="button" aria-label="Toggle filters">
       <svg viewBox="0 0 24 24" width="20" height="20"><line x1="4" y1="7" x2="20" y2="7" stroke="currentColor" stroke-width="2"/><line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2"/><line x1="4" y1="17" x2="20" y2="17" stroke="currentColor" stroke-width="2"/></svg>
     </button>
   </div>
@@ -490,11 +467,12 @@
           </div>
         </div>
 
+        <!-- Export panel expanded to include PDF modal -->
         <div class="panel">
           <h2>Export</h2>
           <div style="display:flex; flex-direction: column; gap:8px;">
             <button id="btnExportView" class="primary">Export Current View (PDF)</button>
-            <div style="display: flex; gap: 8px;">
+            <div style="display:flex; gap:8px;">
               <button id="btnExportJson" class="secondary">JSON</button>
               <button id="btnExportCsv" class="secondary">CSV</button>
             </div>
@@ -505,7 +483,7 @@
           <button id="btnStop" class="secondary" disabled>Stop</button>
           <button id="btnRefresh" class="primary">Refresh</button>
         </div>
-        
+
         <div class="help" id="status">Ready</div>
         <div class="help mono">Fetched: <span id="fetched">0</span> • Total: <span id="total">—</span></div>
         <div class="help">Page size: <select id="pageSize"><option>100</option><option>500</option><option selected>1000</option></select></div>
@@ -516,17 +494,21 @@
       <!-- Section Grid Row -->
       <div class="dashboard-grid">
         <div class="dashboard-square" id="sqCount" onclick="toggleSection('chartDetails')">
-          <div class="icon-placeholder">📈</div>
+          <!-- <img class="preview-icon" id="previewCount" alt="Count Preview" style="display:none;"> -->
+          <div class="icon-placeholder" id="iconCount">📈</div>
           <h3>Variant Count Over Time</h3>
         </div>
         <div class="dashboard-square" id="sqTimeline" onclick="toggleSection('variantTimelineDetails')">
-          <div class="icon-placeholder">⌛</div>
+          <!-- <img class="preview-icon" id="previewTimeline" alt="Timeline Preview" style="display:none;"> -->
+          <div class="icon-placeholder" id="iconTimeline">⌛</div>
           <h3>Variant Timelines</h3>
         </div>
         <div class="dashboard-square" id="sqMatrix" onclick="toggleSection('matrixDetails')">
-          <div class="icon-placeholder">📋</div>
+          <!-- <div class="preview-icon" id="previewMatrix" style="display:none; font-size:10px; overflow:hidden;"></div> -->
+          <div class="icon-placeholder" id="iconMatrix">📋</div>
           <h3>Clinical Matrix</h3>
         </div>
+        <!-- Added from attached version: Lollipop external -->
         <div class="dashboard-square" id="sqLollipop" onclick="openLollipop()">
           <div class="icon-placeholder">🍭</div>
           <h3>Lollipop (external)</h3>
@@ -539,7 +521,6 @@
         <div class="matrixCard detail-view" id="chartDetails" style="display:none;">
           <div class="matrixHead">
             <div><h2>Cumulative Variant Count Over Time</h2></div>
-            <button class="secondary" style="width: auto; padding: 4px 10px; font-size: 11px;" onclick="toggleSection('chartDetails')">Collapse</button>
           </div>
           <div class="chartToggles">
             <button id="toggleByClass" class="toggleHeader" aria-pressed="true">By Classification</button>
@@ -552,7 +533,6 @@
         <div class="matrixCard detail-view" id="variantTimelineDetails" style="display:none;">
           <div class="matrixHead">
             <div><h2>Variant Timelines</h2></div>
-            <button class="secondary" style="width: auto; padding: 4px 10px; font-size: 11px;" onclick="toggleSection('variantTimelineDetails')">Collapse</button>
           </div>
           <div class="matrixWrap"><div id="variantTimelineChart" style="width:100%; min-height:400px; padding:10px;"></div></div>
         </div>
@@ -561,7 +541,6 @@
         <div class="matrixCard detail-view" id="matrixDetails" style="display:none;">
           <div class="matrixHead">
             <div><h2>Condition × Clinical significance</h2></div>
-            <button class="secondary" style="width: auto; padding: 4px 10px; font-size: 11px;" onclick="toggleSection('matrixDetails')">Collapse</button>
           </div>
           <div class="matrixWrap">
             <table class="matrix" id="matrixTbl">
@@ -580,14 +559,14 @@
           <h2>Full Variant Table</h2>
         </div>
         <div class="tablewrap"><table id="tbl">
-          <thead><tr><th>Variant</th><th>ClinVar Variation ID</th><th>Sig</th><th>Conditions (RCV)</th><th>Review / Subm</th><th>Last Evaluated</th></tr></thead>
+          <thead><tr><th>Variant</th><th>ClinVar ID</th><th>Significance (RCV)</th><th>Conditions (RCV)</th><th>Review / Subm</th><th>Last Evaluated</th></tr></thead>
           <tbody id="tbody"></tbody>
         </table></div>
       </div>
     </main>
   </div>
 
-  <button class="scroll-btn" id="btnScrollBottom" onclick="document.querySelector('.mainTableContainer').scrollIntoView({behavior:'smooth'})">Jump to table ↓</button>
+  <button class="scroll-btn" id="btnScrollBottom">Jump to table ↓</button>
 
   <div id="overlay" class="overlay">
     <div class="modal" id="modal">
@@ -596,19 +575,20 @@
           <h2 id="modalTitle">Variant</h2>
           <div id="modalSubtitle" style="font-size:12px; color:#666;"></div>
         </div>
-        <button class="secondary" id="closeModal" style="width:auto; padding:6px 12px;" onclick="closeModal()">Close</button>
+        <button class="secondary" id="closeModal" style="width:auto; padding:6px 12px;">Close</button>
       </div>
       <div id="modalBody" class="modalbody">
-        <!-- Re-created on openDetails() -->
+        <!-- Rebuilt on openDetails() (keeps existing functionality + adds AI + SCV filtering links) -->
       </div>
     </div>
   </div>
 
-  <!-- EXPORT MODAL -->
+  <!-- EXPORT MODAL (added) -->
   <div id="exportOverlay" class="overlay">
     <div class="modal" style="width: min(500px, 90vw);">
       <div class="modalhead">
         <h2>Export Current View</h2>
+        <button class="secondary" style="width:auto; padding:6px 12px;" id="btnCancelExportTop">Close</button>
       </div>
       <div class="modalbody">
         <div class="contribField" style="margin-bottom: 20px;">
@@ -616,8 +596,11 @@
           <textarea id="exportNotes" placeholder="Enter any notes you want to include in the exported report..."></textarea>
         </div>
         <div class="contribActions">
-          <button id="btnGenerateExport" class="primary" onclick="generatePDFReport()">Generate Report</button>
-          <button id="btnCancelExport" class="secondary" onclick="document.getElementById('exportOverlay').classList.remove('show')">Cancel</button>
+          <button id="btnGenerateExport" class="primary">Generate Report</button>
+          <button id="btnCancelExport" class="secondary">Cancel</button>
+        </div>
+        <div class="help" style="margin:10px 0 0 0;">
+          Tip: Open “Variant Count Over Time” and “Variant Timelines” sections before exporting to include their charts.
         </div>
       </div>
     </div>
@@ -625,11 +608,12 @@
 
   <script>
     const API_BASE = "https://myvariant.info/v1/query";
+    const HGNC_TSV_URL = "https://storage.googleapis.com/public-download-files/hgnc/tsv/tsv/hgnc_complete_set.txt";
     const FIELDS = "clinvar";
     const MATRIX_COLS = [{ key: "PLP", label: "Pathogenic / Likely Pathogenic" }, { key: "VUS", label: "VUS" }];
     const REFSEQ_PREFIX_RE = /^NM_\d+\.\d+\([A-Z0-9]+\):/i;
 
-    // Gemini API Setup
+    // --- Gemini API Setup (added; leave apiKey blank to disable) ---
     const apiKey = "";
     const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
@@ -643,44 +627,108 @@
     let hgncData = [];
 
     const statusEl = document.getElementById("status");
-    const filterEl = document.getElementById("filter"), tbody = document.getElementById("tbody"), matrixBody = document.getElementById("matrixBody");
-    const pageSizeEl = document.getElementById("pageSize"), topShowing = document.getElementById("topShowing"), app = document.getElementById("app");
+    const filterEl = document.getElementById("filter");
+    const tbody = document.getElementById("tbody");
+    const matrixBody = document.getElementById("matrixBody");
+    const pageSizeEl = document.getElementById("pageSize");
+    const topShowing = document.getElementById("topShowing");
+    const app = document.getElementById("app");
     const geneInput = document.getElementById("geneSearchInput");
     const geneList = document.getElementById("geneAutocomplete");
     const selectionScreen = document.getElementById("geneSelectionScreen");
+    const geneForm = document.getElementById("geneForm");
 
-    // ---- Mobile Sidebar Toggle ----
+    // Multi-select elements (make explicit to avoid implicit globals)
+    const sigSearch = document.getElementById("sigSearch");
+    const sigPills  = document.getElementById("sigPills");
+    const sigList   = document.getElementById("sigList");
+    const condSearch= document.getElementById("condSearch");
+    const condPills = document.getElementById("condPills");
+    const condList  = document.getElementById("condList");
+
+    // ---------- Mobile Sidebar Toggle (added, without breaking desktop collapse) ----------
     function toggleSidebarMobile(force) {
       const open = typeof force === 'boolean' ? force : !app.classList.contains('sidebar-open');
+      const backdrop = document.getElementById('backdrop');
       if (open) {
         app.classList.add('sidebar-open');
-        document.getElementById('backdrop').classList.add('show');
+        backdrop.classList.add('show');
         document.body.style.overflow = 'hidden';
+        backdrop.setAttribute('aria-hidden', 'false');
       } else {
         app.classList.remove('sidebar-open');
-        document.getElementById('backdrop').classList.remove('show');
+        backdrop.classList.remove('show');
         document.body.style.overflow = '';
+        backdrop.setAttribute('aria-hidden', 'true');
       }
     }
+    document.getElementById("backdrop").addEventListener("click", () => toggleSidebarMobile(false));
 
-    // ---- Plotly Mobile Handling ----
+    // ---------- Plotly mobile handling (added) ----------
     function getResponsivePlotlyLayout(baseLayout) {
       const isMobile = window.innerWidth < 600;
       const updated = { ...baseLayout };
       if (isMobile) {
-        updated.font = { ...updated.font, size: 9 };
-        if (updated.margin) {
-          updated.margin = { ...updated.margin, l: Math.min(updated.margin.l, 100), r: 10 };
-        }
-        if (updated.legend) {
-          updated.legend = { ...updated.legend, size: 10 };
-        }
+        updated.font = { ...(updated.font || {}), size: 9 };
+        if (updated.margin) updated.margin = { ...updated.margin, l: Math.min(updated.margin.l ?? 50, 100), r: 10 };
+        if (updated.legend && updated.legend.font) updated.legend = { ...updated.legend, font: { ...updated.legend.font, size: 10 } };
       }
       return updated;
     }
 
-    // ---- Gemini API Integration ----
+    // ---------- URL persistence for gene (added; does not force reload) ----------
+    function setGeneInUrl(geneRaw) {
+      const gene = String(geneRaw || "").trim().toUpperCase();
+      if (!gene) return;
+      const url = new URL(window.location.href);
+      url.searchParams.set("gene", gene);
+      url.hash = "";
+      window.history.replaceState({}, "", url.toString());
+    }
+
+    function getGeneFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      let gene = params.get('gene');
+      if (!gene && window.location.hash) gene = window.location.hash.substring(1);
+      return gene ? decodeURIComponent(gene).trim().toUpperCase() : null;
+    }
+
+    function startGene(geneRaw) {
+      const gene = String(geneRaw || "").trim().toUpperCase();
+      if (!gene) return;
+      selectedGene = gene;
+      setGeneInUrl(gene);
+      selectionScreen.style.display = "none";
+      app.style.visibility = "visible";
+      document.getElementById("brandTitle").textContent = `${selectedGene} Variant Dashboard`;
+      loadAllData();
+    }
+
+    // Form submit = Enter + button click
+    geneForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const gene = selectedGene || geneInput.value.trim().toUpperCase();
+      startGene(gene);
+    });
+
+    // Optional: Enter picks first autocomplete item if open
+    geneInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const first = geneList.querySelector(".autocomplete-item");
+        if (first && geneList.style.display === "block") {
+          e.preventDefault();
+          const sym = first.querySelector(".sym")?.textContent?.trim();
+          if (sym) geneInput.value = sym;
+          geneList.style.display = "none";
+          selectedGene = geneInput.value.trim().toUpperCase();
+          geneForm.requestSubmit();
+        }
+      }
+    });
+
+    // ---------- Gemini helpers (added; safe no-op if apiKey empty) ----------
     async function callGemini(prompt, systemInstruction = "You are a professional medical genetics and bioinformatics research assistant.") {
+      if (!apiKey) return "AI is disabled (no API key configured).";
       let delay = 1000;
       for (let i = 0; i < 5; i++) {
         try {
@@ -693,9 +741,7 @@
             })
           });
           const result = await response.json();
-          if (response.ok) {
-            return result.candidates?.[0]?.content?.parts?.[0]?.text;
-          }
+          if (response.ok) return result.candidates?.[0]?.content?.parts?.[0]?.text || "No AI output returned.";
         } catch (e) {}
         await new Promise(r => setTimeout(r, delay));
         delay *= 2;
@@ -706,12 +752,17 @@
     async function getVariantInsight(row) {
       const insightBody = document.getElementById("aiInsightContent");
       const btn = document.getElementById("btnAiInsight");
+      if (!insightBody || !btn) return;
       btn.disabled = true;
       insightBody.innerHTML = `<div class="ai-loading"><span>✨</span> Analyzing data...</div>`;
-      const rcvData = asArray(row.rawClinvar.rcv).map(r => ({ sig: r.clinical_significance, cond: extractConditionsFromRcv(r).join(", "), date: r.last_evaluated }));
-      const prompt = `Please provide a professional clinical summary for variant ${row.preferredName || row.id} (${row.variationId}). Evaluate its pathogenic potential based on ${JSON.stringify(rcvData.slice(0, 5))}.`;
+      const rcvData = asArray(row.rawClinvar.rcv).map(r => ({
+        sig: r.clinical_significance,
+        cond: extractConditionsFromRcv(r).join(", "),
+        date: r.last_evaluated
+      }));
+      const prompt = `Provide a professional clinical summary for variant ${row.preferredName || row.id} (ClinVar Variation ID: ${row.variationId}). Evaluate its pathogenic potential using the following recent ClinVar RCV records: ${JSON.stringify(rcvData.slice(0, 6))}.`;
       const insight = await callGemini(prompt);
-      insightBody.innerHTML = insight.replace(/\n/g, '<br>');
+      insightBody.innerHTML = escapeHtml(String(insight)).replace(/\n/g, "<br>");
       btn.innerHTML = "✨ Refresh Insight";
       btn.disabled = false;
     }
@@ -719,46 +770,61 @@
     async function getConditionAI(condition) {
       const modal = document.createElement('div');
       modal.className = 'overlay show';
-      modal.innerHTML = `<div class="modal" style="width: min(600px, 95vw);"><div class="modalhead"><h2>✨ Biological Analysis</h2><button class="secondary" onclick="this.closest('.overlay').remove()" style="width:auto; padding:6px 12px;">Close</button></div><div class="modalbody"><h3 style="color:var(--c3); margin: 0 0 10px 0;">Relation between ${selectedGene} and ${condition}</h3><div id="conditionAiContent" class="ai-content"><div class="ai-loading">✨ Analyzing...</div></div></div></div>`;
+      modal.innerHTML = `
+        <div class="modal" style="width: min(600px, 95vw);">
+          <div class="modalhead">
+            <h2>✨ Biological Analysis</h2>
+            <button class="secondary" style="width:auto; padding:6px 12px;" onclick="this.closest('.overlay').remove()">Close</button>
+          </div>
+          <div class="modalbody">
+            <h3 style="color:var(--c3); margin: 0 0 10px 0;">Relation between ${escapeHtml(selectedGene || "—")} and ${escapeHtml(condition)}</h3>
+            <div id="conditionAiContent" class="ai-content"><div class="ai-loading">✨ Analyzing...</div></div>
+          </div>
+        </div>`;
       document.body.appendChild(modal);
-      const prompt = `Describe the biological relationship between gene ${selectedGene} and condition "${condition}".`;
+      const prompt = `Describe the biological relationship between gene ${selectedGene} and condition "${condition}". Keep it concise but specific to known mechanisms and phenotype associations.`;
       const analysis = await callGemini(prompt);
-      document.getElementById("conditionAiContent").innerHTML = analysis.replace(/\n/g, '<br>');
+      modal.querySelector("#conditionAiContent").innerHTML = escapeHtml(String(analysis)).replace(/\n/g, "<br>");
     }
 
-    // ---- HGNC Dataset Logic ----
+    // ---------- HGNC Dataset Logic ----------
     async function fetchHGNC() {
       try {
-        const response = await fetch('https://raw.githubusercontent.com/mitchalexbailey/temp/refs/heads/main/hgnc_labels.json');
-        if (!response.ok) throw new Error("Could not find hgnc_labels.json");
-        hgncData = await response.json();
+        const response = await fetch(HGNC_TSV_URL);
+        const text = await response.text();
+        const lines = text.split("\n");
+        const header = lines[0].split("\t");
+        const symbolIdx = header.indexOf("symbol");
+        const nameIdx = header.indexOf("name");
+
+        hgncData = lines.slice(1).map(line => {
+          const cols = line.split("\t");
+          return { symbol: cols[symbolIdx], name: cols[nameIdx] };
+        }).filter(g => g.symbol);
+
         document.getElementById("hgncStatus").textContent = `Loaded ${hgncData.length} genes. Ready.`;
       } catch (e) {
-        document.getElementById("hgncStatus").textContent = "Error loading hgnc_labels.json. Proceeding with manual input.";
+        document.getElementById("hgncStatus").textContent = "Error loading HGNC data. Gene autocomplete disabled.";
       }
-      checkUrlForGene();
-    }
 
-    function checkUrlForGene() {
-      const params = new URLSearchParams(window.location.search);
-      let gene = params.get('gene');
-      if (!gene && window.location.hash) gene = window.location.hash.substring(1);
-      if (gene && gene.length > 0) {
-        gene = decodeURIComponent(gene).trim().toUpperCase();
-        selectedGene = gene;
-        selectionScreen.style.display = "none";
-        app.style.visibility = "visible";
-        document.getElementById("brandTitle").textContent = `${selectedGene} Variant Dashboard`;
-        loadAllData();
+      // If URL has gene, auto-load
+      const g = getGeneFromUrl();
+      if (g) {
+        geneInput.value = g;
+        selectedGene = g;
+        startGene(g);
       }
     }
 
     geneInput.addEventListener("input", () => {
       const q = geneInput.value.trim().toUpperCase();
       if (q.length < 1) { geneList.style.display = "none"; return; }
-      const matches = hgncData.filter(g => g.value.startsWith(q) || g.label.toUpperCase().includes(q)).slice(0, 10);
+      const matches = hgncData.filter(g => g.symbol.startsWith(q) || g.name?.toUpperCase().includes(q)).slice(0, 10);
       if (!matches.length) { geneList.style.display = "none"; return; }
-      geneList.innerHTML = matches.map(g => `<div class="autocomplete-item" onclick="selectGene('${g.value}')"><span class="sym">${g.value}</span><span class="desc">${g.label.split('|')[1]?.trim() || ''}</span></div>`).join('');
+      geneList.innerHTML = matches.map(g => `
+        <div class="autocomplete-item" onclick="selectGene('${g.symbol}')">
+          <span class="sym">${g.symbol}</span><span class="desc">${escapeHtml(g.name || '')}</span>
+        </div>`).join('');
       geneList.style.display = "block";
     });
 
@@ -768,12 +834,49 @@
       selectedGene = symbol;
     }
 
-    // ---- Layout Logic ----
+    document.getElementById("btnChangeGene").onclick = () => {
+      selectionScreen.style.display = "flex";
+      app.style.visibility = "hidden";
+      if (controller) controller.abort();
+      toggleSidebarMobile(false);
+    };
+
+    // ---------- Thumbnail Capture (existing) ----------
+    function updateThumbnails() {
+      const gdCount = document.getElementById("plotlyChart");
+      const gdTimeline = document.getElementById("variantTimelineChart");
+
+      if (gdCount && gdCount.data) {
+        Plotly.toImage(gdCount, {format: 'png', width: 200, height: 100}).then(url => {
+          const img = document.getElementById("previewCount");
+          img.src = url; img.style.display = "block";
+          document.getElementById("iconCount").style.display = "none";
+        }).catch(()=>{});
+      }
+      if (gdTimeline && gdTimeline.data) {
+        Plotly.toImage(gdTimeline, {format: 'png', width: 200, height: 100}).then(url => {
+          const img = document.getElementById("previewTimeline");
+          img.src = url; img.style.display = "block";
+          document.getElementById("iconTimeline").style.display = "none";
+        }).catch(()=>{});
+      }
+
+      const previewMatrix = document.getElementById("previewMatrix");
+      if (previewMatrix && document.getElementById("matrixTbl")) {
+        previewMatrix.innerHTML = document.getElementById("matrixTbl").outerHTML;
+        previewMatrix.style.display = "block";
+        previewMatrix.style.height = "60px";
+        document.getElementById("iconMatrix").style.display = "none";
+      }
+    }
+
+    // ---------- Layout Logic ----------
     function toggleSection(id) {
       const expansionArea = document.getElementById("expansionArea");
       const squares = document.querySelectorAll(".dashboard-square");
       const details = document.querySelectorAll(".detail-view");
       squares.forEach(sq => sq.classList.remove("active"));
+
       if (activeSectionId === id) {
         expansionArea.classList.remove("show");
         activeSectionId = null;
@@ -795,16 +898,18 @@
       window.open(`https://raw.githack.com/mitchalexbailey/temp/main/lollipop.html?gene=${encodeURIComponent(selectedGene)}`, '_blank');
     }
 
-    // ---- Data Processing Helpers ----
+    // ---------- Data Processing Helpers ----------
     function setStatus(msg){ if (statusEl) statusEl.textContent = msg; }
     function asArray(x){ return x == null ? [] : (Array.isArray(x) ? x : [x]); }
-    function safeGet(obj, path, fallback=null){ try{ return path.split(".").reduce((o,k)=> (o && (k in o)) ? o[k] : undefined, obj) ?? fallback; } catch(e){ return fallback; } }
+    function safeGet(obj, path, fallback=null){
+      try{ return path.split(".").reduce((o,k)=> (o && (k in o)) ? o[k] : undefined, obj) ?? fallback; }
+      catch(e){ return fallback; }
+    }
     function norm(s){ return String(s || "").toLowerCase(); }
     function uniq(arr){ return [...new Set(arr.filter(v => v != null && String(v).trim() !== ""))]; }
     function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#039;"}[m])); }
     function parseDateToMs(d){ if (!d) return null; const t = Date.parse(d); return isFinite(t) ? t : null; }
     function sortByFrequencyThenAlpha(map){ return Array.from(map.entries()).map(([value, count]) => ({ value, count })).sort((a,b) => (b.count - a.count) || a.value.localeCompare(b.value)); }
-    function selectedValues(set){ return Array.from(set.values()); }
     function stripPrefix(s){ return String(s || "").replace(REFSEQ_PREFIX_RE, "").trim(); }
 
     function extractConditionsFromRcv(rcv) {
@@ -816,18 +921,9 @@
       return out;
     }
 
-    function isSignificantChange(row) {
-      const rcvs = asArray(row.rawClinvar?.rcv).filter(r => r.last_evaluated);
-      if (rcvs.length < 2) return false;
-      const getGroup = (sig) => {
-        const s = norm(sig);
-        if (s.includes('pathogenic')) return 'P'; if (s.includes('benign')) return 'B';
-        if (s.includes('uncertain') || s.includes('vus')) return 'V'; return 'O';
-      };
-      const groups = new Set();
-      rcvs.forEach(r => groups.add(getGroup(r.clinical_significance)));
-      const hasP = groups.has('P'), hasB = groups.has('B'), hasV = groups.has('V');
-      return (hasV && hasP) || (hasV && hasB) || (hasP && hasB);
+    function pickPreferredName(rcvs){
+      const sorted = rcvs.map(r => ({ name: r.preferred_name, ms: parseDateToMs(r.last_evaluated) || 0 })).sort((a,b) => b.ms - a.ms);
+      return sorted.find(s => s.name)?.name || null;
     }
 
     function summarizeClinVar(hit){
@@ -836,6 +932,7 @@
       const name = pickPreferredName(rcvs);
       const coords = cv.chrom ? `chr${cv.chrom}:${cv.pos}${cv.ref}>${cv.alt}` : null;
       const dates = rcvs.map(r => parseDateToMs(r.last_evaluated)).filter(Boolean).sort((a,b) => b-a);
+
       const phenotypeMap = new Map();
       rcvs.forEach(r => {
         const subCount = parseInt(r.number_submitters) || 1;
@@ -843,6 +940,7 @@
           if (cName) phenotypeMap.set(cName, (phenotypeMap.get(cName) || 0) + subCount);
         });
       });
+
       return {
         id: hit._id,
         variationId: cv.variant_id || cv.variation_id || cv.clinvar_id || "—",
@@ -858,23 +956,22 @@
       };
     }
 
-    function pickPreferredName(rcvs){
-      const sorted = rcvs.map(r => ({ name: r.preferred_name, ms: parseDateToMs(r.last_evaluated) || 0 })).sort((a,b) => b.ms - a.ms);
-      return sorted.find(s => s.name)?.name || null;
-    }
-
     function conditionAssociationScore(row, conditionLabel){
       const rcvs = asArray(row.rawClinvar?.rcv).filter(r => extractConditionsFromRcv(r).some(c => norm(c).includes(norm(conditionLabel))));
       if (!rcvs.length) return { score: 0 };
       const totalSubs = rcvs.reduce((acc, r) => acc + (parseInt(r.number_submitters) || 1), 0);
       const exclusivity = rcvs.reduce((acc, r) => acc + (1 / asArray(r.conditions).length), 0);
-      return { score: (rcvs.length * 1000) + (totalSubs * 10) + exclusivity, matchCount: rcvs.length, totalSubs };
+      return { score: (rcvs.length * 1000) + (totalSubs * 10) + exclusivity };
     }
 
-    // --- Multi-select UI ---
+    // --- Multi-select UI Helpers ---
     function setAllRule(set, val){
       if (val === "__ALL__") { set.clear(); set.add("__ALL__"); }
-      else { if (set.has("__ALL__")) set.delete("__ALL__"); if (set.has(val)) set.delete(val); else set.add(val); if (!set.size) set.add("__ALL__"); }
+      else {
+        if (set.has("__ALL__")) set.delete("__ALL__");
+        if (set.has(val)) set.delete(val); else set.add(val);
+        if (!set.size) set.add("__ALL__");
+      }
     }
 
     function renderMS({ options, selected, listEl, pillsEl, searchText }){
@@ -889,7 +986,12 @@
         const txt = document.createElement("div"); txt.className = "txt"; txt.textContent = opt.value === "__ALL__" ? "All" : opt.value;
         const cnt = document.createElement("div"); cnt.className = "cnt"; cnt.textContent = opt.count ? `(${opt.count})` : "";
         row.append(cb, txt, cnt);
-        row.onclick = () => { setAllRule(selected, opt.value); renderSelectedPills(selected, pillsEl); renderMS({ options, selected, listEl, pillsEl, searchText }); applyFiltersAndRender(); };
+        row.onclick = () => {
+          setAllRule(selected, opt.value);
+          renderSelectedPills(selected, pillsEl);
+          renderMS({ options, selected, listEl, pillsEl, searchText });
+          applyFiltersAndRender();
+        };
         listEl.appendChild(row);
       }
       renderSelectedPills(selected, pillsEl);
@@ -898,69 +1000,127 @@
     function renderSelectedPills(selected, pillsEl){
       pillsEl.innerHTML = "";
       const vals = Array.from(selected.values());
-      if (vals.includes("__ALL__")) { const c = document.createElement("span"); c.className = "chip"; c.textContent = "All"; pillsEl.appendChild(c); return; }
+      if (vals.includes("__ALL__")) {
+        const c = document.createElement("span"); c.className = "chip"; c.textContent = "All";
+        pillsEl.appendChild(c); return;
+      }
       vals.slice(0, 4).forEach(v => {
         const c = document.createElement("span"); c.className = "chip"; c.textContent = v;
-        const x = document.createElement("button"); x.textContent = "×"; 
-        x.onclick = (e) => { 
-          e.stopPropagation(); setAllRule(selected, v); applyFiltersAndRender(); 
-          const curOpt = (pillsEl === sigPills ? sigOptions : condOptions);
-          const curLst = (pillsEl === sigPills ? sigList : condList);
-          const curQ = (pillsEl === sigPills ? sigSearch.value : condSearch.value);
-          renderMS({ options: curOpt, selected, listEl: curLst, pillsEl, searchText: curQ }); 
+        const x = document.createElement("button"); x.textContent = "×";
+        x.onclick = (e) => {
+          e.stopPropagation();
+          setAllRule(selected, v);
+          applyFiltersAndRender();
+          const currentOptions = (pillsEl === sigPills ? sigOptions : condOptions);
+          const currentList = (pillsEl === sigPills ? sigList : condList);
+          const currentSearch = (pillsEl === sigPills ? sigSearch.value : condSearch.value);
+          renderMS({ options: currentOptions, selected, listEl: currentList, pillsEl, searchText: currentSearch });
         };
-        c.appendChild(x); pillsEl.appendChild(c);
+        c.appendChild(x);
+        pillsEl.appendChild(c);
       });
-      if (vals.length > 4) { const m = document.createElement("span"); m.className = "chip"; m.textContent = `+${vals.length - 4}`; pillsEl.appendChild(m); }
+      if (vals.length > 4) {
+        const m = document.createElement("span"); m.className = "chip"; m.textContent = `+${vals.length - 4}`;
+        pillsEl.appendChild(m);
+      }
     }
 
     // --- Main Table Render ---
     function renderTable(rows){
       tbody.innerHTML = rows.length ? "" : "<tr><td colspan='6'>No matching variants.</td></tr>";
       rows.forEach(r => {
-        const tr = document.createElement("tr"); tr.className = "rowclick"; tr.onclick = () => openDetails(r);
-        tr.innerHTML = `<td><div class="v-preferred">${escapeHtml(r.preferredName || "—")}</div><div class="v-id-label">${escapeHtml(r.id)}</div></td><td>${r.variationId !== "—" ? `<a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${r.variationId}/" target="_blank">${r.variationId}</a>` : "—"}<div style="margin-top:4px"><span class="count-pill">${r.rcvCount} RCVs</span> <span class="count-pill scv-pill">${r.scvTotal} SCVs</span></div></td><td>${r.sigs.map(s => `<div class="sig ${norm(s).includes('patho')?'bad':norm(s).includes('benign')?'good':'warn'}">${s}</div>`).join('')}</td><td>${r.conditions.slice(0,5).map(c => `<span class="tag">${escapeHtml(c.name)} (${c.count})</span>`).join('')}</td><td class="small">${r.review.join(" • ")}</td><td>${r.lastEval}</td>`;
+        const tr = document.createElement("tr");
+        tr.className = "rowclick";
+        tr.onclick = () => openDetails(r);
+
+        tr.innerHTML = `
+          <td>
+            <div class="v-preferred">${escapeHtml(r.preferredName || "—")}</div>
+            <div class="v-coords">${escapeHtml(r.coords || "—")}</div>
+            <div class="v-id-label">${escapeHtml(r.id)}</div>
+          </td>
+          <td>
+            ${r.variationId !== "—" ? `<a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${r.variationId}/" target="_blank" rel="noopener">${escapeHtml(r.variationId)}</a>` : "—"}
+            <div style="margin-top:4px">
+              <span class="count-pill">${r.rcvCount} RCVs</span>
+              <span class="count-pill scv-pill">${r.scvTotal} SCVs</span>
+            </div>
+          </td>
+          <td>${r.sigs.map(s => `<div class="sig ${norm(s).includes('patho')?'bad':norm(s).includes('benign')?'good':'warn'}">${escapeHtml(s)}</div>`).join('')}</td>
+          <td>${r.conditions.slice(0,5).map(c => `<span class="tag">${escapeHtml(c.name)} (${c.count})</span>`).join('')}</td>
+          <td class="small">${escapeHtml(r.review.join(" • "))}</td>
+          <td>${escapeHtml(r.lastEval)}</td>
+        `;
         tbody.appendChild(tr);
       });
     }
 
-    // --- Matrix Render ---
+    // --- Matrix Render (updated with stopwords + Biology button) ---
     function renderMatrix(){
       matrixBody.innerHTML = "";
       const stopWords = ["not specified", "not provided", "none provided", "no phenotypic information", "not available", "unknown", "-", "not provided"];
       const filteredConds = sortByFrequencyThenAlpha(condCounts).filter(c => !stopWords.includes(norm(c.value)));
       const sortedConds = filteredConds.slice(0, 4).map(c => c.value);
-      
+
       sortedConds.forEach(rowLabel => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<th class="rowHead">${rowLabel}<br><button class="ai-btn" style="margin: 5px auto 0 auto;" onclick="getConditionAI('${rowLabel}')">✨ Biology</button></th>`;
+        tr.innerHTML = `
+          <th class="rowHead">
+            ${escapeHtml(rowLabel)}
+            <br>
+            <button class="ai-btn" style="margin: 5px auto 0 auto;" onclick="getConditionAI('${escapeHtml(rowLabel).replace(/'/g, "\\'")}')">✨ Biology</button>
+          </th>`;
+
         MATRIX_COLS.forEach(col => {
           const matches = allRows.filter(r => {
             const sigs = r.sigs.map(norm);
-            const isMatch = col.key === "PLP" ? sigs.some(s => s.includes("pathogenic")) : sigs.some(s => s.includes("uncertain") || s.includes("vus"));
+            const isMatch = col.key === "PLP"
+              ? sigs.some(s => s.includes("pathogenic"))
+              : sigs.some(s => s.includes("uncertain") || s.includes("vus"));
             return isMatch && r.conditions.some(c => norm(c.name).includes(norm(rowLabel)));
           }).map(r => ({ r, score: conditionAssociationScore(r, rowLabel).score }))
             .sort((a,b) => b.score - a.score);
-          tr.innerHTML += `<td><div class="cell"><div class="cellCount">${matches.length}</div><div class="cellMeta">variants</div><div class="cellVariants">${matches.slice(0, 6).map(m => `<button class="vChip" onclick="event.stopPropagation(); openDetails(allRows.find(x=>x.id==='${m.r.id}'))">${escapeHtml(stripPrefix(m.r.preferredName || m.r.id))}</button>`).join('')}</div></div></td>`;
+
+          tr.innerHTML += `
+            <td>
+              <div class="cell">
+                <div class="cellCount">${matches.length}</div>
+                <div class="cellMeta">variants</div>
+                <div class="cellVariants">
+                  ${matches.slice(0, 6).map(m => `
+                    <button class="vChip" onclick="event.stopPropagation(); openDetails(allRows.find(x=>x.id==='${m.r.id}'))">
+                      ${escapeHtml(stripPrefix(m.r.preferredName || m.r.coords || m.r.id))}
+                    </button>`).join('')}
+                </div>
+              </div>
+            </td>`;
         });
         matrixBody.appendChild(tr);
       });
+
+      updateThumbnails();
     }
 
-    // --- Cumulative Chart Logic ---
+    // --- Cumulative Chart Logic (updated: stopwords + responsive layout) ---
     function renderCumulativeChart(rows){
       const dataRows = rows || lastFilteredRows;
       const chartDiv = document.getElementById("plotlyChart");
-      if (!dataRows.length) return;
+      if (!dataRows.length || !chartDiv) return;
+
       const dates = [];
       dataRows.forEach(r => asArray(r.rawClinvar.rcv).forEach(rcv => {
         const ms = parseDateToMs(rcv.last_evaluated);
         if (ms) dates.push({ ms, sig: rcv.clinical_significance, conds: extractConditionsFromRcv(rcv) });
       }));
       dates.sort((a,b) => a.ms - b.ms);
+
       const traces = [];
       if (timelineMode === "classification"){
-        const cats = [{ name: "Pathogenic / Likely Pathogenic", match: "pathogenic", color: "#ED037C" }, { name: "VUS", match: "uncertain", color: "#7C2F90" }, { name: "Benign / Likely Benign", match: "benign", color: "#28509C" }];
+        const cats = [
+          { name: "Pathogenic / Likely Pathogenic", match: "pathogenic", color: "#ED037C" },
+          { name: "VUS", match: "uncertain", color: "#7C2F90" },
+          { name: "Benign / Likely Benign", match: "benign", color: "#28509C" }
+        ];
         cats.forEach(cat => {
           let count = 0; const x = [], y = [];
           dates.forEach(d => { if (norm(d.sig).includes(cat.match)) count++; x.push(new Date(d.ms)); y.push(count); });
@@ -975,66 +1135,154 @@
           traces.push({ x, y, name: row, type: 'scatter', mode: 'lines', fill: 'tozeroy' });
         });
       }
-      const layout = getResponsivePlotlyLayout({ 
-        margin: { t: 40, b: 40, l: 50, r: 20 }, 
-        hovermode: 'x unified', paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { family: 'var(--mono)' },
+
+      const layout = getResponsivePlotlyLayout({
+        margin: { t: 40, b: 40, l: 50, r: 20 },
+        hovermode: 'x unified',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { family: 'var(--mono)' },
         legend: { x: 0.02, y: 0.98, xanchor: 'left', yanchor: 'top', bgcolor: 'rgba(255,255,255,0.8)', font: { family: 'var(--mono)', size: 10 } }
       });
-      Plotly.newPlot(chartDiv, traces, layout, { responsive: true, displayModeBar: false });
+
+      Plotly.newPlot(chartDiv, traces, layout, { responsive: true, displayModeBar: false })
+        .then(updateThumbnails)
+        .catch(()=>{});
+    }
+
+    // --- Variant Timelines Logic ---
+    function isSignificantChange(row) {
+      const rcvs = asArray(row.rawClinvar?.rcv).filter(r => r.last_evaluated);
+      if (rcvs.length < 2) return false;
+      const getGroup = (sig) => {
+        const s = norm(sig);
+        if (s.includes('pathogenic')) return 'P';
+        if (s.includes('benign')) return 'B';
+        if (s.includes('uncertain') || s.includes('vus')) return 'V';
+        return 'O';
+      };
+      const groups = new Set();
+      rcvs.forEach(r => groups.add(getGroup(r.clinical_significance)));
+      const hasP = groups.has('P'), hasB = groups.has('B'), hasV = groups.has('V');
+      return (hasV && hasP) || (hasV && hasB) || (hasP && hasB);
     }
 
     function renderVariantTimelineChart(rows){
       const container = document.getElementById("variantTimelineChart");
-      const filteredRows = rows.filter(isSignificantChange);
-      if (!filteredRows.length) { container.innerHTML = '<div class="help" style="text-align:center; padding:50px;">No variants with significant changes to display.</div>'; return; }
-      
-      const sigColorMap = {'pathogenic': 'red', 'likely pathogenic': 'orange', 'uncertain significance': 'grey', 'vus': 'grey', 'likely benign': 'lightblue', 'benign': 'blue'};
+      if (!container) return;
+
+      const filteredRows = (rows || []).filter(isSignificantChange);
+      if (!filteredRows.length) {
+        container.innerHTML = '<div class="help" style="text-align:center; padding:50px;">No variants with significant changes to display.</div>';
+        return;
+      }
+
+      const sigColorMap = {
+        'pathogenic': 'red',
+        'likely pathogenic': 'orange',
+        'uncertain significance': 'grey',
+        'vus': 'grey',
+        'likely benign': 'lightblue',
+        'benign': 'blue'
+      };
+
       const traces = [];
       filteredRows.forEach((row, i) => {
         const rcvs = asArray(row.rawClinvar?.rcv).filter(r => r.last_evaluated);
         const dates = rcvs.map(r => parseDateToMs(r.last_evaluated)).filter(Boolean);
         if (!dates.length) return;
-        traces.push({ x: [new Date(Math.min(...dates)), new Date(Math.max(...dates))], y: [i, i], mode: 'lines', line: { color: '#ccc', width: 2 }, showlegend: false, hoverinfo: 'skip' });
+
+        traces.push({
+          x: [new Date(Math.min(...dates)), new Date(Math.max(...dates))],
+          y: [i, i],
+          mode: 'lines',
+          line: { color: '#ccc', width: 2 },
+          showlegend: false,
+          hoverinfo: 'skip'
+        });
+
         rcvs.forEach(rcv => {
           const sig = norm(rcv.clinical_significance);
           let color = 'grey', symbol = 'circle';
           for (let k in sigColorMap) if (sig.includes(k)) color = sigColorMap[k];
           if (sig.includes('conflict')) { color = '#ff9900'; symbol = 'triangle-up'; }
-          traces.push({ x: [new Date(parseDateToMs(rcv.last_evaluated))], y: [i], mode: 'markers', marker: { color, size: 10, symbol, line: { width: 1, color: '#fff' } }, text: `${stripPrefix(row.preferredName || row.id)}<br>${rcv.clinical_significance}<br>${rcv.last_evaluated}`, hoverinfo: 'text', name: rcv.clinical_significance, showlegend: false });
+
+          traces.push({
+            x: [new Date(parseDateToMs(rcv.last_evaluated))],
+            y: [i],
+            mode: 'markers',
+            marker: { color, size: 10, symbol, line: { width: 1, color: '#fff' } },
+            text: `${escapeHtml(stripPrefix(row.preferredName || row.id))}<br>${escapeHtml(rcv.clinical_significance || '')}<br>${escapeHtml(rcv.last_evaluated || '')}`,
+            hoverinfo: 'text',
+            name: rcv.clinical_significance,
+            showlegend: false
+          });
         });
       });
-      // Legend
-      const dummyCats = [{name: 'Pathogenic', color: 'red'}, {name: 'Likely Pathogenic', color: 'orange'}, {name: 'VUS/Uncertain', color: 'grey'}, {name: 'Likely Benign', color: 'lightblue'}, {name: 'Benign', color: 'blue'}, {name: 'Conflicting', color: '#ff9900'}];
-      dummyCats.forEach(c => traces.push({x:[null], y:[null], mode: 'markers', name: c.name, marker: {color: c.color}}));
+
+      // Dummy traces for legend
+      const dummyCats = [
+        {name: 'Pathogenic', color: 'red'},
+        {name: 'Likely Pathogenic', color: 'orange'},
+        {name: 'VUS/Uncertain', color: 'grey'},
+        {name: 'Likely Benign', color: 'lightblue'},
+        {name: 'Benign', color: 'blue'},
+        {name: 'Conflicting', color: '#ff9900'}
+      ];
+      dummyCats.forEach(c => traces.push({ x:[null], y:[null], mode:'markers', name:c.name, marker:{color:c.color} }));
 
       const layout = getResponsivePlotlyLayout({
         height: Math.max(400, filteredRows.length * 35),
-        margin: { l: 260, r: 40, t: 50, b: 60 },
+        margin: { l: 260, r: 40, t: 80, b: 60 },
         xaxis: { type: 'date', showgrid: false, zeroline: false },
-        yaxis: { tickmode: 'array', tickvals: filteredRows.map((_,i)=>i), ticktext: filteredRows.map(r => stripPrefix(r.preferredName || r.variationId)), autorange: 'reversed', fixedrange: true, showgrid: false, zeroline: false },
-        paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { family: 'var(--mono)', size: 10 },
-        legend: { orientation: 'h', y: 1.02, x: 0.5, xanchor: 'center', yanchor: 'bottom', font: { family: 'var(--mono)', size: 13 } }
+        yaxis: {
+          tickmode: 'array',
+          tickvals: filteredRows.map((_,i)=>i),
+          ticktext: filteredRows.map(r => stripPrefix(r.preferredName || r.variationId)),
+          autorange: 'reversed',
+          fixedrange: true,
+          showgrid: false,
+          zeroline: false
+        },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { family: 'var(--mono)', size: 10 },
+        legend: { orientation: 'h', y: 1.1, x: 0, xanchor: 'left', yanchor: 'bottom' }
       });
+
       Plotly.newPlot(container, traces, layout, { responsive: true, displayModeBar: false }).then(gd => {
-        gd.on('plotly_click', (data) => { if (data.points && data.points.length > 0) openDetails(filteredRows[Math.round(data.points[0].y)]); });
-      });
+        gd.on('plotly_click', (data) => {
+          if (data.points && data.points.length > 0) {
+            const idx = Math.round(data.points[0].y);
+            openDetails(filteredRows[idx]);
+          }
+        });
+        updateThumbnails();
+      }).catch(()=>{});
     }
 
-    // --- Modal Logic ---
+    // --- SCV Fetch + Filtering (added from attached version) ---
     async function fetchAllSCVs(rcvIds) {
       const body = document.getElementById("scvTableBody");
+      if (!body) return;
       try {
+        if (!rcvIds || !rcvIds.length) {
+          body.innerHTML = '<tr><td colspan="5">No submissions found.</td></tr>';
+          return;
+        }
         const url = new URL("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi");
         url.searchParams.append("db", "clinvar");
         url.searchParams.append("rettype", "clinvarset");
         url.searchParams.append("id", rcvIds.join(","));
         url.searchParams.append("tool", "gene_explorer");
         url.searchParams.append("email", "research@example.org");
+
         const response = await fetch(url);
         const xmlText = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(xmlText, "application/xml");
         const sets = doc.querySelectorAll("ClinVarSet");
+
         const results = [];
         sets.forEach(set => {
           const rcvAcc = set.querySelector("ReferenceClinVarAssertion ClinVarAccession")?.getAttribute("Acc") || "Unknown";
@@ -1043,36 +1291,68 @@
             const scvAcc = accNode?.getAttribute("Acc");
             if (!scvAcc || !scvAcc.startsWith("SCV")) return;
             const classif = node.querySelector("Classification");
-            results.push({ parentRcv: rcvAcc, accession: `${scvAcc}.${accNode.getAttribute("Version")}`, submitter: node.querySelector("ClinVarSubmissionID")?.getAttribute("submitter") || "N/A", significance: classif?.querySelector("GermlineClassification")?.textContent || "N/A", date: classif?.getAttribute("DateLastEvaluated") || "N/A" });
+            results.push({
+              parentRcv: rcvAcc,
+              accession: `${scvAcc}.${accNode.getAttribute("Version")}`,
+              submitter: node.querySelector("ClinVarSubmissionID")?.getAttribute("submitter") || "N/A",
+              significance: classif?.querySelector("GermlineClassification")?.textContent || "N/A",
+              date: classif?.getAttribute("DateLastEvaluated") || "N/A"
+            });
           });
         });
-        results.sort((a, b) => parseDateToMs(b.date) - parseDateToMs(a.date));
-        body.innerHTML = results.length ? results.map(s => `<tr><td class="mono small" style="color:var(--gray); opacity:0.8;">${s.parentRcv}</td><td class="mono">${s.accession}</td><td>${escapeHtml(s.submitter)}</td><td><span class="sig warn">${escapeHtml(s.significance)}</span></td><td>${escapeHtml(s.date)}</td></tr>`).join('') : '<tr><td colspan="5">No submissions found.</td></tr>';
-      } catch (e) { body.innerHTML = '<tr><td colspan="5">Fetch error.</td></tr>'; }
+
+        results.sort((a, b) => (parseDateToMs(b.date) || 0) - (parseDateToMs(a.date) || 0));
+        body.innerHTML = results.length
+          ? results.map(s => `
+              <tr>
+                <td class="mono small" style="color:var(--gray); opacity:0.8;">${escapeHtml(s.parentRcv)}</td>
+                <td class="mono">${escapeHtml(s.accession)}</td>
+                <td>${escapeHtml(s.submitter)}</td>
+                <td><span class="sig warn">${escapeHtml(s.significance)}</span></td>
+                <td>${escapeHtml(s.date)}</td>
+              </tr>`).join('')
+          : '<tr><td colspan="5">No submissions found.</td></tr>';
+      } catch (e) {
+        body.innerHTML = '<tr><td colspan="5">Fetch error.</td></tr>';
+      }
     }
 
     function filterSCVs(rcvId) {
       const rows = document.querySelectorAll("#scvTableBody tr");
       let visibleCount = 0;
       rows.forEach(row => {
-        const parentCell = row.cells[0];
-        if (parentCell && parentCell.textContent.trim() === rcvId) { row.style.display = ""; visibleCount++; } else { row.style.display = "none"; }
+        const parentCell = row.cells?.[0];
+        if (parentCell && parentCell.textContent.trim() === rcvId) {
+          row.style.display = "";
+          visibleCount++;
+        } else {
+          row.style.display = "none";
+        }
       });
-      document.getElementById("scvStatus").innerHTML = `Showing <strong>${visibleCount}</strong> submissions for ${rcvId}. <a href="javascript:void(0)" onclick="resetSCVFilter()" style="font-size:11px; margin-left:10px;">Show all</a>`;
+      const scvStatus = document.getElementById("scvStatus");
+      if (scvStatus) {
+        scvStatus.innerHTML = `Showing <strong>${visibleCount}</strong> submissions for ${escapeHtml(rcvId)}.
+          <a href="javascript:void(0)" onclick="resetSCVFilter()" style="font-size:11px; margin-left:10px;">Show all</a>`;
+      }
     }
 
     function resetSCVFilter() {
       const rows = document.querySelectorAll("#scvTableBody tr");
       rows.forEach(row => row.style.display = "");
-      document.getElementById("scvStatus").textContent = "Individual lab submissions for this variant.";
+      const scvStatus = document.getElementById("scvStatus");
+      if (scvStatus) scvStatus.textContent = "Individual lab submissions for this variant.";
     }
 
+    // --- Modal Logic (rebuilt to include AI + clickable RCV rows for SCV filter) ---
     function openDetails(row){
       currentModalRow = row;
       const variationId = row.variationId && row.variationId !== "—" ? row.variationId : null;
+
       document.getElementById("modalTitle").innerHTML = `Variant <span class="mono">${escapeHtml(row.id)}</span>`;
-      document.getElementById("modalSubtitle").innerHTML = variationId ? `Variation link: <a class="mono" href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${variationId}/" target="_blank" rel="noopener">${escapeHtml(variationId)}</a>` : `Variation: —`;
-      
+      document.getElementById("modalSubtitle").innerHTML = variationId
+        ? `Variation link: <a class="mono" href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${variationId}/" target="_blank" rel="noopener">${escapeHtml(variationId)}</a>`
+        : `Variation: —`;
+
       const basicRows = [
         ["ClinVar Variation ID", variationId ? `<a class="mono" href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${variationId}/" target="_blank" rel="noopener">${escapeHtml(variationId)}</a>` : "—"],
         ["Preferred Name", row.preferredName ? `<span class="mono">${escapeHtml(row.preferredName)}</span>` : "—"],
@@ -1082,24 +1362,75 @@
         ["Last Evaluated", escapeHtml(row.lastEval)],
         ["Conditions", row.conditions.map(c => `<span class="tag">${escapeHtml(c.name)} (${c.count})</span>`).join(' ')]
       ];
-      
+
       document.getElementById("modalBody").innerHTML = `
-        <div class="ai-insight-box"><h4>✨ AI Variant Insight</h4><div id="aiInsightContent" class="ai-content">Click the button below to generate a research summary.</div><button id="btnAiInsight" class="ai-btn" style="margin-top: 10px;" onclick="getVariantInsight(currentModalRow)">✨ Analyze Variant</button></div>
-        <div class="card" style="margin-bottom: 20px;"><h3>Basic</h3><div class="inner"><table class="kv">${basicRows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table></div></div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px;">
-          <div class="card"><h3>RCVs</h3><div class="inner" style="overflow:auto; max-height:400px;"><table class="rcvtable" id="rcvTable"></table></div></div>
-          <div class="card"><h3>Submissions (SCVs)</h3><div id="scvStatus" class="help" style="padding: 10px 12px;">Individual lab submissions.</div><div class="inner" style="overflow:auto; max-height:400px;"><table class="rcvtable" id="scvTable"><thead><tr><th>RCV</th><th>Accession</th><th>Submitter</th><th>Significance</th><th>Date</th></tr></thead><tbody id="scvTableBody"><tr><td colspan="5" class="help">Loading SCVs...</td></tr></tbody></table></div></div>
+        <div class="ai-insight-box">
+          <h4>✨ AI Variant Insight</h4>
+          <div id="aiInsightContent" class="ai-content">Click the button below to generate a research summary.</div>
+          <button id="btnAiInsight" class="ai-btn" style="margin-top: 10px;" onclick="getVariantInsight(currentModalRow)">✨ Analyze Variant</button>
         </div>
-        <details class="card"><summary style="padding:10px 12px; font-size:13px; font-weight:950; color:var(--c3); background:rgba(40,80,156,0.05); cursor:pointer; list-style:none;">Raw JSON</summary><div class="inner"><pre id="rawJson" style="background:#f4f4f4; padding:10px; border-radius:8px; font-size:11px; overflow:auto; max-height:300px;"></pre></div></details>
+
+        <div class="card" style="margin-bottom: 20px;">
+          <h3>Basic Information</h3>
+          <div class="inner">
+            <table class="kv" id="basicTable">${basicRows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px;">
+          <div class="card">
+            <h3>RCVs (Reference Accessions)</h3>
+            <div class="help" style="padding: 0 12px 10px;">Click an RCV row to filter SCVs.</div>
+            <div class="inner" style="overflow:auto; max-height:400px;">
+              <table class="rcvtable" id="rcvTable"></table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Submissions (SCVs)</h3>
+            <div id="scvStatus" class="help" style="padding: 10px 12px;">Individual lab submissions for this variant.</div>
+            <div class="inner" style="overflow:auto; max-height:400px;">
+              <table class="rcvtable" id="scvTable">
+                <thead>
+                  <tr><th>RCV</th><th>Accession</th><th>Submitter</th><th>Significance</th><th>Date</th></tr>
+                </thead>
+                <tbody id="scvTableBody"><tr><td colspan="5" class="help">Loading SCVs...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <details class="card">
+          <summary style="padding:10px 12px; font-size:13px; font-weight:950; color:var(--c3); background:rgba(40,80,156,0.05); cursor:pointer; list-style:none;">
+            Raw ClinVar JSON
+          </summary>
+          <div class="inner">
+            <pre id="rawJson" style="background:#f4f4f4; padding:10px; border-radius:8px; font-size:11px; overflow:auto; max-height:300px;"></pre>
+          </div>
+        </details>
       `;
-      const rcvs = asArray(row.rawClinvar.rcv).sort((a,b) => parseDateToMs(b.last_evaluated) - parseDateToMs(a.last_evaluated));
-      document.getElementById("rcvTable").innerHTML = `<thead><tr><th>RCV Accession</th><th>Clinical significance</th><th>Conditions</th><th>Last evaluated</th><th>Submissions</th></tr></thead><tbody>` + 
+
+      const rcvs = asArray(row.rawClinvar.rcv).sort((a,b) => (parseDateToMs(b.last_evaluated)||0) - (parseDateToMs(a.last_evaluated)||0));
+
+      document.getElementById("rcvTable").innerHTML =
+        `<thead><tr><th>RCV Accession</th><th>Significance</th><th>Conditions</th><th>Last evaluated</th><th>Submissions</th></tr></thead>
+         <tbody>` +
         rcvs.map(r => {
           const rcvId = r.accession || r.id || "—";
-          return `<tr class="rowclick" style="cursor: pointer;" onclick="filterSCVs('${rcvId}')"><td><span class="mono" style="color:var(--c1); font-weight:800">${rcvId} ↳</span></td><td><span class="sig ${norm(r.clinical_significance).includes('patho')?'bad':norm(r.clinical_significance).includes('benign')?'good':'warn'}">${escapeHtml(r.clinical_significance || '—')}</span></td><td>${extractConditionsFromRcv(r).join(', ') || '—'}</td><td class="small">${escapeHtml(r.last_evaluated || '—')}</td><td class="mono" style="text-align:center">${r.number_submitters || '—'}</td></tr>`;
-        }).join('') + `</tbody>`;
+          return `
+            <tr class="rowclick" style="cursor:pointer;" onclick="filterSCVs('${String(rcvId).replace(/'/g,"\\'")}')">
+              <td><span class="mono" style="color:var(--c1); font-weight:800">${escapeHtml(rcvId)} ↳</span></td>
+              <td><span class="sig ${norm(r.clinical_significance).includes('patho')?'bad':norm(r.clinical_significance).includes('benign')?'good':'warn'}">${escapeHtml(r.clinical_significance || '—')}</span></td>
+              <td>${escapeHtml(extractConditionsFromRcv(r).join(', ') || '—')}</td>
+              <td class="small">${escapeHtml(r.last_evaluated || '—')}</td>
+              <td class="mono" style="text-align:center">${escapeHtml(r.number_submitters || '—')}</td>
+            </tr>`;
+        }).join('') +
+        `</tbody>`;
+
       fetchAllSCVs(rcvs.map(r => r.accession).filter(Boolean));
       document.getElementById("rawJson").textContent = JSON.stringify(row.rawClinvar, null, 2);
+
       document.getElementById("overlay").classList.add("show");
     }
 
@@ -1108,71 +1439,290 @@
       document.body.style.overflow = '';
     }
 
-    async function generatePDFReport() {
-      const notes = document.getElementById("exportNotes").value;
+    // --- Export helpers (added) ---
+    function downloadText(filename, text) {
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function exportJSON() {
+      const payload = {
+        gene: selectedGene,
+        generatedAt: new Date().toISOString(),
+        filters: {
+          search: filterEl.value || "",
+          significance: Array.from(sigSelected),
+          condition: Array.from(condSelected)
+        },
+        count: lastFilteredRows.length,
+        rows: lastFilteredRows
+      };
+      downloadText(`${selectedGene || "gene"}_variants.json`, JSON.stringify(payload, null, 2));
+    }
+
+    function exportCSV() {
+      const rows = lastFilteredRows || [];
+      const header = ["variant_id","preferred_name","coords","clinvar_variation_id","last_eval","sigs","conditions_top5","rcv_count","scv_total"];
+      const lines = [header.join(",")];
+
+      rows.forEach(r => {
+        const sigs = (r.sigs || []).join(" | ");
+        const conds = (r.conditions || []).slice(0,5).map(c => `${c.name} (${c.count})`).join(" | ");
+        const vals = [
+          r.id,
+          r.preferredName || "",
+          r.coords || "",
+          r.variationId || "",
+          r.lastEval || "",
+          sigs,
+          conds,
+          r.rcvCount ?? "",
+          r.scvTotal ?? ""
+        ].map(v => `"${String(v ?? "").replace(/"/g,'""')}"`);
+        lines.push(vals.join(","));
+      });
+
+      downloadText(`${selectedGene || "gene"}_variants.csv`, lines.join("\n"));
+    }
+
+    function openExportModal() {
+      document.getElementById("exportOverlay").classList.add("show");
+    }
+    function closeExportModal() {
       document.getElementById("exportOverlay").classList.remove("show");
+    }
+
+    async function generatePDFReport() {
+      // Uses built-in print-to-PDF via new window; includes plot images if present
+      const notes = document.getElementById("exportNotes").value || "";
+      closeExportModal();
+
       const sigLabel = Array.from(sigSelected).includes("__ALL__") ? "All" : Array.from(sigSelected).join(", ");
       const condLabel = Array.from(condSelected).includes("__ALL__") ? "All" : Array.from(condSelected).join(", ");
-      const countImg = await Plotly.toImage(document.getElementById("plotlyChart"), {format: 'png', width: 1200, height: 400});
-      const timelineImg = await Plotly.toImage(document.getElementById("variantTimelineChart"), {format: 'png', width: 1200, height: 600});
-      const reportHtml = `<html><head><title>${selectedGene} Report</title><style>body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.4; color: #333; }.navbar { background: #fff; border-bottom: 2px solid #272D72; padding: 10px 0; margin-bottom: 20px; }.section { margin-bottom: 40px; page-break-inside: avoid; }table { width: 100%; border-collapse: collapse; margin-top: 10px; }th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 13px; }th { background: #f9f9f9; font-weight: bold; }img { max-width: 100%; border: 1px solid #eee; margin-top: 10px; }.notes { background: #f4f4f4; padding: 15px; border-radius: 8px; font-style: italic; }</style></head><body><div class="navbar"><h1 style="margin:0">${selectedGene} Variant Dashboard Report</h1></div><div class="section"><h2>Query Summary</h2><table><tr><th>Gene</th><td>${selectedGene}</td></tr><tr><th>Active Filters</th><td>Significance: ${sigLabel}<br>Phenotype: ${condLabel}</td></tr><tr><th>Variants Count</th><td>${lastFilteredRows.length} passing filters</td></tr><tr><th>Query Date/Time</th><td>${new Date().toLocaleString()}</td></tr><tr><th>Notes</th><td class="notes">${notes || "No notes provided."}</td></tr></table></div><div class="section"><h2>Variant Count Over Time</h2><img src="${countImg}"></div><div class="section"><h2>Variant Timelines</h2><img src="${timelineImg}"></div><div class="section"><h2>Clinical Matrix</h2><div>${document.getElementById("matrixTbl").outerHTML}</div></div></body></html>`;
+
+      // Try to capture images; if section not rendered, skip gracefully
+      let countImg = "";
+      let timelineImg = "";
+      try {
+        const gdCount = document.getElementById("plotlyChart");
+        if (gdCount && gdCount.data) countImg = await Plotly.toImage(gdCount, {format:'png', width:1200, height:400});
+      } catch(e){}
+      try {
+        const gdTimeline = document.getElementById("variantTimelineChart");
+        if (gdTimeline && gdTimeline.data) timelineImg = await Plotly.toImage(gdTimeline, {format:'png', width:1200, height:600});
+      } catch(e){}
+
+      const matrixHtml = document.getElementById("matrixTbl") ? document.getElementById("matrixTbl").outerHTML : "<div>Matrix not available.</div>";
+
+      const reportHtml = `
+        <html>
+          <head>
+            <title>${escapeHtml(selectedGene || "Gene")} Report</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.4; color: #333; }
+              .navbar { background: #fff; border-bottom: 2px solid #272D72; padding: 10px 0; margin-bottom: 20px; }
+              .section { margin-bottom: 40px; page-break-inside: avoid; }
+              table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+              th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 13px; vertical-align: top; }
+              th { background: #f9f9f9; font-weight: bold; }
+              img { max-width: 100%; border: 1px solid #eee; margin-top: 10px; }
+              .notes { background: #f4f4f4; padding: 15px; border-radius: 8px; font-style: italic; }
+            </style>
+          </head>
+          <body>
+            <div class="navbar">
+              <h1 style="margin:0">${escapeHtml(selectedGene || "Gene")} Variant Dashboard Report</h1>
+            </div>
+
+            <div class="section">
+              <h2>Query Summary</h2>
+              <table>
+                <tr><th>Gene</th><td>${escapeHtml(selectedGene || "—")}</td></tr>
+                <tr><th>Active Filters</th><td>Significance: ${escapeHtml(sigLabel)}<br>Condition: ${escapeHtml(condLabel)}</td></tr>
+                <tr><th>Variants Count</th><td>${lastFilteredRows.length} passing filters</td></tr>
+                <tr><th>Query Date/Time</th><td>${escapeHtml(new Date().toLocaleString())}</td></tr>
+                <tr><th>Notes</th><td class="notes">${escapeHtml(notes) || "No notes provided."}</td></tr>
+              </table>
+            </div>
+
+            ${countImg ? `<div class="section"><h2>Variant Count Over Time</h2><img src="${countImg}"></div>` : ""}
+            ${timelineImg ? `<div class="section"><h2>Variant Timelines</h2><img src="${timelineImg}"></div>` : ""}
+
+            <div class="section">
+              <h2>Clinical Matrix</h2>
+              <div>${matrixHtml}</div>
+            </div>
+
+            <div class="section">
+              <h2>Filtered Variant Table</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Variant</th><th>ClinVar ID</th><th>Sig</th><th>Conditions</th><th>Review</th><th>Last Eval</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${(lastFilteredRows.slice(0, 250)).map(r => `
+                    <tr>
+                      <td>${escapeHtml(r.preferredName || r.id || "—")}</td>
+                      <td>${escapeHtml(r.variationId || "—")}</td>
+                      <td>${escapeHtml((r.sigs||[]).join(" • "))}</td>
+                      <td>${escapeHtml((r.conditions||[]).slice(0,3).map(c => c.name).join(" • "))}</td>
+                      <td>${escapeHtml((r.review||[]).join(" • "))}</td>
+                      <td>${escapeHtml(r.lastEval || "—")}</td>
+                    </tr>`).join("")}
+                </tbody>
+              </table>
+              <div style="margin-top:8px; font-size:11px; color:#777;">
+                Note: For readability, this export includes up to the first 250 filtered variants.
+              </div>
+            </div>
+          </body>
+        </html>`;
+
       const printWindow = window.open('', '_blank');
+      if (!printWindow) return;
       printWindow.document.write(reportHtml);
       printWindow.document.close();
-      setTimeout(() => { printWindow.print(); printWindow.close(); }, 1500);
+      setTimeout(() => { printWindow.focus(); printWindow.print(); }, 700);
     }
 
     // --- Interaction ---
     function applyFiltersAndRender(){
-      const q = filterEl.value.trim().toLowerCase(), selSigs = Array.from(sigSelected), selConds = Array.from(condSelected);
+      const q = filterEl.value.trim().toLowerCase();
+      const selSigs = Array.from(sigSelected);
+      const selConds = Array.from(condSelected);
+
       const filtered = allRows.filter(r => {
         const matchSig = selSigs.includes("__ALL__") || r.sigs.some(s => selSigs.includes(s));
         const matchCond = selConds.includes("__ALL__") || r.conditions.some(c => selConds.includes(c.name));
         const hay = [r.preferredName, r.coords, r.variationId, ...r.sigs, ...r.conditions.map(c => c.name)].join(" ").toLowerCase();
         return matchSig && matchCond && (!q || hay.includes(q));
       });
-      filtered.sort((a, b) => b.scvTotal - a.scvTotal);
-      lastFilteredRows = filtered; topShowing.textContent = filtered.length;
-      renderTable(filtered); renderCumulativeChart(filtered);
+
+      // Keep existing sort behavior + attach version’s useful default: prioritize higher SCV totals
+      filtered.sort((a, b) => (b.scvTotal || 0) - (a.scvTotal || 0));
+
+      lastFilteredRows = filtered;
+      topShowing.textContent = filtered.length;
+
+      renderTable(filtered);
+      renderCumulativeChart(filtered);
       if (activeSectionId === 'variantTimelineDetails') renderVariantTimelineChart(filtered);
       if (activeSectionId === 'matrixDetails') renderMatrix();
-      document.getElementById("activeFilters").innerHTML = `<strong>Active Filters:</strong><br>Cond: ${selConds.includes("__ALL__")?"All":selConds.join(", ")}<br>Sig: ${selSigs.includes("__ALL__")?"All":selSigs.join(", ")}`;
+
+      document.getElementById("activeFilters").innerHTML =
+        `<strong>Active Filters:</strong><br>
+         Cond: ${selConds.includes("__ALL__")?"All":selConds.map(escapeHtml).join(", ")}<br>
+         Sig: ${selSigs.includes("__ALL__")?"All":selSigs.map(escapeHtml).join(", ")}`;
     }
 
     async function loadAllData(){
-      allRows = []; totalHits = null; setStatus("Querying...");
-      const size = parseInt(pageSizeEl.value); let from = 0;
+      allRows = [];
+      totalHits = null;
+      setStatus("Querying...");
+      document.getElementById("btnStop").disabled = false;
+
+      const size = parseInt(pageSizeEl.value, 10);
+      let from = 0;
       controller = new AbortController();
+
       try {
         while(true){
-          const res = await fetch(`${API_BASE}?q=clinvar.gene.symbol:${selectedGene}&fields=${FIELDS}&from=${from}&size=${size}`, { signal: controller.signal });
+          const res = await fetch(`${API_BASE}?q=clinvar.gene.symbol:${encodeURIComponent(selectedGene)}&fields=${FIELDS}&from=${from}&size=${size}`, { signal: controller.signal });
           const data = await res.json();
-          if (!totalHits) { totalHits = data.total; document.getElementById("total").textContent = totalHits; }
+
+          if (!totalHits) {
+            totalHits = data.total;
+            document.getElementById("total").textContent = totalHits;
+          }
           if (!data.hits?.length) break;
+
           allRows.push(...data.hits.map(summarizeClinVar));
-          from += data.hits.length; document.getElementById("fetched").textContent = from;
+          from += data.hits.length;
+          document.getElementById("fetched").textContent = from;
+
           if (from >= totalHits) break;
         }
-        buildCounts(); renderMatrix();
+
+        buildCounts();
+        renderMatrix();
         renderMS({ options: sigOptions, selected: sigSelected, listEl: sigList, pillsEl: sigPills, searchText: "" });
         renderMS({ options: condOptions, selected: condSelected, listEl: condList, pillsEl: condPills, searchText: "" });
         applyFiltersAndRender();
         setStatus("Ready");
-      } catch(e) { if(e.name!=="AbortError") setStatus("Error: "+e.message); }
+      } catch(e) {
+        if (e.name !== "AbortError") setStatus("Error: " + (e.message || String(e)));
+        else setStatus("Stopped");
+      } finally {
+        document.getElementById("btnStop").disabled = true;
+      }
     }
 
     function buildCounts(){
-      sigCounts.clear(); condCounts.clear();
+      sigCounts.clear();
+      condCounts.clear();
       allRows.forEach(r => {
-        r.sigs.forEach(s => sigCounts.set(s, (sigCounts.get(s)||0)+1));
-        r.conditions.forEach(c => condCounts.set(c.name, (condCounts.get(c.name)||0)+1));
+        (r.sigs || []).forEach(s => sigCounts.set(s, (sigCounts.get(s)||0)+1));
+        (r.conditions || []).forEach(c => condCounts.set(c.name, (condCounts.get(c.name)||0)+1));
       });
-      sigOptions = sortByFrequencyThenAlpha(sigCounts); condOptions = sortByFrequencyThenAlpha(condCounts);
+      sigOptions = sortByFrequencyThenAlpha(sigCounts);
+      condOptions = sortByFrequencyThenAlpha(condCounts);
     }
 
+    // ---------- Wire up events ----------
+    document.getElementById("btnHamburger").onclick = () => {
+      // Mobile: open filter drawer; Desktop: collapse sidebar (existing behavior)
+      if (window.innerWidth <= 980) toggleSidebarMobile();
+      else app.classList.toggle("sidebar-collapsed");
+    };
+
+    document.getElementById("toggleByClass").onclick = () => {
+      timelineMode = "classification";
+      document.getElementById("toggleByClass").setAttribute("aria-pressed","true");
+      document.getElementById("toggleByCond").setAttribute("aria-pressed","false");
+      renderCumulativeChart();
+    };
+    document.getElementById("toggleByCond").onclick = () => {
+      timelineMode = "condition";
+      document.getElementById("toggleByClass").setAttribute("aria-pressed","false");
+      document.getElementById("toggleByCond").setAttribute("aria-pressed","true");
+      renderCumulativeChart();
+    };
+
+    document.getElementById("btnRefresh").onclick = loadAllData;
+    document.getElementById("btnTopRefresh").onclick = loadAllData;
+    document.getElementById("btnStop").onclick = () => { if (controller) controller.abort(); };
+
+    document.getElementById("closeModal").onclick = closeModal;
+
+    filterEl.oninput = applyFiltersAndRender;
+    sigSearch.oninput = () => renderMS({ options: sigOptions, selected: sigSelected, listEl: sigList, pillsEl: sigPills, searchText: sigSearch.value });
+    condSearch.oninput = () => renderMS({ options: condOptions, selected: condSelected, listEl: condList, pillsEl: condPills, searchText: condSearch.value });
+
+    document.getElementById('btnScrollBottom').onclick = () =>
+      document.querySelector(".mainTableContainer").scrollIntoView({ behavior: 'smooth' });
+
+    // Export buttons
+    document.getElementById("btnExportJson").onclick = exportJSON;
+    document.getElementById("btnExportCsv").onclick = exportCSV;
+    document.getElementById("btnExportView").onclick = openExportModal;
+    document.getElementById("btnGenerateExport").onclick = generatePDFReport;
+    document.getElementById("btnCancelExport").onclick = closeExportModal;
+    document.getElementById("btnCancelExportTop").onclick = closeExportModal;
+
+    // Re-render plots on resize for responsive layout
     window.addEventListener('resize', () => {
       if (activeSectionId === 'chartDetails') renderCumulativeChart();
       if (activeSectionId === 'variantTimelineDetails') renderVariantTimelineChart(lastFilteredRows);
+      // close drawer if switching to desktop
+      if (window.innerWidth > 980) toggleSidebarMobile(false);
     });
 
     window.onload = fetchHGNC;
