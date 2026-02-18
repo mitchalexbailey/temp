@@ -1012,7 +1012,10 @@
         cats.forEach(cat => {
           let count = 0; const x = [], y = [];
           dates.forEach(d => { if (norm(d.sig).includes(cat.match)) count++; x.push(new Date(d.ms)); y.push(count); });
-          traces.push({ x, y, name: cat.name, type: 'scatter', mode: 'lines', line: { color: cat.color }, fill: 'tozeroy' });
+          traces.push({ x, y, name: cat.name, type: 'scatter', mode: 'lines', line: { color: cat.color }, 
+            stackgroup: 'one',
+            // fill: 'tozeroy'
+          });
         });
       } else {
         const stopWords = ["not specified", "not provided", "none provided", "no phenotypic information", "not available", "unknown", "-"];
@@ -1020,7 +1023,13 @@
         topConds.forEach(row => {
           let count = 0; const x = [], y = [];
           dates.forEach(d => { if (d.conds.some(c => norm(c).includes(norm(row)))) count++; x.push(new Date(d.ms)); y.push(count); });
-          traces.push({ x, y, name: row, type: 'scatter', mode: 'lines', fill: 'tozeroy' });
+          traces.push({ x, y,
+            name: row,
+            type: 'scatter',
+            mode: 'lines',
+            stackgroup: 'one',
+            // fill: 'tozeroy' 
+          });
         });
       }
 
