@@ -193,7 +193,7 @@
     /* Layout grid for analytics squares */
     .dashboard-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
       margin-bottom: 24px;
     }
@@ -336,6 +336,59 @@
     .btnInline { padding: 8px 16px; border-radius: 8px; font-weight: 950; cursor: pointer; border: none; }
     .btnInline.primary { background: var(--c1); color: #fff; }
     .btnInline.secondary { background: #eee; color: #333; }
+
+    /* Gemini Feature Styles */
+    .ai-insight-box {
+      background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+      border: 1px solid #cce4ff;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(40, 80, 156, 0.05);
+    }
+    .ai-insight-box h4 {
+      margin: 0 0 10px 0;
+      color: var(--c1);
+      font-size: 13px;
+      font-weight: 950;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ai-loading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #666;
+      font-size: 12px;
+      font-style: italic;
+    }
+    .ai-content {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #333;
+    }
+    .ai-btn {
+      background: linear-gradient(135deg, var(--c1), var(--c3));
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 950;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(40, 80, 156, 0.15);
+    }
+    .ai-btn:hover {
+      opacity: 0.9;
+    }
+    .ai-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -439,6 +492,10 @@
           <div class="icon-placeholder">📋</div>
           <h3>Clinical Matrix</h3>
         </div>
+        <div class="dashboard-square" id="sqLollipop" onclick="openLollipop()">
+          <div class="icon-placeholder">🍭</div>
+          <h3>Lollipop (external)</h3>
+        </div>
       </div>
 
       <!-- Expansion Row -->
@@ -537,6 +594,10 @@
     const MATRIX_COLS = [{ key: "PLP", label: "Pathogenic / Likely Pathogenic" }, { key: "VUS", label: "VUS" }];
     const REFSEQ_PREFIX_RE = /^NM_\d+\.\d+\([A-Z0-9]+\):/i;
 
+    // Gemini API Setup
+    const apiKey = "";
+    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
     let allRows = [], lastFilteredRows = [], controller = null, totalHits = null;
     let sigCounts = new Map(), condCounts = new Map(), sigSelected = new Set(["__ALL__"]), condSelected = new Set(["__ALL__"]);
     let sigOptions = [], condOptions = [];
@@ -553,6 +614,77 @@
     const geneList = document.getElementById("geneAutocomplete");
     const selectionScreen = document.getElementById("geneSelectionScreen");
 
+    // ---- Gemini API Integration ----
+    async function callGemini(prompt, systemInstruction = "You are a professional medical genetics and bioinformatics research assistant.") {
+      let delay = 1000;
+      for (let i = 0; i < 5; i++) {
+        try {
+          const response = await fetch(GEMINI_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              systemInstruction: { parts: [{ text: systemInstruction }] }
+            })
+          });
+          const result = await response.json();
+          if (response.ok) {
+            return result.candidates?.[0]?.content?.parts?.[0]?.text;
+          }
+        } catch (e) {}
+        await new Promise(r => setTimeout(r, delay));
+        delay *= 2;
+      }
+      return "Unable to retrieve AI analysis at this time. Please try again later.";
+    }
+
+    async function getVariantInsight(row) {
+      const insightBody = document.getElementById("aiInsightContent");
+      const btn = document.getElementById("btnAiInsight");
+      
+      btn.disabled = true;
+      insightBody.innerHTML = `<div class="ai-loading"><span>✨</span> Analyzing ClinVar data and literature records...</div>`;
+      
+      const rcvData = asArray(row.rawClinvar.rcv).map(r => ({
+        sig: r.clinical_significance,
+        cond: extractConditionsFromRcv(r).join(", "),
+        date: r.last_evaluated
+      }));
+
+      const prompt = `Please provide a professional, concise clinical summary for the human variant ${row.preferredName || row.id}. 
+      The ClinVar Variation ID is ${row.variationId}. 
+      Recent evaluation date: ${row.lastEval}. 
+      Associated conditions in records: ${row.conditions.map(c => c.name).join(", ")}.
+      Specific record data summary: ${JSON.stringify(rcvData.slice(0, 5))}.
+      Focus on the clinical relevance and any known genotype-phenotype correlations for this specific amino acid change or genomic location.`;
+
+      const insight = await callGemini(prompt);
+      insightBody.innerHTML = insight.replace(/\n/g, '<br>');
+      btn.innerHTML = "✨ Refresh Insight";
+      btn.disabled = false;
+    }
+
+    async function getConditionAI(condition) {
+      const modal = document.createElement('div');
+      modal.className = 'overlay show';
+      modal.innerHTML = `
+        <div class="modal" style="width: min(600px, 95vw);">
+          <div class="modalhead"><h2>✨ Biological Analysis</h2><button class="secondary" onclick="this.closest('.overlay').remove()" style="width:auto; padding:6px 12px;">Close</button></div>
+          <div class="modalbody">
+            <h3 style="color:var(--c3); margin: 0 0 10px 0;">Relation between ${selectedGene} and ${condition}</h3>
+            <div id="conditionAiContent" class="ai-content"><div class="ai-loading">✨ Consulting biological knowledge base...</div></div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      const prompt = `Describe the known biological and pathogenic relationship between the gene ${selectedGene} and the condition "${condition}". 
+      Explain the molecular mechanism if known (e.g. loss of function, gain of function, dominant negative) and typical clinical presentation associated with this specific gene-disease pair.`;
+
+      const analysis = await callGemini(prompt);
+      document.getElementById("conditionAiContent").innerHTML = analysis.replace(/\n/g, '<br>');
+    }
+
     // ---- HGNC Dataset Logic ----
     async function fetchHGNC() {
       try {
@@ -566,29 +698,15 @@
       checkUrlForGene();
     }
 
-    /**
-     * Checks URL for gene symbol to skip manual input.
-     * Supports:
-     * 1. Query params: ?gene=FGFR3
-     * 2. Hash: #FGFR3
-     * 3. Path suffix (if server allows): /FGFR3
-     */
     function checkUrlForGene() {
       const params = new URLSearchParams(window.location.search);
       let gene = params.get('gene');
-
-      if (!gene && window.location.hash) {
-        gene = window.location.hash.substring(1);
-      }
-
+      if (!gene && window.location.hash) gene = window.location.hash.substring(1);
       if (!gene) {
         const pathParts = window.location.pathname.split('/');
         const lastPart = pathParts[pathParts.length - 1];
-        if (lastPart && !lastPart.includes('.html') && lastPart.length > 0) {
-          gene = lastPart;
-        }
+        if (lastPart && !lastPart.includes('.html') && lastPart.length > 0) gene = lastPart;
       }
-
       if (gene && gene.length > 0) {
         gene = decodeURIComponent(gene).trim().toUpperCase();
         selectedGene = gene;
@@ -642,7 +760,6 @@
       const squares = document.querySelectorAll(".dashboard-square");
       const details = document.querySelectorAll(".detail-view");
       squares.forEach(sq => sq.classList.remove("active"));
-
       if (activeSectionId === id) {
         expansionArea.classList.remove("show");
         activeSectionId = null;
@@ -657,6 +774,11 @@
         if (id === 'variantTimelineDetails') renderVariantTimelineChart(lastFilteredRows);
         if (id === 'matrixDetails') renderMatrix();
       }
+    }
+
+    function openLollipop() {
+      if (!selectedGene) return;
+      window.open(`https://raw.githack.com/mitchalexbailey/temp/main/lollipop.html?gene=${encodeURIComponent(selectedGene)}`, '_blank');
     }
 
     // ---- Data Processing Helpers ----
@@ -678,6 +800,20 @@
         if (name) out.push(name);
       });
       return out;
+    }
+
+    function isSignificantChange(row) {
+      const rcvs = asArray(row.rawClinvar?.rcv).filter(r => r.last_evaluated);
+      if (rcvs.length < 2) return false;
+      const getGroup = (sig) => {
+        const s = norm(sig);
+        if (s.includes('pathogenic')) return 'P'; if (s.includes('benign')) return 'B';
+        if (s.includes('uncertain') || s.includes('vus')) return 'V'; return 'O';
+      };
+      const groups = new Set();
+      rcvs.forEach(r => groups.add(getGroup(r.clinical_significance)));
+      const hasP = groups.has('P'), hasB = groups.has('B'), hasV = groups.has('V');
+      return (hasV && hasP) || (hasV && hasB) || (hasP && hasB);
     }
 
     function summarizeClinVar(hit){
@@ -793,7 +929,7 @@
       
       sortedConds.forEach(rowLabel => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<th class="rowHead">${rowLabel}</th>`;
+        tr.innerHTML = `<th class="rowHead">${rowLabel}<br><button class="ai-btn" style="margin: 5px auto 0 auto;" onclick="getConditionAI('${rowLabel}')">✨ Biology</button></th>`;
         MATRIX_COLS.forEach(col => {
           const matches = allRows.filter(r => {
             const sigs = r.sigs.map(norm);
@@ -842,21 +978,6 @@
       }, { responsive: true, displayModeBar: false });
     }
 
-    // --- Variant Timelines Logic ---
-    function isSignificantChange(row) {
-      const rcvs = asArray(row.rawClinvar?.rcv).filter(r => r.last_evaluated);
-      if (rcvs.length < 2) return false;
-      const getGroup = (sig) => {
-        const s = norm(sig);
-        if (s.includes('pathogenic')) return 'P'; if (s.includes('benign')) return 'B';
-        if (s.includes('uncertain') || s.includes('vus')) return 'V'; return 'O';
-      };
-      const groups = new Set();
-      rcvs.forEach(r => groups.add(getGroup(r.clinical_significance)));
-      const hasP = groups.has('P'), hasB = groups.has('B'), hasV = groups.has('V');
-      return (hasV && hasP) || (hasV && hasB) || (hasP && hasB);
-    }
-
     function renderVariantTimelineChart(rows){
       const container = document.getElementById("variantTimelineChart");
       const filteredRows = rows.filter(isSignificantChange);
@@ -883,11 +1004,11 @@
 
       const layout = {
         height: Math.max(400, filteredRows.length * 35),
-        margin: { l: 260, r: 40, t: 50, b: 60 },
+        margin: { l: 260, r: 40, t: 80, b: 60 },
         xaxis: { type: 'date', showgrid: false, zeroline: false },
         yaxis: { tickmode: 'array', tickvals: filteredRows.map((_,i)=>i), ticktext: filteredRows.map(r => stripPrefix(r.preferredName || r.variationId)), autorange: 'reversed', fixedrange: true, showgrid: false, zeroline: false },
         paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { family: 'var(--mono)', size: 10 },
-        legend: { orientation: 'h', y: 1.02, x: 0.5, xanchor: 'center', yanchor: 'bottom', font: { family: 'var(--mono)', size: 13 } }
+        legend: { orientation: 'h', y: 1.1, x: 0.5, xanchor: 'center', yanchor: 'bottom', font: { family: 'var(--mono)', size: 13 } }
       };
       Plotly.newPlot(container, traces, layout, { responsive: true, displayModeBar: false }).then(gd => {
         gd.on('plotly_click', (data) => { if (data.points && data.points.length > 0) openDetails(filteredRows[Math.round(data.points[0].y)]); });
@@ -925,6 +1046,22 @@
       } catch (e) { body.innerHTML = '<tr><td colspan="5">Fetch error.</td></tr>'; }
     }
 
+    function filterSCVs(rcvId) {
+      const rows = document.querySelectorAll("#scvTableBody tr");
+      let visibleCount = 0;
+      rows.forEach(row => {
+        const parentCell = row.cells[0];
+        if (parentCell && parentCell.textContent.trim() === rcvId) { row.style.display = ""; visibleCount++; } else { row.style.display = "none"; }
+      });
+      document.getElementById("scvStatus").innerHTML = `Showing <strong>${visibleCount}</strong> submissions for ${rcvId}. <a href="javascript:void(0)" onclick="resetSCVFilter()" style="font-size:11px; margin-left:10px;">Show all</a>`;
+    }
+
+    function resetSCVFilter() {
+      const rows = document.querySelectorAll("#scvTableBody tr");
+      rows.forEach(row => row.style.display = "");
+      document.getElementById("scvStatus").textContent = "Individual lab submissions for this variant.";
+    }
+
     function openDetails(row){
       currentModalRow = row;
       const variationId = row.variationId && row.variationId !== "—" ? row.variationId : null;
@@ -942,38 +1079,24 @@
       ];
       
       document.getElementById("modalBody").innerHTML = `
+        <div class="ai-insight-box">
+          <h4>✨ AI Variant Insight</h4>
+          <div id="aiInsightContent" class="ai-content">Click the button below to generate a research summary.</div>
+          <button id="btnAiInsight" class="ai-btn" style="margin-top: 10px;" onclick="getVariantInsight(currentModalRow)">✨ Analyze Variant</button>
+        </div>
         <div class="card" style="margin-bottom: 20px;">
           <h3>Basic</h3>
-          <div class="inner">
-            <table class="kv">${basicRows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>
-          </div>
+          <div class="inner"><table class="kv">${basicRows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table></div>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-          <div class="card">
-            <h3>RCVs (Reference Accessions)</h3>
-            <div class="inner" style="overflow:auto; max-height:400px;">
-              <table class="rcvtable" id="rcvTable"></table>
-            </div>
-          </div>
-          <div class="card">
-            <h3>Submissions (SCVs)</h3>
-            <div id="scvStatus" class="help" style="padding: 10px 12px;">Individual lab submissions for this variant.</div>
-            <div class="inner" style="overflow:auto; max-height:400px;">
-              <table class="rcvtable" id="scvTable">
-                <thead><tr><th>RCV</th><th>Accession</th><th>Submitter</th><th>Significance</th><th>Date</th></tr></thead>
-                <tbody id="scvTableBody"><tr><td colspan="5" class="help">Loading SCVs...</td></tr></tbody>
-              </table>
-            </div>
-          </div>
+          <div class="card"><h3>RCVs</h3><div class="inner" style="overflow:auto; max-height:400px;"><table class="rcvtable" id="rcvTable"></table></div></div>
+          <div class="card"><h3>Submissions (SCVs)</h3><div id="scvStatus" class="help" style="padding: 10px 12px;">Individual lab submissions.</div><div class="inner" style="overflow:auto; max-height:400px;"><table class="rcvtable" id="scvTable"><thead><tr><th>RCV</th><th>Accession</th><th>Submitter</th><th>Significance</th><th>Date</th></tr></thead><tbody id="scvTableBody"><tr><td colspan="5" class="help">Loading SCVs...</td></tr></tbody></table></div></div>
         </div>
-        <details class="card">
-          <summary style="padding:10px 12px; font-size:13px; font-weight:950; color:var(--c3); background:rgba(40,80,156,0.05); cursor:pointer; list-style:none;">Raw ClinVar JSON</summary>
-          <div class="inner"><pre id="rawJson" style="background:#f4f4f4; padding:10px; border-radius:8px; font-size:11px; overflow:auto; max-height:300px;"></pre></div>
-        </details>
+        <details class="card"><summary style="padding:10px 12px; font-size:13px; font-weight:950; color:var(--c3); background:rgba(40,80,156,0.05); cursor:pointer; list-style:none;">Raw JSON</summary><div class="inner"><pre id="rawJson" style="background:#f4f4f4; padding:10px; border-radius:8px; font-size:11px; overflow:auto; max-height:300px;"></pre></div></details>
       `;
 
       const rcvs = asArray(row.rawClinvar.rcv).sort((a,b) => parseDateToMs(b.last_evaluated) - parseDateToMs(a.last_evaluated));
-      document.getElementById("rcvTable").innerHTML = `<thead><tr><th>RCV Accession</th><th>Clinical significance</th><th>Conditions</th><th>Last evaluated</th><th>Submissions</th></tr></thead><tbody>` + 
+      document.getElementById("rcvTable").innerHTML = `<thead><tr><th>RCV Accession</th><th>Significance</th><th>Conditions</th><th>Last evaluated</th><th>Submissions</th></tr></thead><tbody>` + 
         rcvs.map(r => {
           const rcvId = r.accession || r.id || "—";
           return `<tr class="rowclick" style="cursor: pointer;" onclick="filterSCVs('${rcvId}')"><td><span class="mono" style="color:var(--c1); font-weight:800">${rcvId} ↳</span></td><td><span class="sig ${norm(r.clinical_significance).includes('patho')?'bad':norm(r.clinical_significance).includes('benign')?'good':'warn'}">${escapeHtml(r.clinical_significance || '—')}</span></td><td>${extractConditionsFromRcv(r).join(', ') || '—'}</td><td class="small">${escapeHtml(r.last_evaluated || '—')}</td><td class="mono" style="text-align:center">${r.number_submitters || '—'}</td></tr>`;
@@ -984,62 +1107,18 @@
       document.getElementById("overlay").classList.add("show");
     }
 
-    // --- Export logic ---
     async function generatePDFReport() {
       const notes = document.getElementById("exportNotes").value;
       document.getElementById("exportOverlay").classList.remove("show");
-
-      const printWindow = window.open('', '_blank');
       const sigLabel = Array.from(sigSelected).includes("__ALL__") ? "All" : Array.from(sigSelected).join(", ");
       const condLabel = Array.from(condSelected).includes("__ALL__") ? "All" : Array.from(condSelected).join(", ");
-
       const countImg = await Plotly.toImage(document.getElementById("plotlyChart"), {format: 'png', width: 1200, height: 400});
       const timelineImg = await Plotly.toImage(document.getElementById("variantTimelineChart"), {format: 'png', width: 1200, height: 600});
-
-      const reportHtml = `
-        <html>
-        <head>
-          <title>${selectedGene} Report</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.4; color: #333; }
-            h1, h2 { color: #272D72; margin-top: 30px; }
-            .navbar { background: #fff; border-bottom: 2px solid #272D72; padding: 10px 0; margin-bottom: 20px; }
-            .section { margin-bottom: 40px; page-break-inside: avoid; }
-            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 13px; }
-            th { background: #f9f9f9; font-weight: bold; }
-            img { max-width: 100%; border: 1px solid #eee; margin-top: 10px; }
-            .notes { background: #f4f4f4; padding: 15px; border-radius: 8px; font-style: italic; }
-            .matrix-wrap { overflow-x: auto; }
-          </style>
-        </head>
-        <body>
-          <div class="navbar"><h1 style="margin:0">${selectedGene} Variant Dashboard Report</h1></div>
-          
-          <div class="section">
-            <h2>Query Summary</h2>
-            <table>
-              <tr><th>Gene</th><td>${selectedGene}</td></tr>
-              <tr><th>Active Filters</th><td>Significance: ${sigLabel}<br>Phenotype: ${condLabel}</td></tr>
-              <tr><th>Variants Count</th><td>${lastFilteredRows.length} passing filters</td></tr>
-              <tr><th>Query Date/Time</th><td>${new Date().toLocaleString()}</td></tr>
-              <tr><th>Notes</th><td class="notes">${notes || "No notes provided."}</td></tr>
-            </table>
-          </div>
-
-          <div class="section"><h2>Variant Count Over Time</h2><img src="${countImg}"></div>
-          <div class="section"><h2>Variant Timelines</h2><img src="${timelineImg}"></div>
-          <div class="section"><h2>Clinical Matrix</h2><div class="matrix-wrap">${document.getElementById("matrixTbl").outerHTML}</div></div>
-        </body>
-        </html>
-      `;
-
+      const reportHtml = `<html><head><title>${selectedGene} Report</title><style>body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.4; color: #333; }.navbar { background: #fff; border-bottom: 2px solid #272D72; padding: 10px 0; margin-bottom: 20px; }.section { margin-bottom: 40px; page-break-inside: avoid; }table { width: 100%; border-collapse: collapse; margin-top: 10px; }th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 13px; }th { background: #f9f9f9; font-weight: bold; }img { max-width: 100%; border: 1px solid #eee; margin-top: 10px; }.notes { background: #f4f4f4; padding: 15px; border-radius: 8px; font-style: italic; }</style></head><body><div class="navbar"><h1 style="margin:0">${selectedGene} Variant Dashboard Report</h1></div><div class="section"><h2>Query Summary</h2><table><tr><th>Gene</th><td>${selectedGene}</td></tr><tr><th>Active Filters</th><td>Significance: ${sigLabel}<br>Phenotype: ${condLabel}</td></tr><tr><th>Variants Count</th><td>${lastFilteredRows.length} passing filters</td></tr><tr><th>Query Date/Time</th><td>${new Date().toLocaleString()}</td></tr><tr><th>Notes</th><td class="notes">${notes || "No notes provided."}</td></tr></table></div><div class="section"><h2>Variant Count Over Time</h2><img src="${countImg}"></div><div class="section"><h2>Variant Timelines</h2><img src="${timelineImg}"></div><div class="section"><h2>Clinical Matrix</h2><div>${document.getElementById("matrixTbl").outerHTML}</div></div></body></html>`;
+      const printWindow = window.open('', '_blank');
       printWindow.document.write(reportHtml);
       printWindow.document.close();
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 1500);
+      setTimeout(() => { printWindow.print(); printWindow.close(); }, 1500);
     }
 
     // --- Interaction ---
