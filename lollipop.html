@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeneVariant Viz Pro</title>
+    <title>QuickLolli</title>
+    <!-- D3.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <!-- PptxGenJS for PowerPoint Export -->
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
     <style>
         :root {
             /* Grayscale/White UI Theme */
@@ -13,17 +16,14 @@
             --text: #000000;
             --accent: #28509C;
             --border: #e0e0e0;
-            --pathogenic: #ED037C;
-            --benign: #28509C;
-            --vus: #A9208E;
             --console-bg: #1c1c1e;
             --console-text: #00ff00;
             
-            /* Custom Data Palette (Hex) */
-            --p1: #28509C;
-            --p2: #ED037C;
+            /* Data Palette Colors (for UI reference only, JS uses hex directly) */
+            --p1: #28509C; /* Benign */
+            --p2: #ED037C; /* Pathogenic */
             --p3: #272D72;
-            --p4: #A9208E;
+            --p4: #A9208E; /* VUS */
             --p5: #7C2F90;
             --p6: #000000;
             --p7: #A0A0A0;
@@ -94,7 +94,7 @@
         button:hover { opacity: 0.85; }
         button.secondary { background: #f2f2f7; color: var(--text); border: 1px solid var(--border); }
 
-        /* Main Plot Layout with Collapsible Legend */
+        /* Main Plot Layout */
         .viz-main-layout {
             display: flex;
             background: var(--card);
@@ -121,13 +121,7 @@
             transition: width 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
         }
 
-        #legend-area.collapsed {
-            width: 0;
-            padding: 0;
-            border: none;
-            opacity: 0;
-            pointer-events: none;
-        }
+        #legend-area.collapsed { width: 0; padding: 0; border: none; opacity: 0; pointer-events: none; }
 
         .legend-toggle-btn {
             position: absolute;
@@ -142,86 +136,27 @@
             cursor: pointer;
             transition: left 0.3s ease;
             box-shadow: 2px 0 5px rgba(0,0,0,0.05);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            color: #86868b;
+            display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #86868b;
         }
 
-        #legend-area.collapsed + .legend-toggle-btn {
-            left: 0;
-        }
+        #legend-area.collapsed + .legend-toggle-btn { left: 0; }
 
-        .viz-wrapper {
-            flex-grow: 1;
-            position: relative;
-            overflow: hidden;
-            background: white;
-        }
-
+        .viz-wrapper { flex-grow: 1; position: relative; overflow: hidden; background: white; }
         #viz-container { width: 100%; height: 100%; cursor: move; }
 
         .legend-section { display: flex; flex-direction: column; gap: 6px; }
         .legend-title { font-weight: 700; color: #86868b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 6px;
-            transition: background 0.2s, opacity 0.2s;
-            user-select: none;
-        }
+        .legend-item { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.2s, opacity 0.2s; user-select: none; }
         .legend-item:hover { background: rgba(0,0,0,0.05); }
         .legend-item.hidden { opacity: 0.3; text-decoration: line-through; }
-
         .swatch-circle { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); }
         .swatch-rect { width: 20px; height: 10px; border-radius: 2px; border: 1px solid rgba(0,0,0,0.1); }
         .swatch-shape { width: 12px; height: 12px; display: flex; align-items: center; justify-content: center; }
 
-        .toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 20px;
-            background: var(--card);
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 12px;
-            border: 1px solid var(--border);
-            width: 100%;
-            box-sizing: border-box;
-        }
-
+        .toolbar { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; background: var(--card); padding: 15px; border-radius: 12px; font-size: 12px; border: 1px solid var(--border); width: 100%; box-sizing: border-box; }
         .control-item { display: flex; flex-direction: column; gap: 4px; }
-        
-        .feature-selector {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            max-width: 400px;
-            padding: 5px;
-            border: 1px dashed var(--border);
-            border-radius: 8px;
-            max-height: 80px;
-            overflow-y: auto;
-        }
-
-        .feature-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 10px;
-            background: #fff;
-            padding: 2px 6px;
-            border-radius: 4px;
-            border: 1px solid var(--border);
-            cursor: pointer;
-        }
+        .feature-selector { display: flex; flex-wrap: wrap; gap: 8px; max-width: 400px; padding: 5px; border: 1px dashed var(--border); border-radius: 8px; max-height: 80px; overflow-y: auto; }
+        .feature-checkbox { display: flex; align-items: center; gap: 4px; font-size: 10px; background: #fff; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); cursor: pointer; }
 
         .console-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
         .console-panel { background: var(--console-bg); border-radius: 12px; color: var(--console-text); font-family: monospace; height: 300px; display: flex; flex-direction: column; overflow: hidden; }
@@ -234,26 +169,8 @@
         .var-link.active { background: var(--accent); color: white; }
         .inspector-window { flex-grow: 1; padding: 10px; overflow-y: auto; font-size: 12px; }
 
-        .tooltip {
-            position: absolute;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.95);
-            color: white;
-            border-radius: 8px;
-            font-size: 12px;
-            pointer-events: none;
-            visibility: hidden;
-            z-index: 200;
-            backdrop-filter: blur(8px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            line-height: 1.4;
-        }
-
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 1000;
-        }
+        .tooltip { position: absolute; padding: 10px; background: rgba(0, 0, 0, 0.95); color: white; border-radius: 8px; font-size: 12px; pointer-events: none; visibility: hidden; z-index: 200; backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); line-height: 1.4; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal { background: white; padding: 30px; border-radius: 20px; max-width: 900px; width: 95%; max-height: 85vh; overflow-y: auto; position: relative; }
         .detail-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 13px; }
         .detail-table th, .detail-table td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border); }
@@ -270,6 +187,8 @@
             <p style="margin: 4px 0 0 0; color: #86868b;">Advanced Lollipop Plotter with Sidestacked Legend</p>
         </div>
         <div style="display: flex; gap: 10px;">
+            <button class="secondary" onclick="exportPNG()">Export PNG</button>
+            <button class="secondary" onclick="exportPPTX()">Export PPTX</button>
             <button class="secondary" onclick="exportSVG()">Export SVG</button>
             <button class="secondary" onclick="resetZoom()">Reset Zoom</button>
         </div>
@@ -382,7 +301,17 @@
     const CALLOUT_LABEL_COLOR = "#86868b";
     const EXON_GAP_SIZE = 2;
 
-    const CUSTOM_PALETTE = ["#28509C", "#ED037C", "#272D72", "#A9208E", "#7C2F90", "#000000", "#A0A0A0"];
+    // Requested Hex Palette for Data Points (No Vars)
+    const PALETTE_COLORS = {
+        p1: "#28509C", // Benign / Type 1
+        p2: "#ED037C", // Pathogenic / Type 2
+        p3: "#272D72", // Type 3
+        p4: "#A9208E", // VUS / Type 4
+        p5: "#7C2F90", 
+        p6: "#000000",
+        p7: "#A0A0A0"  // Unknown
+    };
+    const CUSTOM_PALETTE_ARRAY = Object.values(PALETTE_COLORS);
 
     let rawData = [];
     let geneInfo = { length: 1000, features: [], exons: [], canonicalTranscript: "N/A" };
@@ -390,7 +319,7 @@
     let selectedFeatureTypes = new Set(['DOMAIN', 'TRANSMEM']);
     let shapeMap = {};
     let hiddenCategories = new Set();
-    let conditionColorScale = d3.scaleOrdinal(CUSTOM_PALETTE);
+    let conditionColorScale = d3.scaleOrdinal(CUSTOM_PALETTE_ARRAY);
 
     const availableSymbols = [
         d3.symbolCircle, d3.symbolTriangle, d3.symbolSquare, 
@@ -402,34 +331,20 @@
         const area = document.getElementById('legend-area');
         const icon = document.getElementById('toggleIcon');
         const isCurrentlyCollapsed = area.classList.contains('collapsed');
-        
         const targetCollapse = (forceCollapse !== undefined) ? forceCollapse : !isCurrentlyCollapsed;
-        
         area.classList.toggle('collapsed', targetCollapse);
         icon.style.transform = targetCollapse ? 'rotate(180deg)' : 'rotate(0deg)';
-        
-        // Allow time for CSS transition before recalculating D3
         setTimeout(render, 310);
     }
 
     const mediaQuery = window.matchMedia("(max-width: 1000px)");
-    function handleScreenResize(e) {
-        if (e.matches) {
-            toggleLegend(true);
-        } else {
-            toggleLegend(false);
-        }
-    }
+    function handleScreenResize(e) { toggleLegend(e.matches ? true : false); }
     mediaQuery.addListener(handleScreenResize);
 
     function updateLegend() {
         const legendArea = d3.select("#legend-area");
         legendArea.selectAll("*").remove();
-
-        if (rawData.length === 0) {
-            legendArea.html('<span style="color:#86868b">Search for a gene to view the legend.</span>');
-            return;
-        }
+        if (rawData.length === 0) { legendArea.html('<span style="color:#86868b">Search for a gene to view the legend.</span>'); return; }
 
         const colorMode = document.getElementById('colorMode')?.value || 'clinvar';
 
@@ -449,18 +364,17 @@
 
         // 2. Colors
         const colorSection = legendArea.append("div").attr("class", "legend-section");
-        const colorMode_val = document.getElementById('colorMode').value;
-        colorSection.append("div").attr("class", "legend-title").text(colorMode_val === 'clinvar' ? "ClinVar Significance" : (colorMode_val === 'type' ? "Classification" : "Primary Condition"));
+        colorSection.append("div").attr("class", "legend-title").text(colorMode === 'clinvar' ? "Significance" : (colorMode === 'type' ? "Classification" : "Primary Condition"));
         
         if (colorMode === 'clinvar') {
-            [{ l: 'Pathogenic', c: 'var(--p2)' }, { l: 'Benign', c: 'var(--p1)' }, { l: 'VUS', c: 'var(--p4)' }, { l: 'Unknown', c: '#8e8e93' }].forEach(s => {
+            [{ l: 'Pathogenic', c: PALETTE_COLORS.p2 }, { l: 'Benign', c: PALETTE_COLORS.p1 }, { l: 'VUS', c: PALETTE_COLORS.p4 }, { l: 'Unknown', c: '#8e8e93' }].forEach(s => {
                 const item = colorSection.append("div").attr("class", "legend-item");
                 item.append("div").attr("class", "swatch-circle").style("background", s.c);
                 item.append("span").text(s.l);
             });
         } else if (colorMode === 'type') {
             const types = Object.keys(shapeMap);
-            const paletteScale = d3.scaleOrdinal(CUSTOM_PALETTE);
+            const paletteScale = d3.scaleOrdinal(CUSTOM_PALETTE_ARRAY);
             types.forEach(t => {
                 const isHidden = hiddenCategories.has(t);
                 const item = colorSection.append("div").attr("class", `legend-item ${isHidden ? 'hidden' : ''}`)
@@ -602,12 +516,8 @@
 
             let detectedTranscript = "N/A";
             vJson.hits.some(h => {
-                const nmMatch = (h.clinvar?.hgvs?.nucleotide || "").match(/NM_\d+/);
-                if (nmMatch) {
-                    detectedTranscript = nmMatch[0];
-                    return true;
-                }
-                const rcvs = Array.isArray(h.clinvar?.rcv) ? h.clinvar.rcv : (h.clinvar?.rcv ? [h.clinvar.rcv] : []);
+                const cv = h.clinvar || {};
+                const rcvs = Array.isArray(cv.rcv) ? cv.rcv : (cv.rcv ? [cv.rcv] : []);
                 const hgvsP = rcvs[0]?.preferred_name || h.snpeff?.ann?.[0]?.hgvs_p || "";
                 if (hgvsP.startsWith("NM_")) {
                     detectedTranscript = hgvsP.split('(')[0];
@@ -671,21 +581,19 @@
                 const type = top4Types.includes(firstWord) ? firstWord : "other";
                 uniqueTypesFound.add(type);
 
-                const conditionCounts = {};
-                const uniqConds = [];
+                const condCounts = {};
                 rcvs.forEach(r => {
-                    const cRaw = r.name || ""; 
+                    const cRaw = r.conditions.name || ""; 
                     const name = cRaw.toLowerCase().trim();
                     if (name && !garbage.some(g => name.includes(g))) {
-                        conditionCounts[cRaw] = (conditionCounts[cRaw] || 0) + 1;
-                        if (!uniqConds.includes(cRaw)) uniqConds.push(cRaw);
+                        condCounts[cRaw] = (condCounts[cRaw] || 0) + 1;
                     }
                 });
 
-                const sortedConds = Object.entries(conditionCounts).sort((a, b) => b[1] - a[1]);
+                const sortedConds = Object.entries(condCounts).sort((a, b) => b[1] - a[1]);
                 let primaryCondition = 'Unknown';
                 if (sortedConds.length > 0) {
-                    const totalCountForVariant = Object.values(conditionCounts).reduce((a, b) => a + b, 0);
+                    const totalCountForVariant = Object.values(condCounts).reduce((a, b) => a + b, 0);
                     const topFreq = sortedConds[0][1] / totalCountForVariant;
                     const secondFreq = sortedConds[1] ? sortedConds[1][1] / totalCountForVariant : 0;
                     if ((topFreq - secondFreq) > 0.1) primaryCondition = sortedConds[0][0];
@@ -702,8 +610,8 @@
                     significance: rcvs[0]?.clinical_significance ?? "Unknown",
                     type, raw: h,
                     primaryCondition,
-                    conditionCounts,
-                    allConditions: uniqConds.length > 0 ? uniqConds.join(", ") : "Not provided"
+                    condCounts,
+                    allConditions: Object.keys(condCounts).join(", ") || "Not provided"
                 };
             });
 
@@ -721,7 +629,7 @@
         container.selectAll("*").remove();
         
         const rect = container.node().getBoundingClientRect();
-        const width = rect.width, height = rect.height, margin = { top: 0, right: 50, bottom: 0, left: 50 };
+        const width = rect.width, height = rect.height, margin = { top: 0, right: 30, bottom: 0, left: 30 };
         const svg = container.append("svg").attr("width", width).attr("height", height);
         
         const g = svg.append("g")
@@ -741,29 +649,12 @@
             return !hiddenCategories.has(d.type);
         });
 
-        // Dynamic Title (Centered)
+        // Dynamic Title
         const geneSymbolText = (document.getElementById('geneSearch')?.value || "FGFR3").toUpperCase();
         const transcriptText = `[${geneInfo.canonicalTranscript}]`;
-        
-        const titleText = svg.append("text")
-            .attr("x", width / 2)
-            .attr("y", 25)
-            .attr("text-anchor", "middle")
-            .attr("font-weight", "800")
-            .attr("fill", "var(--text)");
-
-        titleText.append("tspan")
-            .attr("x", width / 2)
-            .attr("font-size", width < 600 ? "14px" : "20px")
-            .text(geneSymbolText);
-
-        titleText.append("tspan")
-            .attr("x", width / 2)
-            .attr("dy", "1.2em")
-            .attr("font-size", width < 600 ? "10px" : "14px")
-            .attr("font-weight", "600")
-            .attr("fill", "#86868b")
-            .text(transcriptText);
+        const titleText = svg.append("text").attr("x", width / 2).attr("y", 25).attr("text-anchor", "middle").attr("font-weight", "800").attr("fill", "var(--text)");
+        titleText.append("tspan").attr("x", width / 2).attr("font-size", width < 600 ? "14px" : "20px").text(geneSymbolText);
+        titleText.append("tspan").attr("x", width / 2).attr("dy", "1.2em").attr("font-size", width < 600 ? "10px" : "14px").attr("font-weight", "600").attr("fill", "#86868b").text(transcriptText);
 
         const yScale = d3.scaleLinear().domain([0, d3.max(rawData, d => d.submissions) || 1]).range([0, -maxHeightVal]);
         const centerY = 0; 
@@ -788,7 +679,7 @@
         }
 
         const palette = d3.scaleOrdinal(d3.schemeSet3);
-        const variantPalette = d3.scaleOrdinal(CUSTOM_PALETTE);
+        const variantPalette = d3.scaleOrdinal(CUSTOM_PALETTE_ARRAY);
 
         geneInfo.features.forEach((f, i) => {
             if (selectedFeatureTypes.has(f.type)) {
@@ -804,33 +695,16 @@
             }
         });
 
-        // Lollipop
         const lolls = g.selectAll(".v-group").data(visible).enter().append("g");
         lolls.each(function(d) {
             const h = heightMode === 'freq' ? yScale(d.submissions) : -60;
-            const match = searching && `${d.hgvs_p} ${d.significance} ${d.type} ${d.primaryCondition} ${d.allConditions}`.toLowerCase().includes(searchInput);
+            const match = searching && JSON.stringify(d).toLowerCase().includes(searchInput);
             const op = searching ? (match ? 1 : 0.1) : 1;
             const node = d3.select(this);
-            node.append("line")
-                .attr("x1", rescaledX(d.pos)).attr("x2", rescaledX(d.pos))
-                .attr("y1", centerY - 10).attr("y2", centerY + h)
-                .attr("stroke", match ? "var(--p1)" : "#8e8e93")
-                .attr("stroke-width", (match ? 2 : 1)/zoomTransform.k)
-                .attr("opacity", op);
-            node.append("path")
-                .attr("transform", `translate(${rescaledX(d.pos)}, ${centerY + h})`)
-                .attr("d", d3.symbol().type(shapeMap[d.type] || d3.symbolCircle).size(80)())
-                .attr("fill", getColor(d, variantPalette))
-                .attr("stroke", match ? "black" : "white")
-                .attr("stroke-width", match ? 2.5 : 1)
-                .attr("opacity", op)
-                .style("cursor", "pointer")
-                .on("mouseover", (e) => showTooltip(e, d))
-                .on("mousemove", moveTooltip)
-                .on("mouseout", hideTooltip)
-                .on("click", () => showDetails(d));
+            node.append("line").attr("x1", rescaledX(d.pos)).attr("x2", rescaledX(d.pos)).attr("y1", centerY - 10).attr("y2", centerY + h).attr("stroke", match ? PALETTE_COLORS.p1 : "#8e8e93").attr("stroke-width", (match ? 2 : 1)/zoomTransform.k).attr("opacity", op);
+            node.append("path").attr("transform", `translate(${rescaledX(d.pos)}, ${centerY + h})`).attr("d", d3.symbol().type(shapeMap[d.type] || d3.symbolCircle).size(LOLLIPOP_HEAD_SIZE)()).attr("fill", getColor(d, variantPalette)).attr("stroke", match ? "black" : "white").attr("stroke-width", match ? 2.5 : 1).attr("opacity", op).style("cursor", "pointer")
+                .on("mouseover", (e) => showTooltip(e, d)).on("mousemove", moveTooltip).on("mouseout", hideTooltip).on("click", () => showDetails(d));
         });
-
         updateLegend();
     }
 
@@ -838,49 +712,32 @@
         const mode = document.getElementById('colorMode')?.value || 'clinvar';
         if (mode === 'type') return palette(d.type);
         if (mode === 'condition') return d.primaryCondition === 'Multiple' ? '#9467bd' : (d.primaryCondition === 'Unknown' ? '#8e8e93' : conditionColorScale(d.primaryCondition));
-        const sig = String(d.significance).toLowerCase();
-        if(sig.includes("pathogenic")) return "var(--p2)";
-        if(sig.includes("benign")) return "var(--p1)";
-        return sig.includes("uncertain") || sig.includes("vus") ? "var(--p4)" : "#8e8e93";
+        const sig = d.significance.toLowerCase();
+        if(sig.includes("pathogenic")) return PALETTE_COLORS.p2;
+        if(sig.includes("benign")) return PALETTE_COLORS.p1;
+        return PALETTE_COLORS.p4;
     }
 
-    function getRel(e) { 
-        const wrapper = document.getElementById('viz-wrapper').getBoundingClientRect(); 
-        return { x: e.clientX - wrapper.left, y: e.clientY - wrapper.top }; 
-    }
-
-    function showTooltip(e, d) {
-        const p = getRel(e); d3.select("#tooltip").style("visibility", "visible").style("left", (p.x + 15) + "px").style("top", (p.y - 10) + "px")
-            .html(`<strong>${d.hgvs_p}</strong><br>Submissions: ${d.submissions}<br>Sig: ${d.significance}<br>Type: ${d.type}<br>Condition: ${d.primaryCondition}`);
-    }
-
-    function showFeatureTooltip(e, f) {
-        const p = getRel(e); d3.select("#tooltip").style("visibility", "visible").style("left", (p.x + 15) + "px").style("top", (p.y - 10) + "px").html(`<strong>${f.type}</strong>: ${f.description || "N/A"}<br>AA ${f.begin}-${f.end}`);
-    }
-
-    function showExonTooltip(e, s) {
-        const p = getRel(e); d3.select("#tooltip").style("visibility", "visible").style("left", (p.x + 15) + "px").style("top", (p.y - 10) + "px")
-            .html(`<strong>Exon Segment</strong><br>AA Range: ${Math.round(s.start)} - ${Math.round(s.end)}<br>NT Start: ${s.start_nt}<br>NT End: ${s.end_nt}`);
-    }
-
+    function getRel(e) { const w = document.getElementById('viz-wrapper').getBoundingClientRect(); return { x: e.clientX - w.left, y: e.clientY - w.top }; }
+    function showTooltip(e, d) { const p = getRel(e); d3.select("#tooltip").style("visibility", "visible").style("left", (p.x + 15) + "px").style("top", (p.y - 10) + "px").html(`<strong>${d.hgvs_p}</strong><br>Sig: ${d.significance}<br>Type: ${d.type}`); }
+    function showFeatureTooltip(e, f) { const p = getRel(e); d3.select("#tooltip").style("visibility", "visible").style("left", (p.x + 15) + "px").style("top", (p.y - 10) + "px").html(`<strong>${f.type}</strong>: ${f.description || "N/A"}`); }
+    function showExonTooltip(e, s) { const p = getRel(e); d3.select("#tooltip").style("visibility", "visible").style("left", (p.x + 15) + "px").style("top", (p.y - 10) + "px").html(`<strong>Exon Segment</strong><br>Range: ${Math.round(s.start)}-${Math.round(s.end)} aa`); }
     function moveTooltip(e) { const p = getRel(e); d3.select("#tooltip").style("left", (p.x + 15) + "px").style("top", (p.y - 10) + "px"); }
     function hideTooltip() { d3.select("#tooltip").style("visibility", "hidden"); }
 
     function showDetails(d) {
-        const condList = Object.entries(d.conditionCounts).map(([name, count]) => `${name} [${count}]`).join("<br>");
+        const condList = Object.entries(d.condCounts).map(([name, count]) => `${name} [${count}]`).join("<br>");
         const clinvarLink = d.variant_id ? `<a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${d.variant_id}" target="_blank" style="color:var(--accent); font-weight:bold">${d.variant_id}</a>` : "N/A";
         
-        document.getElementById('modalTitle').innerText = "Variant Analysis";
         document.getElementById('modalContent').innerHTML = `
             <table class="detail-table">
                 <tr><th>Preferred Name</th><td>${d.hgvs_p}</td></tr>
                 <tr><th>ClinVar ID</th><td>${clinvarLink}</td></tr>
-                <tr><th>Significance</th><td><span class="badge" style="background:${getColor(d, d3.scaleOrdinal(CUSTOM_PALETTE))}">${d.significance}</span></td></tr>
-                <tr><th>Condition</th><td>${d.primaryCondition}</td></tr>
-                <tr><th>All Associated Traits</th><td>${condList || "None provided"}</td></tr>
+                <tr><th>Significance</th><td><span class="badge" style="background:${getColor(d, d3.scaleOrdinal(CUSTOM_PALETTE_ARRAY))}">${d.significance}</span></td></tr>
+                <tr><th>Associated Conditions</th><td>${condList || "None provided"}</td></tr>
                 <tr><th>Variant Type</th><td>${d.type}</td></tr>
             </table>
-            <p style="font-weight:bold; margin-top:20px; margin-bottom:5px;">Raw ClinVar Record (JSON Explorer)</p>
+            <h3>Pretty Print Raw ClinVar Record</h3>
             <div class="raw-json-block"><pre>${JSON.stringify(d.raw, null, 2)}</pre></div>
         `;
         document.getElementById('modalOverlay').style.display = 'flex';
@@ -893,11 +750,73 @@
 
     function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
     function resetZoom() { d3.select("#viz-container").transition().call(zoom.transform, d3.zoomIdentity); }
+    
+    // --- EXPORT FUNCTIONS ---
     function exportSVG() { 
-        const svgElement = document.querySelector("#viz-container svg");
-        if (!svgElement) return;
-        const s = (new XMLSerializer()).serializeToString(svgElement); 
+        const svg = document.querySelector("#viz-container svg");
+        if (!svg) return;
+        const s = (new XMLSerializer()).serializeToString(svg); 
         const l = document.createElement("a"); l.href = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s); l.download = "gene_viz.svg"; l.click(); 
+    }
+
+    function exportPNG() {
+        const svg = document.querySelector("#viz-container svg");
+        if (!svg) return;
+        const s = (new XMLSerializer()).serializeToString(svg);
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const img = new Image();
+        img.onload = function() {
+            canvas.width = svg.getBoundingClientRect().width;
+            canvas.height = svg.getBoundingClientRect().height;
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            const l = document.createElement("a");
+            l.href = canvas.toDataURL("image/png");
+            l.download = "gene_viz.png";
+            l.click();
+        };
+        img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
+    }
+
+    function exportPPTX() {
+        const pres = new PptxGenJS();
+        const slide = pres.addSlide();
+        
+        // Add Title
+        const geneSymbol = document.getElementById('geneSearch')?.value || "GENE";
+        slide.addText(`GeneVariant Viz: ${geneSymbol}`, { x:0.5, y:0.5, fontSize:18, bold:true, color:'363636' });
+
+        const svg = document.querySelector("#viz-container svg");
+        if (!svg) return;
+        
+        // Serialize SVG
+        const s = (new XMLSerializer()).serializeToString(svg);
+        
+        // Use Canvas to Rasterize SVG to PNG
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const img = new Image();
+        
+        img.onload = function() {
+            canvas.width = svg.getBoundingClientRect().width;
+            canvas.height = svg.getBoundingClientRect().height;
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            
+            // Get Base64
+            const pngBase64 = canvas.toDataURL("image/png");
+            
+            // Add to Slide
+            slide.addImage({ data: pngBase64, x:0.5, y:1, w:9, h:4.5 });
+            
+            // Save
+            pres.writeFile({ fileName: "GeneViz_Export.pptx" });
+        };
+        
+        img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
     }
     
     function toggleFeatureType(cb) {
@@ -905,7 +824,6 @@
         render();
     }
 
-    // --- URL PARAMETER DETECTION ---
     window.addEventListener('DOMContentLoaded', () => {
         handleScreenResize(mediaQuery); // Set initial state based on size
         const urlParams = new URLSearchParams(window.location.search);
