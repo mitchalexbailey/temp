@@ -782,9 +782,11 @@
       const gene = String(geneRaw || "").trim().toUpperCase();
       if (!gene) return;
       const url = new URL(window.location.href);
+      // Only push state if different to allow back button navigation without loops
+      if (url.searchParams.get("gene") === gene) return;
       url.searchParams.set("gene", gene);
       url.hash = "";
-      window.history.replaceState({}, "", url.toString());
+      window.history.pushState({}, "", url.toString());
     }
 
     function getGeneFromUrl() {
@@ -809,6 +811,23 @@
       
       loadAllData();
     }
+
+    // Handle back/forward navigation
+    window.addEventListener("popstate", () => {
+      const g = getGeneFromUrl();
+      if (g) {
+        // Restore gene view
+        // Look up label from HGNC data if available, otherwise use symbol
+        const match = hgncData.find(item => item.value === g);
+        startGene(g, match ? match.label : g);
+      } else {
+        // Return to selection screen
+        selectionScreen.style.display = "flex";
+        app.style.visibility = "hidden";
+        if (controller) controller.abort();
+        toggleSidebarMobile(false);
+      }
+    });
 
     // Form submit = Enter + button click
     geneForm.addEventListener("submit", (e) => {
@@ -896,6 +915,13 @@
     }
 
     document.getElementById("btnChangeGene").onclick = () => {
+      // Clear URL parameter so state is clean
+      const url = new URL(window.location.href);
+      if (url.searchParams.has("gene")) {
+        url.searchParams.delete("gene");
+        window.history.pushState({}, "", url.toString());
+      }
+
       selectionScreen.style.display = "flex";
       app.style.visibility = "hidden";
       if (controller) controller.abort();
