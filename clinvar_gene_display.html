@@ -350,54 +350,6 @@
       .kv td:last-child { font-size: 11px; }
       .modalbody { padding: 12px; }
     }
-
-    /* --- AI / Gemini styles (added) --- */
-    .ai-insight-box {
-      background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
-      border: 1px solid #cce4ff;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(40, 80, 156, 0.05);
-    }
-    .ai-insight-box h4 {
-      margin: 0 0 10px 0;
-      color: var(--c1);
-      font-size: 13px;
-      font-weight: 950;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .ai-loading {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: #666;
-      font-size: 12px;
-      font-style: italic;
-    }
-    .ai-content {
-      font-size: 13px;
-      line-height: 1.5;
-      color: #333;
-    }
-    .ai-btn {
-      background: linear-gradient(135deg, var(--c1), var(--c3));
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 950;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: 0 4px 12px rgba(40, 80, 156, 0.15);
-    }
-    .ai-btn:hover { opacity: 0.9; }
-    .ai-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -578,7 +530,7 @@
         <button class="secondary" id="closeModal" style="width:auto; padding:6px 12px;">Close</button>
       </div>
       <div id="modalBody" class="modalbody">
-        <!-- Rebuilt on openDetails() (keeps existing functionality + adds AI + SCV filtering links) -->
+        <!-- Rebuilt on openDetails() (keeps existing functionality + adds SCV filtering links) -->
       </div>
     </div>
   </div>
@@ -608,14 +560,10 @@
 
   <script>
     const API_BASE = "https://myvariant.info/v1/query";
-    const HGNC_TSV_URL = "https://storage.googleapis.com/public-download-files/hgnc/tsv/tsv/hgnc_complete_set.txt";
+    const HGNC_JSON_URL = "https://raw.githubusercontent.com/mitchalexbailey/temp/refs/heads/main/hgnc_labels.json";
     const FIELDS = "clinvar";
     const MATRIX_COLS = [{ key: "PLP", label: "Pathogenic / Likely Pathogenic" }, { key: "VUS", label: "VUS" }];
     const REFSEQ_PREFIX_RE = /^NM_\d+\.\d+\([A-Z0-9]+\):/i;
-
-    // --- Gemini API Setup (added; leave apiKey blank to disable) ---
-    const apiKey = "";
-    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
     let allRows = [], lastFilteredRows = [], controller = null, totalHits = null;
     let sigCounts = new Map(), condCounts = new Map(), sigSelected = new Set(["__ALL__"]), condSelected = new Set(["__ALL__"]);
@@ -693,22 +641,29 @@
       return gene ? decodeURIComponent(gene).trim().toUpperCase() : null;
     }
 
-    function startGene(geneRaw) {
-      const gene = String(geneRaw || "").trim().toUpperCase();
-      if (!gene) return;
-      selectedGene = gene;
-      setGeneInUrl(gene);
+    function startGene(geneValue, geneLabel) {
+      if (!geneValue) return;
+      selectedGene = geneValue;
+      setGeneInUrl(geneValue);
       selectionScreen.style.display = "none";
       app.style.visibility = "visible";
-      document.getElementById("brandTitle").textContent = `${selectedGene} Variant Dashboard`;
+      
+      const displayLabel = geneLabel || geneValue;
+      document.getElementById("brandTitle").textContent = `${geneValue} Variant Dashboard`;
+      
+      // Update input just in case
+      geneInput.value = displayLabel;
+      
       loadAllData();
     }
 
     // Form submit = Enter + button click
     geneForm.addEventListener("submit", (e) => {
       e.preventDefault();
+      // If user typed manually, we might not have a separate value/label
+      // In that case, use the input value for both
       const gene = selectedGene || geneInput.value.trim().toUpperCase();
-      startGene(gene);
+      startGene(gene, gene);
     });
 
     // Optional: Enter picks first autocomplete item if open
@@ -717,90 +672,17 @@
         const first = geneList.querySelector(".autocomplete-item");
         if (first && geneList.style.display === "block") {
           e.preventDefault();
-          const sym = first.querySelector(".sym")?.textContent?.trim();
-          if (sym) geneInput.value = sym;
-          geneList.style.display = "none";
-          selectedGene = geneInput.value.trim().toUpperCase();
-          geneForm.requestSubmit();
+          // Simulate click on first item
+          first.click();
         }
       }
     });
 
-    // ---------- Gemini helpers (added; safe no-op if apiKey empty) ----------
-    async function callGemini(prompt, systemInstruction = "You are a professional medical genetics and bioinformatics research assistant.") {
-      if (!apiKey) return "AI is disabled (no API key configured).";
-      let delay = 1000;
-      for (let i = 0; i < 5; i++) {
-        try {
-          const response = await fetch(GEMINI_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }],
-              systemInstruction: { parts: [{ text: systemInstruction }] }
-            })
-          });
-          const result = await response.json();
-          if (response.ok) return result.candidates?.[0]?.content?.parts?.[0]?.text || "No AI output returned.";
-        } catch (e) {}
-        await new Promise(r => setTimeout(r, delay));
-        delay *= 2;
-      }
-      return "Unable to retrieve AI analysis at this time. Please try again later.";
-    }
-
-    async function getVariantInsight(row) {
-      const insightBody = document.getElementById("aiInsightContent");
-      const btn = document.getElementById("btnAiInsight");
-      if (!insightBody || !btn) return;
-      btn.disabled = true;
-      insightBody.innerHTML = `<div class="ai-loading"><span>✨</span> Analyzing data...</div>`;
-      const rcvData = asArray(row.rawClinvar.rcv).map(r => ({
-        sig: r.clinical_significance,
-        cond: extractConditionsFromRcv(r).join(", "),
-        date: r.last_evaluated
-      }));
-      const prompt = `Provide a professional clinical summary for variant ${row.preferredName || row.id} (ClinVar Variation ID: ${row.variationId}). Evaluate its pathogenic potential using the following recent ClinVar RCV records: ${JSON.stringify(rcvData.slice(0, 6))}.`;
-      const insight = await callGemini(prompt);
-      insightBody.innerHTML = escapeHtml(String(insight)).replace(/\n/g, "<br>");
-      btn.innerHTML = "✨ Refresh Insight";
-      btn.disabled = false;
-    }
-
-    async function getConditionAI(condition) {
-      const modal = document.createElement('div');
-      modal.className = 'overlay show';
-      modal.innerHTML = `
-        <div class="modal" style="width: min(600px, 95vw);">
-          <div class="modalhead">
-            <h2>✨ Biological Analysis</h2>
-            <button class="secondary" style="width:auto; padding:6px 12px;" onclick="this.closest('.overlay').remove()">Close</button>
-          </div>
-          <div class="modalbody">
-            <h3 style="color:var(--c3); margin: 0 0 10px 0;">Relation between ${escapeHtml(selectedGene || "—")} and ${escapeHtml(condition)}</h3>
-            <div id="conditionAiContent" class="ai-content"><div class="ai-loading">✨ Analyzing...</div></div>
-          </div>
-        </div>`;
-      document.body.appendChild(modal);
-      const prompt = `Describe the biological relationship between gene ${selectedGene} and condition "${condition}". Keep it concise but specific to known mechanisms and phenotype associations.`;
-      const analysis = await callGemini(prompt);
-      modal.querySelector("#conditionAiContent").innerHTML = escapeHtml(String(analysis)).replace(/\n/g, "<br>");
-    }
-
     // ---------- HGNC Dataset Logic ----------
     async function fetchHGNC() {
       try {
-        const response = await fetch(HGNC_TSV_URL);
-        const text = await response.text();
-        const lines = text.split("\n");
-        const header = lines[0].split("\t");
-        const symbolIdx = header.indexOf("symbol");
-        const nameIdx = header.indexOf("name");
-
-        hgncData = lines.slice(1).map(line => {
-          const cols = line.split("\t");
-          return { symbol: cols[symbolIdx], name: cols[nameIdx] };
-        }).filter(g => g.symbol);
+        const response = await fetch(HGNC_JSON_URL);
+        hgncData = await response.json(); // Now expects JSON
 
         document.getElementById("hgncStatus").textContent = `Loaded ${hgncData.length} genes. Ready.`;
       } catch (e) {
@@ -810,28 +692,33 @@
       // If URL has gene, auto-load
       const g = getGeneFromUrl();
       if (g) {
-        geneInput.value = g;
-        selectedGene = g;
-        startGene(g);
+        // Try to find label if possible
+        const match = hgncData.find(item => item.value === g);
+        startGene(g, match ? match.label : g);
       }
     }
 
     geneInput.addEventListener("input", () => {
       const q = geneInput.value.trim().toUpperCase();
       if (q.length < 1) { geneList.style.display = "none"; return; }
-      const matches = hgncData.filter(g => g.symbol.startsWith(q) || g.name?.toUpperCase().includes(q)).slice(0, 10);
+      
+      // Match against label, limit 10
+      const matches = hgncData.filter(g => g.label.toUpperCase().startsWith(q) || g.label.toUpperCase().includes(q)).slice(0, 10);
+      
       if (!matches.length) { geneList.style.display = "none"; return; }
+      
       geneList.innerHTML = matches.map(g => `
-        <div class="autocomplete-item" onclick="selectGene('${g.symbol}')">
-          <span class="sym">${g.symbol}</span><span class="desc">${escapeHtml(g.name || '')}</span>
+        <div class="autocomplete-item" onclick="selectGene('${g.value}', '${g.label}')">
+          <span class="sym">${g.label}</span>
         </div>`).join('');
       geneList.style.display = "block";
     });
 
-    function selectGene(symbol) {
-      geneInput.value = symbol;
+    function selectGene(value, label) {
+      geneInput.value = label;
       geneList.style.display = "none";
-      selectedGene = symbol;
+      selectedGene = value;
+      startGene(value, label);
     }
 
     document.getElementById("btnChangeGene").onclick = () => {
@@ -842,33 +729,36 @@
     };
 
     // ---------- Thumbnail Capture (existing) ----------
-    function updateThumbnails() {
-      const gdCount = document.getElementById("plotlyChart");
-      const gdTimeline = document.getElementById("variantTimelineChart");
+    // function updateThumbnails() {
+    //   const gdCount = document.getElementById("plotlyChart");
+    //   const gdTimeline = document.getElementById("variantTimelineChart");
 
-      if (gdCount && gdCount.data) {
-        Plotly.toImage(gdCount, {format: 'png', width: 200, height: 100}).then(url => {
-          const img = document.getElementById("previewCount");
-          img.src = url; img.style.display = "block";
-          document.getElementById("iconCount").style.display = "none";
-        }).catch(()=>{});
-      }
-      if (gdTimeline && gdTimeline.data) {
-        Plotly.toImage(gdTimeline, {format: 'png', width: 200, height: 100}).then(url => {
-          const img = document.getElementById("previewTimeline");
-          img.src = url; img.style.display = "block";
-          document.getElementById("iconTimeline").style.display = "none";
-        }).catch(()=>{});
-      }
+    //   if (gdCount && gdCount.data) {
+    //     Plotly.toImage(gdCount, {format: 'png', width: 200, height: 100}).then(url => {
+    //       const img = document.getElementById("previewCount");
+    //       if(img) { img.src = url; img.style.display = "block"; }
+    //       const icon = document.getElementById("iconCount");
+    //       if(icon) icon.style.display = "none";
+    //     }).catch(()=>{});
+    //   }
+    //   if (gdTimeline && gdTimeline.data) {
+    //     Plotly.toImage(gdTimeline, {format: 'png', width: 200, height: 100}).then(url => {
+    //       const img = document.getElementById("previewTimeline");
+    //       if(img) { img.src = url; img.style.display = "block"; }
+    //       const icon = document.getElementById("iconTimeline");
+    //       if(icon) icon.style.display = "none";
+    //     }).catch(()=>{});
+    //   }
 
-      const previewMatrix = document.getElementById("previewMatrix");
-      if (previewMatrix && document.getElementById("matrixTbl")) {
-        previewMatrix.innerHTML = document.getElementById("matrixTbl").outerHTML;
-        previewMatrix.style.display = "block";
-        previewMatrix.style.height = "60px";
-        document.getElementById("iconMatrix").style.display = "none";
-      }
-    }
+    //   const previewMatrix = document.getElementById("previewMatrix");
+    //   if (previewMatrix && document.getElementById("matrixTbl")) {
+    //     previewMatrix.innerHTML = document.getElementById("matrixTbl").outerHTML;
+    //     previewMatrix.style.display = "block";
+    //     previewMatrix.style.height = "60px";
+    //     const icon = document.getElementById("iconMatrix");
+    //     if(icon) icon.style.display = "none";
+    //   }
+    // }
 
     // ---------- Layout Logic ----------
     function toggleSection(id) {
@@ -1055,7 +945,7 @@
       });
     }
 
-    // --- Matrix Render (updated with stopwords + Biology button) ---
+    // --- Matrix Render (updated with stopwords) ---
     function renderMatrix(){
       matrixBody.innerHTML = "";
       const stopWords = ["not specified", "not provided", "none provided", "no phenotypic information", "not available", "unknown", "-", "not provided"];
@@ -1067,8 +957,6 @@
         tr.innerHTML = `
           <th class="rowHead">
             ${escapeHtml(rowLabel)}
-            <br>
-            <button class="ai-btn" style="margin: 5px auto 0 auto;" onclick="getConditionAI('${escapeHtml(rowLabel).replace(/'/g, "\\'")}')">✨ Biology</button>
           </th>`;
 
         MATRIX_COLS.forEach(col => {
@@ -1098,7 +986,7 @@
         matrixBody.appendChild(tr);
       });
 
-      updateThumbnails();
+      // updateThumbnails();
     }
 
     // --- Cumulative Chart Logic (updated: stopwords + responsive layout) ---
@@ -1146,7 +1034,7 @@
       });
 
       Plotly.newPlot(chartDiv, traces, layout, { responsive: true, displayModeBar: false })
-        .then(updateThumbnails)
+        // .then(updateThumbnails)
         .catch(()=>{});
     }
 
@@ -1257,7 +1145,7 @@
             openDetails(filteredRows[idx]);
           }
         });
-        updateThumbnails();
+        // updateThumbnails();
       }).catch(()=>{});
     }
 
@@ -1343,7 +1231,7 @@
       if (scvStatus) scvStatus.textContent = "Individual lab submissions for this variant.";
     }
 
-    // --- Modal Logic (rebuilt to include AI + clickable RCV rows for SCV filter) ---
+    // --- Modal Logic (rebuilt to include clickable RCV rows for SCV filter) ---
     function openDetails(row){
       currentModalRow = row;
       const variationId = row.variationId && row.variationId !== "—" ? row.variationId : null;
@@ -1364,12 +1252,6 @@
       ];
 
       document.getElementById("modalBody").innerHTML = `
-        <div class="ai-insight-box">
-          <h4>✨ AI Variant Insight</h4>
-          <div id="aiInsightContent" class="ai-content">Click the button below to generate a research summary.</div>
-          <button id="btnAiInsight" class="ai-btn" style="margin-top: 10px;" onclick="getVariantInsight(currentModalRow)">✨ Analyze Variant</button>
-        </div>
-
         <div class="card" style="margin-bottom: 20px;">
           <h3>Basic Information</h3>
           <div class="inner">
@@ -1537,13 +1419,13 @@
           </head>
           <body>
             <div class="navbar">
-              <h1 style="margin:0">${escapeHtml(selectedGene || "Gene")} Variant Dashboard Report</h1>
+              <h1 style="margin:0">${escapeHtml((selectedGene || "Gene").split(" | ")[0])} Variant Dashboard Report</h1>
             </div>
 
             <div class="section">
               <h2>Query Summary</h2>
               <table>
-                <tr><th>Gene</th><td>${escapeHtml(selectedGene || "—")}</td></tr>
+                <tr><th>Gene</th><td>${escapeHtml((selectedGene || "Gene").split(" | ")[0])}</td></tr>
                 <tr><th>Active Filters</th><td>Significance: ${escapeHtml(sigLabel)}<br>Condition: ${escapeHtml(condLabel)}</td></tr>
                 <tr><th>Variants Count</th><td>${lastFilteredRows.length} passing filters</td></tr>
                 <tr><th>Query Date/Time</th><td>${escapeHtml(new Date().toLocaleString())}</td></tr>
@@ -1635,7 +1517,8 @@
 
       try {
         while(true){
-          const res = await fetch(`${API_BASE}?q=clinvar.gene.symbol:${encodeURIComponent(selectedGene)}&fields=${FIELDS}&from=${from}&size=${size}`, { signal: controller.signal });
+          const url = `${API_BASE}?q=clinvar.gene.symbol:${encodeURIComponent(selectedGene)}&fields=${FIELDS}&from=${from}&size=${size}`;
+          const res = await fetch(url, { signal: controller.signal });
           const data = await res.json();
 
           if (!totalHits) {
