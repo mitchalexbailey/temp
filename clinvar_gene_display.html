@@ -190,7 +190,7 @@
     button.secondary{ background:transparent; color:var(--c3); border:1px solid var(--border); padding:10px 12px; border-radius:12px; font-weight:950; cursor:pointer; width:100%; }
     button:disabled{ opacity:.55; cursor:not-allowed; }
 
-    input[type="text"], input[type="search"]{ width:100%; background:#fff; color:var(--text); border:1px solid var(--border); padding:10px 12px; border-radius:12px; outline:none; }
+    input[type="text"], input[type="search"], input[type="email"], textarea{ width:100%; background:#fff; color:var(--text); border:1px solid var(--border); padding:10px 12px; border-radius:12px; outline:none; }
 
     /* Custom multiselect */
     .ms{ border:1px solid var(--border); border-radius:14px; overflow:hidden; background:#fff; }
@@ -733,6 +733,41 @@
     </div>
   </div>
 
+  <!-- CONTRIBUTE MODAL (New) -->
+  <div id="contributeOverlay" class="overlay">
+    <div class="modal" style="width: min(600px, 90vw);">
+      <div class="modalhead">
+        <h2>Contribute Information</h2>
+        <button class="secondary" style="width:auto; padding:6px 12px;" id="btnCancelContributeTop">Close</button>
+      </div>
+      <div class="modalbody">
+        <form id="contributeForm">
+          <div style="margin-bottom:12px;">
+             <label for="contribName">Name</label>
+             <input type="text" id="contribName" placeholder="Your Name" required>
+          </div>
+          <div style="margin-bottom:12px;">
+             <label for="contribAffil">Affiliation</label>
+             <input type="text" id="contribAffil" placeholder="Institution / Organization">
+          </div>
+          <div style="margin-bottom:12px;">
+             <label for="contribEmail">Email</label>
+             <input type="email" id="contribEmail" placeholder="your.email@example.com" required>
+          </div>
+          <div style="margin-bottom:20px;">
+             <label for="contribDetails">Details</label>
+             <div class="help" style="margin-bottom:4px;">Provide details on clinical associations, co-segregation, functional studies, etc.</div>
+             <textarea id="contribDetails" rows="6" style="width:100%; padding:10px; border-radius:12px; border:1px solid var(--border);" placeholder="Enter details..." required></textarea>
+          </div>
+          <div class="contribActions" style="display:flex; gap:10px;">
+             <button type="submit" class="primary">Submit via Email</button>
+             <button type="button" id="btnCancelContribute" class="secondary">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- LOLLIPOP OVERLAY (New) -->
   <div id="lollipopOverlay" class="lollipop-overlay">
     <div class="lollipop-modal">
@@ -841,7 +876,7 @@
           btnContainer.innerHTML = '';
           let ids = {};
           try {
-             if(idsEncoded) ids = JSON.parse(decodeURIComponent(idsEncoded));
+              if(idsEncoded) ids = JSON.parse(decodeURIComponent(idsEncoded));
           } catch(e) { console.error(e); }
 
           const configs = [
@@ -1553,7 +1588,7 @@
            })
            .sort((a, b) => {
              if (a.range !== b.range) return b.range - a.range; // Biggest diff first
-             if (a.maxS !== b.maxS) return b.maxS - a.maxS;     // Higher severity first
+             if (a.maxS !== b.maxS) return b.maxS - a.maxS;      // Higher severity first
              return b.scv - a.scv;                              // More SCVs first
            })
            .slice(0, 50)
@@ -1759,7 +1794,17 @@
         ["Conditions", row.conditions.map(c => `<span class="tag">${getConditionLink(c)} (${c.count})</span>`).join(' ')]
       ];
 
-      document.getElementById("modalBody").innerHTML = `
+      // --- NEW LOGIC: Check for Uncertain/Conflicting Significance ---
+      const isUncertainOrConflict = (row.sigs || []).some(s => {
+          const ls = String(s).toLowerCase();
+          return ls.includes("uncertain") || ls.includes("conflict") || ls.includes("vus");
+      });
+      
+      const contributeBtnHTML = isUncertainOrConflict
+          ? `<button id="btnOpenContribute" class="primary" style="width:100%; margin-bottom:20px; background:linear-gradient(135deg, var(--c4), var(--c2));">Contribute to understanding of this variant</button>`
+          : ``;
+
+      document.getElementById("modalBody").innerHTML = contributeBtnHTML + `
         <div class="card" style="margin-bottom: 20px;">
           <h3>Basic Information</h3>
           <div class="inner">
@@ -1800,6 +1845,13 @@
         </details>
       `;
 
+      // Attach listener for new contribute button if it exists
+      if (isUncertainOrConflict) {
+          document.getElementById("btnOpenContribute").onclick = () => {
+              document.getElementById("contributeOverlay").classList.add("show");
+          };
+      }
+
       const rcvs = asArray(row.rawClinvar.rcv).sort((a,b) => (parseDateToMs(b.last_evaluated)||0) - (parseDateToMs(a.last_evaluated)||0));
 
       document.getElementById("rcvTable").innerHTML =
@@ -1829,6 +1881,47 @@
       document.getElementById("overlay").classList.remove("show");
       document.body.style.overflow = '';
     }
+
+    // --- Contribute Form Logic (New) ---
+    document.getElementById("btnCancelContribute").onclick = () => document.getElementById("contributeOverlay").classList.remove("show");
+    document.getElementById("btnCancelContributeTop").onclick = () => document.getElementById("contributeOverlay").classList.remove("show");
+
+    document.getElementById("contributeForm").onsubmit = (e) => {
+        e.preventDefault();
+        if (!currentModalRow) return;
+
+        const name = document.getElementById("contribName").value;
+        const affil = document.getElementById("contribAffil").value;
+        const email = document.getElementById("contribEmail").value;
+        const details = document.getElementById("contribDetails").value;
+
+        const row = currentModalRow;
+        const subject = `[${row.geneSymbol}] Variant Contribution: ${row.preferredName || row.id}`;
+        
+        const body = `
+Gene: ${row.geneSymbol}
+Variant: ${row.preferredName || "N/A"}
+HGVS/Coords: ${row.coords || "N/A"}
+MyVariant ID: ${row.id}
+ClinVar Variation ID: ${row.variationId || "N/A"}
+
+-- Contributor --
+Name: ${name}
+Affiliation: ${affil}
+Email: ${email}
+
+-- Details --
+${details}
+        `.trim();
+
+        const mailto = `mailto:example@example.xyz?cc=${encodeURIComponent(email)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        
+        // Open mail client
+        window.location.href = mailto;
+        
+        // Close modal
+        document.getElementById("contributeOverlay").classList.remove("show");
+    };
 
     // --- Export helpers (added) ---
     function downloadText(filename, text) {
