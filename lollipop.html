@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickLolli</title>
+    <title>GeneVariant Viz Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     <style>
         :root {
-            /* Grayscale Theme */
+            /* Grayscale/White UI Theme */
             --bg: #ffffff;
             --card: #ffffff;
             --text: #000000;
@@ -19,7 +19,7 @@
             --console-bg: #1c1c1e;
             --console-text: #00ff00;
             
-            /* Custom Data Palette */
+            /* Custom Data Palette (Hex) */
             --p1: #28509C;
             --p2: #ED037C;
             --p3: #272D72;
@@ -80,7 +80,7 @@
 
         button {
             padding: 10px 20px;
-            background: var(--text); /* Grayscale/Black button */
+            background: var(--text);
             color: white;
             border: none;
             border-radius: 10px;
@@ -94,6 +94,7 @@
         button:hover { opacity: 0.85; }
         button.secondary { background: #f2f2f7; color: var(--text); border: 1px solid var(--border); }
 
+        /* Main Plot Layout with Collapsible Legend */
         .viz-main-layout {
             display: flex;
             background: var(--card);
@@ -103,10 +104,11 @@
             margin-bottom: 20px;
             overflow: hidden;
             height: 600px;
+            position: relative;
         }
 
         #legend-area {
-            width: 260px;
+            width: 280px;
             flex-shrink: 0;
             background: #fafafa;
             border-right: 1px solid var(--border);
@@ -116,6 +118,40 @@
             flex-direction: column;
             gap: 25px;
             font-size: 11px;
+            transition: width 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+        }
+
+        #legend-area.collapsed {
+            width: 0;
+            padding: 0;
+            border: none;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .legend-toggle-btn {
+            position: absolute;
+            left: 280px;
+            top: 10px;
+            z-index: 10;
+            background: white;
+            border: 1px solid var(--border);
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            padding: 6px 10px;
+            cursor: pointer;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #86868b;
+        }
+
+        #legend-area.collapsed + .legend-toggle-btn {
+            left: 0;
         }
 
         .viz-wrapper {
@@ -222,7 +258,7 @@
         .detail-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 13px; }
         .detail-table th, .detail-table td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border); }
         .raw-json-block { background: #f8f8f8; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 11px; overflow-x: auto; border: 1px solid var(--border); margin-top: 15px; color: #333; }
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; text-transform: uppercase; font-weight: 700; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; text-transform: uppercase; font-weight: 700; color: white; }
     </style>
 </head>
 <body>
@@ -231,7 +267,7 @@
     <header>
         <div>
             <h1 style="margin:0; font-weight: 800; letter-spacing: -0.02em;">Quick <span style="color:var(--text)">Lolli</span></h1>
-            <p style="margin: 4px 0 0 0; color: #86868b;">Advanced Lollipop Plotter with Side Legend & Exon Mapping</p>
+            <p style="margin: 4px 0 0 0; color: #86868b;">Advanced Lollipop Plotter with Sidestacked Legend</p>
         </div>
         <div style="display: flex; gap: 10px;">
             <button class="secondary" onclick="exportSVG()">Export SVG</button>
@@ -257,6 +293,10 @@
         <div id="legend-area">
             <span style="color:#86868b">Search for a gene to view the legend.</span>
         </div>
+        <button class="legend-toggle-btn" id="legendToggle" onclick="toggleLegend()">
+            <svg id="toggleIcon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transition: transform 0.3s ease;"><path d="M15 18l-6-6 6-6"/></svg>
+            <span>LEGEND</span>
+        </button>
         <div class="viz-wrapper" id="viz-wrapper">
             <div id="viz-container"></div>
             <div id="tooltip" class="tooltip"></div>
@@ -357,6 +397,31 @@
         d3.symbolDiamond, d3.symbolCross, d3.symbolStar, d3.symbolWye
     ];
 
+    /** --- LAYOUT LOGIC --- **/
+    function toggleLegend(forceCollapse) {
+        const area = document.getElementById('legend-area');
+        const icon = document.getElementById('toggleIcon');
+        const isCurrentlyCollapsed = area.classList.contains('collapsed');
+        
+        const targetCollapse = (forceCollapse !== undefined) ? forceCollapse : !isCurrentlyCollapsed;
+        
+        area.classList.toggle('collapsed', targetCollapse);
+        icon.style.transform = targetCollapse ? 'rotate(180deg)' : 'rotate(0deg)';
+        
+        // Allow time for CSS transition before recalculating D3
+        setTimeout(render, 310);
+    }
+
+    const mediaQuery = window.matchMedia("(max-width: 1000px)");
+    function handleScreenResize(e) {
+        if (e.matches) {
+            toggleLegend(true);
+        } else {
+            toggleLegend(false);
+        }
+    }
+    mediaQuery.addListener(handleScreenResize);
+
     function updateLegend() {
         const legendArea = d3.select("#legend-area");
         legendArea.selectAll("*").remove();
@@ -417,7 +482,6 @@
             });
         }
 
-        // 3. Backbone
         if (selectedFeatureTypes.size > 0) {
             const bbSection = legendArea.append("div").attr("class", "legend-section");
             bbSection.append("div").attr("class", "legend-title").text("Backbone Features");
@@ -538,8 +602,12 @@
 
             let detectedTranscript = "N/A";
             vJson.hits.some(h => {
-                const cv = h.clinvar || {};
-                const rcvs = Array.isArray(cv.rcv) ? cv.rcv : (cv.rcv ? [cv.rcv] : []);
+                const nmMatch = (h.clinvar?.hgvs?.nucleotide || "").match(/NM_\d+/);
+                if (nmMatch) {
+                    detectedTranscript = nmMatch[0];
+                    return true;
+                }
+                const rcvs = Array.isArray(h.clinvar?.rcv) ? h.clinvar.rcv : (h.clinvar?.rcv ? [h.clinvar.rcv] : []);
                 const hgvsP = rcvs[0]?.preferred_name || h.snpeff?.ann?.[0]?.hgvs_p || "";
                 if (hgvsP.startsWith("NM_")) {
                     detectedTranscript = hgvsP.split('(')[0];
@@ -569,7 +637,7 @@
                 updateFeatureControls(); 
             }
 
-            // Frequency Analysis for Variant Types (Top 4)
+            // Top 4 Logic
             let typeCountsFull = {};
             vJson.hits.forEach(h => {
                 const nmMatch = (h.clinvar?.hgvs?.nucleotide || "").match(/NM_\d+/);
@@ -673,10 +741,29 @@
             return !hiddenCategories.has(d.type);
         });
 
-        // Dynamic BOLD Title
-        svg.append("text")
-            .attr("x", 20).attr("y", 35).attr("font-weight", "800").attr("font-size", "16px").attr("fill", "var(--text)")
-            .text(`${(document.getElementById('geneSearch')?.value || "N/A").toUpperCase()} [${geneInfo.canonicalTranscript}] — ${visible.length} Variants Displayed`);
+        // Dynamic Title (Centered)
+        const geneSymbolText = (document.getElementById('geneSearch')?.value || "FGFR3").toUpperCase();
+        const transcriptText = `[${geneInfo.canonicalTranscript}]`;
+        
+        const titleText = svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", 25)
+            .attr("text-anchor", "middle")
+            .attr("font-weight", "800")
+            .attr("fill", "var(--text)");
+
+        titleText.append("tspan")
+            .attr("x", width / 2)
+            .attr("font-size", width < 600 ? "14px" : "20px")
+            .text(geneSymbolText);
+
+        titleText.append("tspan")
+            .attr("x", width / 2)
+            .attr("dy", "1.2em")
+            .attr("font-size", width < 600 ? "10px" : "14px")
+            .attr("font-weight", "600")
+            .attr("fill", "#86868b")
+            .text(transcriptText);
 
         const yScale = d3.scaleLinear().domain([0, d3.max(rawData, d => d.submissions) || 1]).range([0, -maxHeightVal]);
         const centerY = 0; 
@@ -717,17 +804,31 @@
             }
         });
 
-        g.append("g").attr("transform", `translate(0, ${centerY + 25})`).call(d3.axisBottom(rescaledX).ticks(10).tickFormat(d => d + " aa"));
-
+        // Lollipop
         const lolls = g.selectAll(".v-group").data(visible).enter().append("g");
         lolls.each(function(d) {
             const h = heightMode === 'freq' ? yScale(d.submissions) : -60;
             const match = searching && `${d.hgvs_p} ${d.significance} ${d.type} ${d.primaryCondition} ${d.allConditions}`.toLowerCase().includes(searchInput);
             const op = searching ? (match ? 1 : 0.1) : 1;
             const node = d3.select(this);
-            node.append("line").attr("x1", rescaledX(d.pos)).attr("x2", rescaledX(d.pos)).attr("y1", centerY - 10).attr("y2", centerY + h).attr("stroke", match ? "var(--accent)" : "#8e8e93").attr("stroke-width", (match ? 2 : 1)/zoomTransform.k).attr("opacity", op);
-            node.append("path").attr("transform", `translate(${rescaledX(d.pos)}, ${centerY + h})`).attr("d", d3.symbol().type(shapeMap[d.type] || d3.symbolCircle).size(80)()).attr("fill", getColor(d, variantPalette)).attr("stroke", match ? "black" : "white").attr("stroke-width", match ? 2.5 : 1).attr("opacity", op).style("cursor", "pointer")
-                .on("mouseover", (e) => showTooltip(e, d)).on("mousemove", moveTooltip).on("mouseout", hideTooltip).on("click", () => showDetails(d));
+            node.append("line")
+                .attr("x1", rescaledX(d.pos)).attr("x2", rescaledX(d.pos))
+                .attr("y1", centerY - 10).attr("y2", centerY + h)
+                .attr("stroke", match ? "var(--p1)" : "#8e8e93")
+                .attr("stroke-width", (match ? 2 : 1)/zoomTransform.k)
+                .attr("opacity", op);
+            node.append("path")
+                .attr("transform", `translate(${rescaledX(d.pos)}, ${centerY + h})`)
+                .attr("d", d3.symbol().type(shapeMap[d.type] || d3.symbolCircle).size(80)())
+                .attr("fill", getColor(d, variantPalette))
+                .attr("stroke", match ? "black" : "white")
+                .attr("stroke-width", match ? 2.5 : 1)
+                .attr("opacity", op)
+                .style("cursor", "pointer")
+                .on("mouseover", (e) => showTooltip(e, d))
+                .on("mousemove", moveTooltip)
+                .on("mouseout", hideTooltip)
+                .on("click", () => showDetails(d));
         });
 
         updateLegend();
@@ -740,7 +841,7 @@
         const sig = String(d.significance).toLowerCase();
         if(sig.includes("pathogenic")) return "var(--p2)";
         if(sig.includes("benign")) return "var(--p1)";
-        return "var(--p4)";
+        return sig.includes("uncertain") || sig.includes("vus") ? "var(--p4)" : "#8e8e93";
     }
 
     function getRel(e) { 
@@ -766,7 +867,7 @@
     function hideTooltip() { d3.select("#tooltip").style("visibility", "hidden"); }
 
     function showDetails(d) {
-        const condList = Object.entries(d.condCounts).map(([name, count]) => `${name} [${count}]`).join("<br>");
+        const condList = Object.entries(d.conditionCounts).map(([name, count]) => `${name} [${count}]`).join("<br>");
         const clinvarLink = d.variant_id ? `<a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${d.variant_id}" target="_blank" style="color:var(--accent); font-weight:bold">${d.variant_id}</a>` : "N/A";
         
         document.getElementById('modalTitle').innerText = "Variant Analysis";
@@ -779,7 +880,7 @@
                 <tr><th>All Associated Traits</th><td>${condList || "None provided"}</td></tr>
                 <tr><th>Variant Type</th><td>${d.type}</td></tr>
             </table>
-            <h3>Pretty Print Raw ClinVar Record</h3>
+            <p style="font-weight:bold; margin-top:20px; margin-bottom:5px;">Raw ClinVar Record (JSON Explorer)</p>
             <div class="raw-json-block"><pre>${JSON.stringify(d.raw, null, 2)}</pre></div>
         `;
         document.getElementById('modalOverlay').style.display = 'flex';
@@ -806,6 +907,7 @@
 
     // --- URL PARAMETER DETECTION ---
     window.addEventListener('DOMContentLoaded', () => {
+        handleScreenResize(mediaQuery); // Set initial state based on size
         const urlParams = new URLSearchParams(window.location.search);
         const geneParam = urlParams.get('gene');
         if (geneParam) {
