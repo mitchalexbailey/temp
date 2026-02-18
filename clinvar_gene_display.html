@@ -1241,29 +1241,79 @@
     }
 
     // --- Variant Timelines Logic ---
-    function isSignificantChange(row) {
-      const rcvs = asArray(row.rawClinvar?.rcv).filter(r => r.last_evaluated);
-      if (rcvs.length < 2) return false;
-      const getGroup = (sig) => {
-        const s = norm(sig);
-        if (s.includes('pathogenic')) return 'P';
-        if (s.includes('benign')) return 'B';
-        if (s.includes('uncertain') || s.includes('vus')) return 'V';
-        return 'O';
-      };
-      const groups = new Set();
-      rcvs.forEach(r => groups.add(getGroup(r.clinical_significance)));
-      const hasP = groups.has('P'), hasB = groups.has('B'), hasV = groups.has('V');
-      return (hasV && hasP) || (hasV && hasB) || (hasP && hasB);
+    function getSeverity(sig) {
+      const s = norm(sig);
+      if (s.includes('pathogenic') && !s.includes('likely') && !s.includes('conflict')) return 6;
+      if (s.includes('likely pathogenic')) return 5;
+      if (s.includes('conflict')) return 4;
+      if (s.includes('uncertain') || s.includes('vus')) return 3;
+      if (s.includes('likely benign')) return 2;
+      if (s.includes('benign')) return 1;
+      return 0;
     }
 
-    function renderVariantTimelineChart(rows){
+    function getVariantScore(row) {
+      // Sort priority: P(6) > LP(5) > Conflicting(4) > VUS(3) > LB(2) > B(1)
+      // Use the MAXIMUM severity present in the variant's current unique sigs
+      // to determine its sort grouping.
+      const sevs = (row.sigs || []).map(getSeverity);
+      return sevs.length ? Math.max(...sevs) : 0;
+    }
+
+    function renderVariantTimelineChart(rows) {
       const container = document.getElementById("variantTimelineChart");
       if (!container) return;
 
-      const filteredRows = (rows || []).filter(isSignificantChange);
-      if (!filteredRows.length) {
-        container.innerHTML = '<div class="help" style="text-align:center; padding:50px;">No variants with significant changes to display.</div>';
+      if (!rows || !rows.length) {
+        container.innerHTML = '<div class="help" style="text-align:center; padding:50px;">No variants to display.</div>';
+        return;
+      }
+
+      // 1. Initial Sort
+      // Sort by Severity Score (Desc) then SCV Count (Desc)
+      const candidates = [...rows].sort((a, b) => {
+        const scoreA = getVariantScore(a);
+        const scoreB = getVariantScore(b);
+        if (scoreA !== scoreB) return scoreB - scoreA;
+        return (b.scvTotal || 0) - (a.scvTotal || 0);
+      });
+
+      let displayRows = [];
+
+      // Logic Step 1: If <= 30, plot all
+      if (candidates.length <= 30) {
+        displayRows = candidates;
+      } else {
+        // Logic Step 2: Filter for variants with > 2 unique classifications
+        // row.sigs contains unique classifications strings
+        const complex = candidates.filter(r => (r.sigs || []).length >= 2);
+
+        if (complex.length === 0) {
+           // Fallback: If no complex variants exist, default to the top 30 sorted
+           displayRows = candidates.slice(0, 30);
+        } else if (complex.length <= 50) {
+           // Logic Step 3: If filtered count <= 50, plot all
+           displayRows = complex;
+        } else {
+           // Logic Step 4: If > 50, prioritize max severity difference
+           displayRows = complex.map(r => {
+             const sevs = (r.sigs || []).map(getSeverity);
+             const minS = Math.min(...sevs);
+             const maxS = Math.max(...sevs);
+             return { row: r, range: maxS - minS, maxS, scv: r.scvTotal };
+           })
+           .sort((a, b) => {
+             if (a.range !== b.range) return b.range - a.range; // Biggest diff first
+             if (a.maxS !== b.maxS) return b.maxS - a.maxS;     // Higher severity first
+             return b.scv - a.scv;                              // More SCVs first
+           })
+           .slice(0, 50)
+           .map(x => x.row);
+        }
+      }
+
+      if (!displayRows.length) {
+        container.innerHTML = '<div class="help" style="text-align:center; padding:50px;">No variants met the display criteria.</div>';
         return;
       }
 
@@ -1277,7 +1327,7 @@
       };
 
       const traces = [];
-      filteredRows.forEach((row, i) => {
+      displayRows.forEach((row, i) => {
         const rcvs = asArray(row.rawClinvar?.rcv).filter(r => r.last_evaluated);
         const dates = rcvs.map(r => parseDateToMs(r.last_evaluated)).filter(Boolean);
         if (!dates.length) return;
@@ -1322,13 +1372,13 @@
       dummyCats.forEach(c => traces.push({ x:[null], y:[null], mode:'markers', name:c.name, marker:{color:c.color} }));
 
       const layout = getResponsivePlotlyLayout({
-        height: Math.max(400, filteredRows.length * 35),
+        height: Math.max(400, displayRows.length * 35),
         margin: { l: 260, r: 40, t: 80, b: 60 },
         xaxis: { type: 'date', showgrid: false, zeroline: false },
         yaxis: {
           tickmode: 'array',
-          tickvals: filteredRows.map((_,i)=>i),
-          ticktext: filteredRows.map(r => stripPrefix(r.preferredName || r.variationId)),
+          tickvals: displayRows.map((_,i)=>i),
+          ticktext: displayRows.map(r => stripPrefix(r.preferredName || r.variationId)),
           autorange: 'reversed',
           fixedrange: true,
           showgrid: false,
@@ -1344,7 +1394,7 @@
         gd.on('plotly_click', (data) => {
           if (data.points && data.points.length > 0) {
             const idx = Math.round(data.points[0].y);
-            openDetails(filteredRows[idx]);
+            openDetails(displayRows[idx]);
           }
         });
       }).catch(()=>{});
