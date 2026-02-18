@@ -563,6 +563,40 @@
       } catch (e) {
         document.getElementById("hgncStatus").textContent = "Error loading hgnc_labels.json. Proceeding with manual input.";
       }
+      checkUrlForGene();
+    }
+
+    /**
+     * Checks URL for gene symbol to skip manual input.
+     * Supports:
+     * 1. Query params: ?gene=FGFR3
+     * 2. Hash: #FGFR3
+     * 3. Path suffix (if server allows): /FGFR3
+     */
+    function checkUrlForGene() {
+      const params = new URLSearchParams(window.location.search);
+      let gene = params.get('gene');
+
+      if (!gene && window.location.hash) {
+        gene = window.location.hash.substring(1);
+      }
+
+      if (!gene) {
+        const pathParts = window.location.pathname.split('/');
+        const lastPart = pathParts[pathParts.length - 1];
+        if (lastPart && !lastPart.includes('.html') && lastPart.length > 0) {
+          gene = lastPart;
+        }
+      }
+
+      if (gene && gene.length > 0) {
+        gene = decodeURIComponent(gene).trim().toUpperCase();
+        selectedGene = gene;
+        selectionScreen.style.display = "none";
+        app.style.visibility = "visible";
+        document.getElementById("brandTitle").textContent = `${selectedGene} Variant Dashboard`;
+        loadAllData();
+      }
     }
 
     geneInput.addEventListener("input", () => {
@@ -891,22 +925,6 @@
       } catch (e) { body.innerHTML = '<tr><td colspan="5">Fetch error.</td></tr>'; }
     }
 
-    function filterSCVs(rcvId) {
-      const rows = document.querySelectorAll("#scvTableBody tr");
-      let visibleCount = 0;
-      rows.forEach(row => {
-        const parentCell = row.cells[0];
-        if (parentCell && parentCell.textContent.trim() === rcvId) { row.style.display = ""; visibleCount++; } else { row.style.display = "none"; }
-      });
-      document.getElementById("scvStatus").innerHTML = `Showing <strong>${visibleCount}</strong> submissions for ${rcvId}. <a href="javascript:void(0)" onclick="resetSCVFilter()" style="font-size:11px; margin-left:10px;">Show all</a>`;
-    }
-
-    function resetSCVFilter() {
-      const rows = document.querySelectorAll("#scvTableBody tr");
-      rows.forEach(row => row.style.display = "");
-      document.getElementById("scvStatus").textContent = "Individual lab submissions for this variant.";
-    }
-
     function openDetails(row){
       currentModalRow = row;
       const variationId = row.variationId && row.variationId !== "—" ? row.variationId : null;
@@ -1030,7 +1048,7 @@
       const filtered = allRows.filter(r => {
         const matchSig = selSigs.includes("__ALL__") || r.sigs.some(s => selSigs.includes(s));
         const matchCond = selConds.includes("__ALL__") || r.conditions.some(c => selConds.includes(c.name));
-        const hay = [r.preferredName, r.variationId, ...r.sigs, ...r.conditions.map(c => c.name)].join(" ").toLowerCase();
+        const hay = [r.preferredName, r.coords, r.variationId, ...r.sigs, ...r.conditions.map(c => c.name)].join(" ").toLowerCase();
         return matchSig && matchCond && (!q || hay.includes(q));
       });
       lastFilteredRows = filtered; topShowing.textContent = filtered.length;
