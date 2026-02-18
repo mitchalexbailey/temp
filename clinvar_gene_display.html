@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-5WXJN4VQ');</script>
+  <!-- End Google Tag Manager -->
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Gene Variant Dashboard</title>
@@ -470,9 +478,50 @@
       border: none;
       background: #fff;
     }
+
+    /* Condition Buttons (New) */
+    .condition-buttons-row {
+      display: flex;
+      gap: 10px;
+      padding: 10px 16px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap; 
+    }
+    .cond-btn {
+      flex: 1;
+      min-width: 120px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: opacity 0.2s;
+      text-decoration: none; /* acts as link */
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cond-btn:hover { opacity: 0.9; text-decoration: none; }
+
+    #conditionFrame iframe {
+      width: 125%;          /* 100 / 0.8 = 125% */
+      height: 125%;
+      transform: scale(0.8);
+      transform-origin: top left;
+      border: 0;
+    }
   </style>
 </head>
 <body>
+
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5WXJN4VQ"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
 
   <!-- INITIAL GENE SELECTION SCREEN -->
   <div id="geneSelectionScreen">
@@ -708,6 +757,27 @@
     </div>
   </div>
 
+  <!-- CONDITION VIEWER OVERLAY (New - Cloned from Lollipop style) -->
+  <div id="conditionOverlay" class="lollipop-overlay">
+    <div class="lollipop-modal">
+      <div class="lollipop-header">
+        <div class="lollipop-title">
+          <span>🔗 <span id="conditionTitleText">Condition View</span></span>
+        </div>
+        <div class="lollipop-actions">
+          <button id="btnConditionNewTab" class="lollipop-btn" title="Open in New Tab">
+            <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+          </button>
+          <button id="btnConditionClose" class="lollipop-btn" title="Close">
+            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="conditionButtons" class="condition-buttons-row"></div>
+      <iframe id="conditionFrame" style="height: 100%" src=""></iframe>
+    </div>
+  </div>
+
   <script>
     const API_BASE = "https://myvariant.info/v1/query";
     const HGNC_JSON_URL = "https://raw.githubusercontent.com/mitchalexbailey/temp/refs/heads/main/hgnc_labels.json";
@@ -716,7 +786,8 @@
     const REFSEQ_PREFIX_RE = /^NM_\d+\.\d+\([A-Z0-9]+\):/i;
 
     let allRows = [], lastFilteredRows = [], controller = null, totalHits = null;
-    let sigCounts = new Map(), condCounts = new Map(), sigSelected = new Set(["__ALL__"]), condSelected = new Set(["__ALL__"]);
+    let sigCounts = new Map(), condCounts = new Map(), condMeta = new Map();
+    let sigSelected = new Set(["__ALL__"]), condSelected = new Set(["__ALL__"]);
     let sigOptions = [], condOptions = [];
     let timelineMode = "classification";
     let currentModalRow = null;
@@ -742,6 +813,13 @@
     const btnLollipopNewTab = document.getElementById('btnLollipopNewTab');
     const btnLollipopClose = document.getElementById('btnLollipopClose');
 
+    // Condition viewer elements
+    const conditionOverlay = document.getElementById('conditionOverlay');
+    const conditionFrame = document.getElementById('conditionFrame');
+    const conditionTitleText = document.getElementById('conditionTitleText');
+    const btnConditionNewTab = document.getElementById('btnConditionNewTab');
+    const btnConditionClose = document.getElementById('btnConditionClose');
+
     // Multi-select elements (make explicit to avoid implicit globals)
     const sigSearch = document.getElementById("sigSearch");
     const sigPills  = document.getElementById("sigPills");
@@ -749,6 +827,115 @@
     const condSearch= document.getElementById("condSearch");
     const condPills = document.getElementById("condPills");
     const condList  = document.getElementById("condList");
+
+    /**
+     * Logic for the Condition Modal Viewer
+     */
+    function openConditionView(url, title, idsEncoded) {
+      if(!url) return;
+      conditionFrame.src = url;
+      if(title) conditionTitleText.textContent = title;
+      else conditionTitleText.textContent = "Condition View";
+      
+      // Handle buttons
+      const btnContainer = document.getElementById('conditionButtons');
+      if (btnContainer) {
+          btnContainer.innerHTML = '';
+          let ids = {};
+          try {
+             if(idsEncoded) ids = JSON.parse(decodeURIComponent(idsEncoded));
+          } catch(e) { console.error(e); }
+
+          const configs = [
+              { key: 'mondo', color: 'var(--c1)', urlFn: (v) => `https://monarchinitiative.org/${v}` },
+              { key: 'omim', color: 'var(--c2)', urlFn: (v) => `https://www.omim.org/entry/${v}` },
+              { key: 'orphanet', color: 'var(--c5)', urlFn: (v) => `https://www.orpha.net/en/disease/detail/${v}` }
+          ];
+
+          // Check if we have any valid keys
+          const hasKeys = configs.some(c => ids[c.key]);
+
+          if (hasKeys) {
+              btnContainer.style.display = 'flex';
+              configs.forEach(c => {
+                  if (ids[c.key]) {
+                      const val = ids[c.key];
+                      const link = c.urlFn(val);
+                      const label = `${String(val).toUpperCase()} (${c.key.toUpperCase()})`;
+                      
+                      const btn = document.createElement('a');
+                      btn.className = 'cond-btn';
+                      btn.style.backgroundColor = c.color;
+                      btn.href = link;
+                      btn.target = '_blank';
+                      btn.rel = 'noopener noreferrer';
+                      btn.textContent = label;
+                      btnContainer.appendChild(btn);
+                  }
+              });
+          } else {
+              // Hide container if empty to save space
+              btnContainer.style.display = 'none';
+          }
+      }
+
+      conditionOverlay.classList.add('show');
+    }
+
+    function closeConditionView() {
+      conditionOverlay.classList.remove('show');
+      conditionFrame.src = "";
+    }
+
+    function openConditionNewTab() {
+      if (conditionFrame.src && conditionFrame.src !== "about:blank") {
+        window.open(conditionFrame.src, '_blank');
+      }
+    }
+
+    // Attach condition viewer events
+    btnConditionClose.addEventListener('click', closeConditionView);
+    btnConditionNewTab.addEventListener('click', openConditionNewTab);
+    conditionOverlay.addEventListener('click', (e) => {
+      if(e.target === conditionOverlay) closeConditionView();
+    });
+
+
+    /**
+     * Generates a clickable link for a ClinVar condition.
+     * Triggers the internal modal viewer (openConditionView) instead of a direct new tab.
+     */
+    function getConditionLink(condition) {
+      if (!condition || !condition.name) return '';
+      
+      const identifiers = condition.identifiers || {};
+      const name = condition.name;
+      let url = '';
+
+      // 1. Check for OMIM Phenotype Number (Preferred)
+      if (identifiers.mondo) {
+        url = `https://monarchinitiative.org/${identifiers.mondo}`;
+      }
+      else if (identifiers.omim) {
+        url = `https://www.omim.org/entry/${identifiers.omim}`;
+      }
+      else if (identifiers.orphanet) {
+        url = `https://www.orpha.net/en/disease/detail/${identifiers.orphanet}`;
+      }
+      // 3. Fallback: Search OMIM by condition name
+      else {
+        url = `https://google.com`;
+      }
+
+      // Return link with onclick handler for modal
+      const safeName = escapeHtml(name);
+      const safeUrl = url.replace(/'/g, "\\'"); 
+      // Serialize identifiers safely for passing to modal
+      const idsJson = encodeURIComponent(JSON.stringify(identifiers));
+      const jsCall = `openConditionView('${safeUrl}', '${safeName.replace(/'/g, "\\'")}', '${idsJson}')`;
+      
+      return `<a href="javascript:void(0)" onclick="event.stopPropagation(); ${jsCall}">${safeName}</a>`;
+    }
 
     // ---------- Mobile Sidebar Toggle (added, without breaking desktop collapse) ----------
     function toggleSidebarMobile(force) {
@@ -1027,6 +1214,19 @@
       return out;
     }
 
+    // New helper to extract full object for linking
+    function extractConditionObjectsFromRcv(rcv) {
+      const out = [];
+      asArray(safeGet(rcv, "conditions")).forEach(c => {
+        if (typeof c === "string") {
+            out.push({ name: c, identifiers: {} });
+        } else if (c && c.name) {
+            out.push({ name: c.name, identifiers: c.identifiers || {} });
+        }
+      });
+      return out;
+    }
+
     function pickPreferredName(rcvs){
       const sorted = rcvs.map(r => ({ name: r.preferred_name, ms: parseDateToMs(r.last_evaluated) || 0 })).sort((a,b) => b.ms - a.ms);
       return sorted.find(s => s.name)?.name || null;
@@ -1042,8 +1242,24 @@
       const phenotypeMap = new Map();
       rcvs.forEach(r => {
         const subCount = parseInt(r.number_submitters) || 1;
-        uniq(extractConditionsFromRcv(r)).forEach(cName => {
-          if (cName) phenotypeMap.set(cName, (phenotypeMap.get(cName) || 0) + subCount);
+        const conds = extractConditionObjectsFromRcv(r);
+        const uniqueNamesInRcv = new Set();
+        
+        conds.forEach(cObj => {
+          if (!cObj.name) return;
+          if (uniqueNamesInRcv.has(cObj.name)) return;
+          uniqueNamesInRcv.add(cObj.name);
+          
+          if (!phenotypeMap.has(cObj.name)) {
+            phenotypeMap.set(cObj.name, { count: 0, identifiers: {} });
+          }
+          const entry = phenotypeMap.get(cObj.name);
+          entry.count += subCount;
+          // Merge identifiers logic: if we find identifiers in any RCV for this name, add them
+          if(cObj.identifiers && cObj.identifiers.medgen) entry.identifiers.medgen = cObj.identifiers.medgen;
+          if(cObj.identifiers && cObj.identifiers.omim) entry.identifiers.omim = cObj.identifiers.omim;
+          if(cObj.identifiers && cObj.identifiers.mondo) entry.identifiers.mondo = cObj.identifiers.mondo;
+          if(cObj.identifiers && cObj.identifiers.orphanet) entry.identifiers.orphanet = cObj.identifiers.orphanet;
         });
       });
 
@@ -1053,7 +1269,7 @@
         geneSymbol: cv.gene?.symbol || selectedGene || "—",
         preferredName: name, coords,
         sigs: uniq(rcvs.map(r => r.clinical_significance)),
-        conditions: Array.from(phenotypeMap.entries()).map(([name, count]) => ({ name, count })).sort((a,b) => b.count - a.count),
+        conditions: Array.from(phenotypeMap.entries()).map(([name, data]) => ({ name, count: data.count, identifiers: data.identifiers })).sort((a,b) => b.count - a.count),
         review: uniq(rcvs.map(r => r.review_status)),
         lastEval: dates.length ? new Date(dates[0]).toISOString().split('T')[0] : "—",
         rcvCount: rcvs.length,
@@ -1153,7 +1369,7 @@
             </div>
           </td>
           <td>${r.sigs.map(s => `<div class="sig ${norm(s).includes('patho')?'bad':norm(s).includes('benign')?'good':'warn'}">${escapeHtml(s)}</div>`).join('')}</td>
-          <td>${r.conditions.slice(0,5).map(c => `<span class="tag">${escapeHtml(c.name)} (${c.count})</span>`).join('')}</td>
+          <td>${r.conditions.slice(0,5).map(c => `<span class="tag">${getConditionLink(c)} (${c.count})</span>`).join('')}</td>
           <td class="small">${escapeHtml(r.review.join(" • "))}</td>
           <td>${escapeHtml(r.lastEval)}</td>
         `;
@@ -1169,10 +1385,14 @@
       const sortedConds = filteredConds.slice(0, 4).map(c => c.value);
 
       sortedConds.forEach(rowLabel => {
+        // Construct link for Matrix Header
+        const ids = condMeta.get(rowLabel) || {};
+        const headerLink = getConditionLink({ name: rowLabel, identifiers: ids });
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <th class="rowHead">
-            ${escapeHtml(rowLabel)}
+            ${headerLink}
           </th>`;
 
         MATRIX_COLS.forEach(col => {
@@ -1538,7 +1758,7 @@
         ["Gene", `<span class="mono">${escapeHtml(row.geneSymbol)}</span>`],
         ["Clinical Significance", escapeHtml(row.sigs.join(' • '))],
         ["Last Evaluated", escapeHtml(row.lastEval)],
-        ["Conditions", row.conditions.map(c => `<span class="tag">${escapeHtml(c.name)} (${c.count})</span>`).join(' ')]
+        ["Conditions", row.conditions.map(c => `<span class="tag">${getConditionLink(c)} (${c.count})</span>`).join(' ')]
       ];
 
       document.getElementById("modalBody").innerHTML = `
@@ -1589,11 +1809,12 @@
          <tbody>` +
         rcvs.map(r => {
           const rcvId = r.accession || r.id || "—";
+          const condObjs = extractConditionObjectsFromRcv(r);
           return `
             <tr class="rowclick" style="cursor:pointer;" onclick="filterSCVs('${String(rcvId).replace(/'/g,"\\'")}')">
               <td><span class="mono" style="color:var(--c1); font-weight:800">${escapeHtml(rcvId)} ↳</span></td>
               <td><span class="sig ${norm(r.clinical_significance).includes('patho')?'bad':norm(r.clinical_significance).includes('benign')?'good':'warn'}">${escapeHtml(r.clinical_significance || '—')}</span></td>
-              <td>${escapeHtml(extractConditionsFromRcv(r).join(', ') || '—')}</td>
+              <td>${condObjs.map(c => getConditionLink(c)).join(', ') || '—'}</td>
               <td class="small">${escapeHtml(r.last_evaluated || '—')}</td>
               <td class="mono" style="text-align:center">${escapeHtml(r.number_submitters || '—')}</td>
             </tr>`;
@@ -1705,6 +1926,8 @@
               th { background: #f9f9f9; font-weight: bold; }
               img { max-width: 100%; border: 1px solid #eee; margin-top: 10px; }
               .notes { background: #f4f4f4; padding: 15px; border-radius: 8px; font-style: italic; }
+              /* Link styling for print/pdf */
+              a { color: #28509C; text-decoration: none; }
             </style>
           </head>
           <body>
@@ -1745,7 +1968,7 @@
                       <td>${escapeHtml(r.preferredName || r.id || "—")}</td>
                       <td>${escapeHtml(r.variationId || "—")}</td>
                       <td>${escapeHtml((r.sigs||[]).join(" • "))}</td>
-                      <td>${escapeHtml((r.conditions||[]).slice(0,3).map(c => c.name).join(" • "))}</td>
+                      <td>${(r.conditions||[]).slice(0,3).map(c => getConditionLink(c)).join(" • ")}</td>
                       <td>${escapeHtml((r.review||[]).join(" • "))}</td>
                       <td>${escapeHtml(r.lastEval || "—")}</td>
                     </tr>`).join("")}
@@ -1841,9 +2064,19 @@
     function buildCounts(){
       sigCounts.clear();
       condCounts.clear();
+      condMeta.clear();
+      
       allRows.forEach(r => {
         (r.sigs || []).forEach(s => sigCounts.set(s, (sigCounts.get(s)||0)+1));
-        (r.conditions || []).forEach(c => condCounts.set(c.name, (condCounts.get(c.name)||0)+1));
+        (r.conditions || []).forEach(c => {
+          condCounts.set(c.name, (condCounts.get(c.name)||0)+1);
+          // Store identifiers globally for matrix headers (condMeta)
+          // Logic: If current identifiers has more keys, or if cached is empty, update it.
+          // This aggregates "best" identifiers for a given condition name across all variants.
+          if (!condMeta.has(c.name) || (Object.keys(c.identifiers||{}).length > Object.keys(condMeta.get(c.name)||{}).length)) {
+            condMeta.set(c.name, c.identifiers);
+          }
+        });
       });
       sigOptions = sortByFrequencyThenAlpha(sigCounts);
       condOptions = sortByFrequencyThenAlpha(condCounts);
