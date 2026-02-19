@@ -30,7 +30,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: Arial, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
@@ -72,8 +72,22 @@
             border: 1px solid var(--border);
             border-radius: 10px;
             font-size: 13px;
+            font-family: Arial, sans-serif;
             transition: border-color 0.2s;
             background: white;
+        }
+
+        /* Multiselect specific styling */
+        .multiselect-filter {
+            height: 75px !important;
+            padding: 4px !important;
+            min-width: 150px;
+            max-width: 200px;
+        }
+        .multiselect-filter option {
+            padding: 4px 8px;
+            margin-bottom: 2px;
+            border-radius: 4px;
         }
 
         .slider-group { min-width: 180px; }
@@ -86,6 +100,7 @@
             border-radius: 10px;
             cursor: pointer;
             font-weight: 600;
+            font-family: Arial, sans-serif;
             transition: opacity 0.2s;
             align-self: flex-end;
             margin-bottom: 2px;
@@ -159,22 +174,22 @@
         .feature-checkbox { display: flex; align-items: center; gap: 4px; font-size: 10px; background: #fff; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); cursor: pointer; }
 
         .console-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
-        .console-panel { background: var(--console-bg); border-radius: 12px; color: var(--console-text); font-family: monospace; height: 300px; display: flex; flex-direction: column; overflow: hidden; }
+        .console-panel { background: var(--console-bg); border-radius: 12px; color: var(--console-text); font-family: Arial, sans-serif; height: 300px; display: flex; flex-direction: column; overflow: hidden; }
         .console-header { background: #2c2c2e; padding: 8px 15px; font-size: 11px; text-transform: uppercase; color: #aeaeae; display: flex; justify-content: space-between; }
-        #api-log { padding: 10px; overflow-y: auto; font-size: 12px; flex-grow: 1; white-space: pre-wrap; }
+        #api-log { padding: 10px; overflow-y: auto; font-size: 12px; flex-grow: 1; white-space: pre-wrap; font-family: monospace; }
         .log-entry { margin-bottom: 8px; border-bottom: 1px solid #3a3a3c; padding-bottom: 4px; }
         .inspector-split { display: flex; height: 100%; flex-grow: 1; }
         .inspector-sidebar { width: 150px; border-right: 1px solid #3a3a3c; padding: 10px; overflow-y: auto; }
         .var-link { display: block; padding: 6px; cursor: pointer; font-size: 11px; color: #aeaeae; border-radius: 4px; }
         .var-link.active { background: var(--accent); color: white; }
-        .inspector-window { flex-grow: 1; padding: 10px; overflow-y: auto; font-size: 12px; }
+        .inspector-window { flex-grow: 1; padding: 10px; overflow-y: auto; font-size: 12px; font-family: monospace; }
 
         .tooltip { position: absolute; padding: 10px; background: rgba(0, 0, 0, 0.95); color: white; border-radius: 8px; font-size: 12px; pointer-events: none; visibility: hidden; z-index: 200; backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); line-height: 1.4; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal { background: white; padding: 30px; border-radius: 20px; max-width: 900px; width: 95%; max-height: 85vh; overflow-y: auto; position: relative; }
         .detail-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 13px; }
         .detail-table th, .detail-table td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border); }
-        .raw-json-block { background: #f8f8f8; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 11px; overflow-x: auto; border: 1px solid var(--border); margin-top: 15px; color: #333; }
+        .raw-json-block { background: #f8f8f8; padding: 15px; border-radius: 8px; font-family: Arial, sans-serif; font-size: 11px; overflow-x: auto; border: 1px solid var(--border); margin-top: 15px; color: #333; }
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; text-transform: uppercase; font-weight: 700; color: white; }
     </style>
 </head>
@@ -232,8 +247,29 @@
             </select>
         </div>
         <div class="control-item">
-            <label>Highlight Search (>3 chars)</label>
-            <input type="text" id="highlightFilter" placeholder="HGVS, Sig, Type..." oninput="render()">
+            <label>Variant Effect (Ctrl+Click)</label>
+            <select id="effectFilter" class="multiselect-filter" multiple size="4" onchange="render()"></select>
+        </div>
+        <div class="control-item">
+            <label>Significance (Ctrl+Click)</label>
+            <select id="sigFilter" class="multiselect-filter" multiple size="4" onchange="render()"></select>
+        </div>
+        <div class="control-item">
+            <label>Condition (Ctrl+Click)</label>
+            <select id="condFilter" class="multiselect-filter" multiple size="4" onchange="render()"></select>
+        </div>
+        <div class="control-item">
+            <label>Actions</label>
+            <button class="secondary" onclick="clearFilters()" style="margin-top: auto; margin-bottom: 2px;">Clear Filters</button>
+        </div>
+        <div class="control-item">
+            <label>Variant Options</label>
+            <div style="display:flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+                <label style="display:flex; align-items:center; gap:4px; font-size:11px; font-weight:normal; cursor:pointer;">
+                    <input type="checkbox" id="showVariantLabels" onchange="render()"> Show Labels (HGVS)
+                </label>
+                <input type="text" id="highlightFilter" placeholder="Highlight: Sig, Type..." oninput="render()" style="padding: 4px; font-size: 11px;">
+            </div>
         </div>
         <div class="control-item">
             <label>Lollipop Height</label>
@@ -247,10 +283,19 @@
             <input type="range" id="yScale" min="50" max="400" value="200" oninput="render()">
         </div>
         <div class="control-item">
+            <label>Backbone Options</label>
+            <div style="display:flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+                <label style="display:flex; align-items:center; gap:4px; font-size:11px; font-weight:normal; cursor:pointer;">
+                    <input type="checkbox" id="showExonLabels" onchange="render()"> Show Exon Labels
+                </label>
+                <button class="secondary" onclick="clearBackboneFeatures()" style="margin:0; padding:4px 8px; font-size:10px; align-self: flex-start;">Clear All Features</button>
+            </div>
+        </div>
+        <div class="control-item">
             <label>Backbone Color</label>
             <input type="color" id="backboneColor" value="#e8e8ed" oninput="render()">
         </div>
-        <div class="control-item">
+        <div class="control-item" style="max-width: 250px;">
             <label>Backbone Features</label>
             <div id="feature-list" class="feature-selector">
                 <span style="color:#86868b; padding:5px">No features loaded...</span>
@@ -296,9 +341,8 @@
     const BACKBONE_HEIGHT = 20;
     const BACKBONE_STROKE_COLOR = "#000000";
     const BACKBONE_STROKE_WIDTH = 2;
-    const CALLOUT_STAGGER_HEIGHT = 16;
-    const CALLOUT_FONT_SIZE = "10px";
-    const CALLOUT_LABEL_COLOR = "#86868b";
+    const CALLOUT_STAGGER_HEIGHT = 20;
+    const CALLOUT_FONT_SIZE = "12px";
     const EXON_GAP_SIZE = 2;
 
     // Requested Hex Palette for Data Points (No Vars)
@@ -341,17 +385,21 @@
     function handleScreenResize(e) { toggleLegend(e.matches ? true : false); }
     mediaQuery.addListener(handleScreenResize);
 
-    function updateLegend() {
+    function updateLegend(dataForLegend = rawData) {
         const legendArea = d3.select("#legend-area");
         legendArea.selectAll("*").remove();
         if (rawData.length === 0) { legendArea.html('<span style="color:#86868b">Search for a gene to view the legend.</span>'); return; }
+        if (dataForLegend.length === 0) { legendArea.html('<span style="color:#86868b">No variants match the current filters.</span>'); return; }
 
         const colorMode = document.getElementById('colorMode')?.value || 'clinvar';
+        const currentTypes = new Set(dataForLegend.map(d => d.type));
+        const currentConds = new Set(dataForLegend.map(d => d.primaryCondition));
 
         // 1. Shapes
         const shapeSection = legendArea.append("div").attr("class", "legend-section");
         shapeSection.append("div").attr("class", "legend-title").text("Variant Effect");
         Object.keys(shapeMap).forEach(type => {
+            if (!currentTypes.has(type)) return;
             const isHidden = hiddenCategories.has(type);
             const item = shapeSection.append("div")
                 .attr("class", `legend-item ${isHidden ? 'hidden' : ''}`)
@@ -374,8 +422,9 @@
             });
         } else if (colorMode === 'type') {
             const types = Object.keys(shapeMap);
-            const paletteScale = d3.scaleOrdinal(CUSTOM_PALETTE_ARRAY);
+            const paletteScale = d3.scaleOrdinal(CUSTOM_PALETTE_ARRAY).domain(Object.keys(shapeMap));
             types.forEach(t => {
+                if (!currentTypes.has(t)) return;
                 const isHidden = hiddenCategories.has(t);
                 const item = colorSection.append("div").attr("class", `legend-item ${isHidden ? 'hidden' : ''}`)
                     .on("click", () => toggleCategory(t))
@@ -386,6 +435,7 @@
         } else {
             const conditions = [...new Set(rawData.map(d => d.primaryCondition))];
             conditions.forEach(c => {
+                if (!currentConds.has(c)) return;
                 const isHidden = hiddenCategories.has(c);
                 const item = colorSection.append("div")
                     .attr("class", `legend-item ${isHidden ? 'hidden' : ''}`)
@@ -422,6 +472,23 @@
         const isCurrentlySolo = others.every(c => hiddenCategories.has(c)) && !hiddenCategories.has(cat);
         if (isCurrentlySolo) hiddenCategories.clear();
         else { hiddenCategories.clear(); others.forEach(c => hiddenCategories.add(c)); }
+        render();
+    }
+
+    function clearFilters() {
+        ['effectFilter', 'sigFilter', 'condFilter'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) Array.from(el.options).forEach(o => o.selected = true);
+        });
+        const hf = document.getElementById('highlightFilter');
+        if (hf) hf.value = '';
+        hiddenCategories.clear();
+        render();
+    }
+    
+    function clearBackboneFeatures() {
+        selectedFeatureTypes.clear();
+        document.querySelectorAll('.feature-checkbox input').forEach(cb => cb.checked = false);
         render();
     }
 
@@ -578,17 +645,43 @@
                 if (!bestAnn) bestAnn = annList.find(ann => ann.effect);
                 
                 const firstWord = (bestAnn?.effect || "other").toLowerCase().split('_')[0];
-                const type = top4Types.includes(firstWord) ? firstWord : "other";
+                let type = top4Types.includes(firstWord) ? firstWord : "other";
+
+                const hgvsP = rcvs[0]?.preferred_name ?? bestAnn?.hgvs_p ?? "N/A";
+
+                // Second pass effect determination for "other" types
+                if (type === "other") {
+                    if (hgvsP.includes('fs')) {
+                        type = "frameshift";
+                    } else if (hgvsP.endsWith('Ter') || hgvsP.endsWith('Ter)')) {
+                        type = "stop_gain";
+                    } else if (hgvsP.includes('ext')) {
+                        type = "stop_loss";
+                    }
+                }
+
                 uniqueTypesFound.add(type);
 
                 const condCounts = {};
+
                 rcvs.forEach(r => {
-                    const cRaw = r.conditions.name || ""; 
-                    const name = cRaw.toLowerCase().trim();
-                    if (name && !garbage.some(g => name.includes(g))) {
-                        condCounts[cRaw] = (condCounts[cRaw] || 0) + 1;
-                    }
+                    if (!r?.conditions) return;
+
+                    // Normalize conditions to always be an array
+                    const conditions = Array.isArray(r.conditions)
+                        ? r.conditions
+                        : [r.conditions];
+
+                    conditions.forEach(cond => {
+                        const cRaw = cond?.name || "";
+                        const name = cRaw.toLowerCase().trim();
+
+                        if (name && !garbage.some(g => name.includes(g))) {
+                            condCounts[cRaw] = (condCounts[cRaw] || 0) + 1;
+                        }
+                    });
                 });
+
 
                 const sortedConds = Object.entries(condCounts).sort((a, b) => b[1] - a[1]);
                 let primaryCondition = 'Unknown';
@@ -600,7 +693,6 @@
                     else primaryCondition = 'Multiple';
                 }
 
-                const hgvsP = rcvs[0]?.preferred_name ?? bestAnn?.hgvs_p ?? "N/A";
                 const posMatch = hgvsP.match(/p\.[A-Za-z]+(\d+)/) || hgvsP.match(/\d+/);
                 const pos = posMatch ? parseInt(posMatch[1] || posMatch[0]) : Math.floor(Math.random() * geneInfo.length);
 
@@ -616,6 +708,26 @@
             });
 
             Array.from(uniqueTypesFound).sort().forEach((t, i) => { shapeMap[t] = availableSymbols[i % availableSymbols.length]; });
+
+            // POPULATE DROPDOWNS
+            const populateSelect = (id, key) => {
+                const select = document.getElementById(id);
+                if (!select) return;
+                select.innerHTML = ``; // Clear existing
+                const uniqueVals = [...new Set(rawData.map(d => d[key]))].sort();
+                uniqueVals.forEach(v => {
+                    const label = v.length > 25 ? v.substring(0,25) + '...' : v;
+                    const safeV = v.replace(/"/g, '&quot;');
+                    // Pre-select all by default so variants show initially
+                    select.innerHTML += `<option value="${safeV}" selected>${label}</option>`;
+                });
+            };
+            populateSelect('effectFilter', 'type');
+            populateSelect('sigFilter', 'significance');
+            populateSelect('condFilter', 'primaryCondition');
+
+            // Set conditionColorScale domain to make colors stable
+            conditionColorScale.domain([...new Set(rawData.map(d => d.primaryCondition))].sort());
 
             d3.select("#viz-container").call(zoom);
             render();
@@ -643,8 +755,24 @@
         const searching = searchInput.length > 3;
         const bbColor = document.getElementById('backboneColor')?.value || '#e8e8ed';
         const maxHeightVal = +document.getElementById('yScale')?.value || 200;
+        const showVariantLabels = document.getElementById('showVariantLabels')?.checked;
 
-        const visible = rawData.filter(d => {
+        const getSelectedValues = id => {
+            const el = document.getElementById(id);
+            return el ? Array.from(el.selectedOptions).map(o => o.value) : [];
+        };
+        const effectFilter = getSelectedValues('effectFilter');
+        const sigFilter = getSelectedValues('sigFilter');
+        const condFilter = getSelectedValues('condFilter');
+
+        const baseFilteredData = rawData.filter(d => {
+            if (!effectFilter.includes(d.type)) return false;
+            if (!sigFilter.includes(d.significance)) return false;
+            if (!condFilter.includes(d.primaryCondition)) return false;
+            return true;
+        });
+
+        const visible = baseFilteredData.filter(d => {
             if (colorMode === 'condition') return !hiddenCategories.has(d.primaryCondition);
             return !hiddenCategories.has(d.type);
         });
@@ -656,12 +784,12 @@
         titleText.append("tspan").attr("x", width / 2).attr("font-size", width < 600 ? "14px" : "20px").text(geneSymbolText);
         titleText.append("tspan").attr("x", width / 2).attr("dy", "1.2em").attr("font-size", width < 600 ? "10px" : "14px").attr("font-weight", "600").attr("fill", "#86868b").text(transcriptText);
 
-        const yScale = d3.scaleLinear().domain([0, d3.max(rawData, d => d.submissions) || 1]).range([0, -maxHeightVal]);
+        const yScale = d3.scaleLinear().domain([0, d3.max(baseFilteredData, d => d.submissions) || 1]).range([0, -maxHeightVal]);
         const centerY = 0; 
 
         // Fragmented Backbone
         if (geneInfo.exons.length > 0) {
-            geneInfo.exons.forEach(s => {
+            geneInfo.exons.forEach((s, i) => {
                 g.append("rect")
                     .attr("x", rescaledX(s.start)).attr("y", centerY - (BACKBONE_HEIGHT / 2))
                     .attr("width", Math.max(1, rescaledX(s.end) - rescaledX(s.start) - EXON_GAP_SIZE))
@@ -669,6 +797,18 @@
                     .attr("fill", bbColor).attr("fill-opacity", 0.6)
                     .attr("stroke", BACKBONE_STROKE_COLOR).attr("stroke-width", BACKBONE_STROKE_WIDTH)
                     .on("mouseover", (e) => showExonTooltip(e, s)).on("mousemove", moveTooltip).on("mouseout", hideTooltip);
+                
+                // Exon Label Overlay (Toggleable)
+                if (document.getElementById('showExonLabels')?.checked) {
+                    g.append("text")
+                        .attr("x", rescaledX((s.start + s.end) / 2))
+                        .attr("y", centerY + 4) // Center vertically inside the 20px segment
+                        .attr("text-anchor", "middle")
+                        .attr("font-size", "11px")
+                        .attr("font-weight", "bold")
+                        .attr("fill", "#555555")
+                        .text(`Exon ${i + 1}`);
+                }
             });
         } else {
             g.append("rect")
@@ -679,23 +819,62 @@
         }
 
         const palette = d3.scaleOrdinal(d3.schemeSet3);
-        const variantPalette = d3.scaleOrdinal(CUSTOM_PALETTE_ARRAY);
+        const variantPalette = d3.scaleOrdinal(CUSTOM_PALETTE_ARRAY).domain(Object.keys(shapeMap));
 
-        geneInfo.features.forEach((f, i) => {
-            if (selectedFeatureTypes.has(f.type)) {
-                g.append("rect").attr("x", rescaledX(f.begin)).attr("y", centerY - 15).attr("width", Math.max(2, rescaledX(f.end)-rescaledX(f.begin))).attr("height", 30).attr("rx", 4).attr("fill", palette(f.type)).attr("opacity", 0.6)
-                 .on("mouseover", (e) => showFeatureTooltip(e, f)).on("mousemove", moveTooltip).on("mouseout", hideTooltip);
+        // Render Backbone Features (Solid rounded rects, 1/3 height, stacked beneath backbone)
+        const activeFeatures = geneInfo.features
+            .filter(f => selectedFeatureTypes.has(f.type))
+            .sort((a, b) => a.begin - b.begin);
+        
+        const lanes = [];
+        activeFeatures.forEach(f => {
+            const startX = rescaledX(f.begin);
+            const endX = rescaledX(f.end);
+            let laneIdx = lanes.findIndex(end => startX > end + 2); // 2px margin between features
+            if (laneIdx === -1) {
+                laneIdx = lanes.length;
+                lanes.push(endX);
+            } else {
+                lanes[laneIdx] = Math.max(lanes[laneIdx], endX); // extend lane
+            }
+            f.lane = laneIdx;
+        });
 
-                if (f.description) {
-                    const mid = rescaledX((f.begin + f.end) / 2);
-                    const labelY = centerY + 80 + (i % 8 * CALLOUT_STAGGER_HEIGHT);
-                    g.append("line").attr("x1", mid).attr("y1", centerY + 15).attr("x2", mid).attr("y2", labelY - 8).attr("stroke", "#d2d2d7").attr("stroke-width", 0.5);
-                    g.append("text").attr("x", mid).attr("y", labelY).attr("text-anchor", "middle").attr("font-size", CALLOUT_FONT_SIZE).attr("fill", CALLOUT_LABEL_COLOR).text(f.description.substring(0, 32));
-                }
+        const featureHeight = BACKBONE_HEIGHT / 3; 
+        const featureMargin = 2;
+        const baseFeatureY = centerY + (BACKBONE_HEIGHT / 2) + 4; // Start just below backbone
+
+        activeFeatures.forEach((f, i) => {
+            const baseColor = palette(f.type);
+            const darkLabelColor = d3.color(baseColor).darker(2.5).toString();
+            const fY = baseFeatureY + f.lane * (featureHeight + featureMargin);
+            const fWidth = Math.max(2, rescaledX(f.end) - rescaledX(f.begin));
+
+            g.append("rect")
+                .attr("x", rescaledX(f.begin))
+                .attr("y", fY)
+                .attr("width", fWidth)
+                .attr("height", featureHeight)
+                .attr("rx", 2)
+                .attr("fill", baseColor)
+                .attr("opacity", 1) // Solid color
+                .on("mouseover", (e) => showFeatureTooltip(e, f))
+                .on("mousemove", moveTooltip)
+                .on("mouseout", hideTooltip);
+
+            if (f.description) {
+                const mid = rescaledX((f.begin + f.end) / 2);
+                const textStartY = baseFeatureY + lanes.length * (featureHeight + featureMargin) + 15;
+                const labelY = textStartY + (i % 12 * CALLOUT_STAGGER_HEIGHT);
+                
+                g.append("line").attr("x1", mid).attr("y1", fY + featureHeight).attr("x2", mid).attr("y2", labelY - 8).attr("stroke", "#d2d2d7").attr("stroke-width", 0.5);
+                g.append("text").attr("x", mid).attr("y", labelY).attr("text-anchor", "middle").attr("font-size", CALLOUT_FONT_SIZE).attr("font-weight", "bold").attr("fill", darkLabelColor).text(f.description.substring(0, 32));
             }
         });
 
         const lolls = g.selectAll(".v-group").data(visible).enter().append("g");
+        const variantLabelData = [];
+
         lolls.each(function(d) {
             const h = heightMode === 'freq' ? yScale(d.submissions) : -60;
             const match = searching && JSON.stringify(d).toLowerCase().includes(searchInput);
@@ -704,8 +883,107 @@
             node.append("line").attr("x1", rescaledX(d.pos)).attr("x2", rescaledX(d.pos)).attr("y1", centerY - 10).attr("y2", centerY + h).attr("stroke", match ? PALETTE_COLORS.p1 : "#8e8e93").attr("stroke-width", (match ? 2 : 1)/zoomTransform.k).attr("opacity", op);
             node.append("path").attr("transform", `translate(${rescaledX(d.pos)}, ${centerY + h})`).attr("d", d3.symbol().type(shapeMap[d.type] || d3.symbolCircle).size(LOLLIPOP_HEAD_SIZE)()).attr("fill", getColor(d, variantPalette)).attr("stroke", match ? "black" : "white").attr("stroke-width", match ? 2.5 : 1).attr("opacity", op).style("cursor", "pointer")
                 .on("mouseover", (e) => showTooltip(e, d)).on("mousemove", moveTooltip).on("mouseout", hideTooltip).on("click", () => showDetails(d));
+            
+            if (showVariantLabels && d.hgvs_p && d.hgvs_p !== "N/A" && (!searching || match)) {
+                variantLabelData.push({
+                    text: d.hgvs_p,
+                    x: rescaledX(d.pos),
+                    y: centerY + h - (Math.sqrt(LOLLIPOP_HEAD_SIZE)/2) - 4, // start just above symbol
+                    color: getColor(d, variantPalette)
+                });
+            }
         });
-        updateLegend();
+        
+        // Render and resolve collisions for Variant Labels
+        if (showVariantLabels && variantLabelData.length > 0) {
+            variantLabelData.sort((a, b) => a.x - b.x); // Sweep left to right
+            const placedBoxes = [];
+            
+            variantLabelData.forEach(lbl => {
+                const labelWidth = lbl.text.length * 5.5; // Approx width for 9px font
+                const labelHeight = 12;
+                let currentY = lbl.y;
+                let overlapping = true;
+                let sweeps = 0;
+                
+                // Greedy collision resolution pushing upward
+                while (overlapping && sweeps < 50) {
+                    overlapping = false;
+                    for (let box of placedBoxes) {
+                        const pad = 2; // pixel padding
+                        if (lbl.x - labelWidth/2 - pad < box.x + box.width/2 + pad &&
+                            lbl.x + labelWidth/2 + pad > box.x - box.width/2 - pad &&
+                            currentY - labelHeight - pad < box.y &&
+                            currentY + pad > box.y - box.height) {
+                            overlapping = true;
+                            currentY -= 10; // push label up 
+                            break;
+                        }
+                    }
+                    sweeps++;
+                }
+                
+                placedBoxes.push({ x: lbl.x, y: currentY, width: labelWidth, height: labelHeight });
+                
+                const lblGroup = g.append("g").attr("class", "variant-label");
+                if (currentY < lbl.y - 2) {
+                    lblGroup.append("line")
+                        .attr("x1", lbl.x).attr("y1", lbl.y)
+                        .attr("x2", lbl.x).attr("y2", currentY + 2)
+                        .attr("stroke", "#d2d2d7")
+                        .attr("stroke-width", 0.5);
+                }
+                lblGroup.append("text")
+                    .attr("x", lbl.x)
+                    .attr("y", currentY)
+                    .attr("text-anchor", "middle")
+                    .attr("font-size", "9px")
+                    .attr("font-family", "Arial, sans-serif")
+                    .attr("fill", d3.color(lbl.color).darker(1).toString())
+                    .attr("font-weight", "bold")
+                    .text(lbl.text);
+            });
+        }
+
+        updateLegend(baseFilteredData);
+
+        // Render Active Filters Box Overlay directly into the SVG
+        const infoBoxWidth = 200;
+        const infoGroup = svg.append("g")
+            .attr("id", "filter-info-box")
+            .attr("transform", `translate(${width - infoBoxWidth - 10}, 10)`);
+        
+        const formatFilterText = (arr, totalOptions) => {
+            if (arr.length === totalOptions || arr.length === 0) return 'All';
+            if (arr.length <= 2) return arr.join(', ');
+            return `${arr.length} selected`;
+        };
+
+        const totalEffects = document.getElementById('effectFilter')?.options.length || 0;
+        const totalSigs = document.getElementById('sigFilter')?.options.length || 0;
+        const totalConds = document.getElementById('condFilter')?.options.length || 0;
+
+        const filterLines = [
+            `Plotted Variants: ${visible.length}`,
+            `Effect Filter: ${formatFilterText(effectFilter, totalEffects)}`,
+            `Sig Filter: ${formatFilterText(sigFilter, totalSigs)}`,
+            `Cond Filter: ${formatFilterText(condFilter, totalConds)}`
+        ];
+
+        infoGroup.append("rect")
+            .attr("x", 0).attr("y", 0)
+            .attr("width", infoBoxWidth).attr("height", filterLines.length * 16 + 15)
+            .attr("fill", "#ffffff").attr("stroke", "#e0e0e0").attr("rx", 6).attr("opacity", 0.95);
+
+        filterLines.forEach((line, i) => {
+            infoGroup.append("text")
+                .attr("x", 12).attr("y", 20 + i * 16)
+                .attr("font-size", "11px")
+                .attr("font-family", "Arial, sans-serif")
+                .attr("fill", "#333333")
+                .attr("font-weight", i === 0 ? "bold" : "normal")
+                .text(line.length > 35 ? line.substring(0, 32) + '...' : line);
+        });
     }
 
     function getColor(d, palette) {
@@ -763,71 +1041,369 @@
     function resetZoom() { d3.select("#viz-container").transition().call(zoom.transform, d3.zoomIdentity); }
     
     // --- EXPORT FUNCTIONS ---
+    
+    function createExportSVG() {
+        const vizSvg = document.querySelector("#viz-container svg");
+        if (!vizSvg) return null;
+        const legendArea = document.getElementById('legend-area');
+        const isCollapsed = legendArea.classList.contains('collapsed');
+        const legendWidth = isCollapsed ? 0 : 280;
+        
+        const origWidth = parseFloat(vizSvg.getAttribute('width'));
+        const origHeight = parseFloat(vizSvg.getAttribute('height'));
+        
+        const svgString = new XMLSerializer().serializeToString(vizSvg);
+        
+        // Build a unified SVG with native elements for exactly matched export
+        const ns = "http://www.w3.org/2000/svg";
+        const newSvg = document.createElementNS(ns, "svg");
+        newSvg.setAttribute("width", origWidth + legendWidth);
+        newSvg.setAttribute("height", origHeight);
+        newSvg.setAttribute("xmlns", ns);
+        
+        // Embed global styles to ensure fonts and CSS Variables carry over perfectly
+        const style = document.createElementNS(ns, "style");
+        style.textContent = `
+            :root {
+                --bg: #ffffff;
+                --card: #ffffff;
+                --text: #000000;
+                --accent: #28509C;
+                --border: #e0e0e0;
+                --console-bg: #1c1c1e;
+                --console-text: #00ff00;
+            }
+            * { font-family: Arial, sans-serif; }
+            text { font-family: Arial, sans-serif; }
+        `;
+        newSvg.appendChild(style);
+
+        // Solid background to ensure PNGs and SVGs are never transparent
+        const bg = document.createElementNS(ns, "rect");
+        bg.setAttribute("width", "100%");
+        bg.setAttribute("height", "100%");
+        bg.setAttribute("fill", "#ffffff");
+        newSvg.appendChild(bg);
+        
+        // Insert the actual plot, translated to make room for legend if present
+        const plotGroup = document.createElementNS(ns, "g");
+        plotGroup.setAttribute("transform", `translate(${legendWidth}, 0)`);
+        plotGroup.innerHTML = svgString.replace(/<svg[^>]*>/, '').replace(/<\/svg>/, '');
+        newSvg.appendChild(plotGroup);
+        
+        if (!isCollapsed) {
+            const legendGroup = document.createElementNS(ns, "g");
+            legendGroup.setAttribute("id", "export-legend");
+            
+            const legBg = document.createElementNS(ns, "rect");
+            legBg.setAttribute("width", legendWidth);
+            legBg.setAttribute("height", origHeight);
+            legBg.setAttribute("fill", "#fafafa");
+            legBg.setAttribute("stroke", "#e0e0e0");
+            legBg.setAttribute("stroke-width", "1");
+            legendGroup.appendChild(legBg);
+            
+            let lx = 20, ly = 30;
+            
+            // Reconstruct HTML legend iteratively as native SVG rects, circles and texts
+            const sections = legendArea.querySelectorAll('.legend-section');
+            sections.forEach(sec => {
+                const title = sec.querySelector('.legend-title');
+                if (title) {
+                    const t = document.createElementNS(ns, "text");
+                    t.setAttribute("x", lx);
+                    t.setAttribute("y", ly);
+                    t.setAttribute("fill", "#86868b");
+                    t.setAttribute("font-size", "11px");
+                    t.setAttribute("font-weight", "700");
+                    t.setAttribute("letter-spacing", "0.05em");
+                    t.textContent = title.innerText;
+                    legendGroup.appendChild(t);
+                    ly += 20;
+                }
+                
+                const items = sec.querySelectorAll('.legend-item');
+                items.forEach(item => {
+                    const isHidden = item.classList.contains('hidden');
+                    const opacity = isHidden ? "0.3" : "1";
+                    
+                    const circle = item.querySelector('.swatch-circle');
+                    const rect = item.querySelector('.swatch-rect');
+                    const shape = item.querySelector('.swatch-shape svg path');
+                    const span = item.querySelector('span');
+                    
+                    if (circle) {
+                        const bgCol = getComputedStyle(circle).backgroundColor;
+                        const c = document.createElementNS(ns, "circle");
+                        c.setAttribute("cx", lx + 5);
+                        c.setAttribute("cy", ly - 4);
+                        c.setAttribute("r", "5");
+                        c.setAttribute("fill", bgCol);
+                        c.setAttribute("stroke", "rgba(0,0,0,0.1)");
+                        c.setAttribute("opacity", opacity);
+                        legendGroup.appendChild(c);
+                    } else if (rect) {
+                        const bgCol = getComputedStyle(rect).backgroundColor;
+                        const r = document.createElementNS(ns, "rect");
+                        r.setAttribute("x", lx);
+                        r.setAttribute("y", ly - 9);
+                        r.setAttribute("width", "20");
+                        r.setAttribute("height", "10");
+                        r.setAttribute("rx", "2");
+                        r.setAttribute("fill", bgCol);
+                        r.setAttribute("stroke", "rgba(0,0,0,0.1)");
+                        r.setAttribute("opacity", opacity);
+                        legendGroup.appendChild(r);
+                    } else if (shape) {
+                        const d = shape.getAttribute('d');
+                        const p = document.createElementNS(ns, "path");
+                        p.setAttribute("d", d);
+                        p.setAttribute("transform", `translate(${lx + 7}, ${ly - 4})`);
+                        p.setAttribute("fill", "#636366");
+                        p.setAttribute("opacity", opacity);
+                        legendGroup.appendChild(p);
+                    }
+                    
+                    if (span) {
+                        const t = document.createElementNS(ns, "text");
+                        const tx = lx + (rect ? 28 : 20);
+                        t.setAttribute("x", tx);
+                        t.setAttribute("y", ly);
+                        t.setAttribute("fill", "#000000");
+                        t.setAttribute("font-size", "11px");
+                        t.setAttribute("opacity", opacity);
+                        if (isHidden) t.setAttribute("text-decoration", "line-through");
+                        t.textContent = span.innerText;
+                        legendGroup.appendChild(t);
+                    }
+                    ly += 22;
+                });
+                ly += 10;
+            });
+            newSvg.appendChild(legendGroup);
+        }
+        
+        return newSvg;
+    }
+
     function exportSVG() { 
-        const svg = document.querySelector("#viz-container svg");
+        const svg = createExportSVG();
         if (!svg) return;
         const s = (new XMLSerializer()).serializeToString(svg); 
-        const l = document.createElement("a"); l.href = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s); l.download = "gene_viz.svg"; l.click(); 
+        const l = document.createElement("a"); 
+        l.href = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s); 
+        l.download = "QuickLolli_Export.svg"; 
+        l.click(); 
     }
 
     function exportPNG() {
-        const svg = document.querySelector("#viz-container svg");
+        const svg = createExportSVG();
         if (!svg) return;
         const s = (new XMLSerializer()).serializeToString(svg);
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
         const img = new Image();
+        
+        // Use higher resolution multiplier for sharper PNG
+        const resMultiplier = window.devicePixelRatio || 2;
+        canvas.width = parseFloat(svg.getAttribute("width")) * resMultiplier;
+        canvas.height = parseFloat(svg.getAttribute("height")) * resMultiplier;
+
         img.onload = function() {
-            canvas.width = svg.getBoundingClientRect().width;
-            canvas.height = svg.getBoundingClientRect().height;
+            ctx.scale(resMultiplier, resMultiplier);
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0);
             const l = document.createElement("a");
             l.href = canvas.toDataURL("image/png");
-            l.download = "gene_viz.png";
+            l.download = "QuickLolli_Export.png";
             l.click();
         };
         img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
     }
 
+    // Helpers for extracting accurate colors & PPT shape types
+    function cssColorToHex(colorStr) {
+        if (!colorStr || colorStr === 'none') return null;
+        if (colorStr.startsWith('var(')) {
+            const varName = colorStr.match(/var\((.*?)\)/)[1].trim();
+            colorStr = getComputedStyle(document.body).getPropertyValue(varName).trim();
+        }
+        const div = document.createElement('div');
+        div.style.color = colorStr;
+        document.body.appendChild(div);
+        const rgb = getComputedStyle(div).color;
+        document.body.removeChild(div);
+        
+        const match = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        if (match) {
+            const r = parseInt(match[1]).toString(16).padStart(2, '0');
+            const g = parseInt(match[2]).toString(16).padStart(2, '0');
+            const b = parseInt(match[3]).toString(16).padStart(2, '0');
+            return (r + g + b).toUpperCase();
+        }
+        if (colorStr.startsWith('#')) return colorStr.substring(1, 7).toUpperCase();
+        return '000000';
+    }
+
+    function getShapeTypeFromD(d, pres) {
+        if (!d) return pres.shapes.OVAL;
+        if (d.includes('A')) return pres.shapes.OVAL;
+        let points = (d.match(/[MLZ]/gi) || []).length;
+        if (points <= 4) return pres.shapes.TRIANGLE;
+        if (points === 5) {
+            if (d.startsWith('M0,-')) return pres.shapes.DIAMOND;
+            return pres.shapes.RECTANGLE;
+        }
+        if (points >= 10 && points <= 11) return pres.shapes.STAR_5_POINT;
+        if (points >= 12) return pres.shapes.CROSS;
+        return pres.shapes.OVAL;
+    }
+
     function exportPPTX() {
+        const svg = createExportSVG();
+        if (!svg) return;
+
         const pres = new PptxGenJS();
+        pres.layout = 'LAYOUT_WIDE'; // Standard Widescreen (13.33 x 7.5 inches)
         const slide = pres.addSlide();
         
-        // Add Title
-        const geneSymbol = document.getElementById('geneSearch')?.value || "GENE";
-        slide.addText(`GeneVariant Viz: ${geneSymbol}`, { x:0.5, y:0.5, fontSize:18, bold:true, color:'363636' });
+        const svgW = parseFloat(svg.getAttribute('width'));
+        const svgH = parseFloat(svg.getAttribute('height'));
+        
+        // Setup coordinates & boundaries to fit comfortably inside the PPTX slide
+        const maxW = 12.33, maxH = 6.5; 
+        const scale = Math.min(maxW / (svgW / 96), maxH / (svgH / 96));
+        const xOff = (13.33 - (svgW / 96) * scale) / 2;
+        const yOff = (7.5 - (svgH / 96) * scale) / 2;
+        
+        const ptX = (x) => xOff + (x / 96) * scale;
+        const ptY = (y) => yOff + (y / 96) * scale;
+        const ptS = (s) => (s / 96) * scale;
 
-        const svg = document.querySelector("#viz-container svg");
-        if (!svg) return;
-        
-        // Serialize SVG
-        const s = (new XMLSerializer()).serializeToString(svg);
-        
-        // Use Canvas to Rasterize SVG to PNG
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        const img = new Image();
-        
-        img.onload = function() {
-            canvas.width = svg.getBoundingClientRect().width;
-            canvas.height = svg.getBoundingClientRect().height;
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0);
+        // Recursively convert SVG nodes to PptxGenJS editable Shapes
+        function parseNode(node, tx, ty, groupOpacity) {
+            if (node.nodeType !== 1) return;
             
-            // Get Base64
-            const pngBase64 = canvas.toDataURL("image/png");
+            let nTx = tx, nTy = ty;
+            const transform = node.getAttribute('transform');
+            if (transform && transform.includes('translate')) {
+                const match = transform.match(/translate\(([-\d.]+)(?:,\s*([-\d.]+))?\)/);
+                if (match) {
+                    nTx += parseFloat(match[1] || 0);
+                    nTy += parseFloat(match[2] || 0);
+                }
+            }
             
-            // Add to Slide
-            slide.addImage({ data: pngBase64, x:0.5, y:1, w:9, h:4.5 });
+            const nodeOpacity = parseFloat(node.getAttribute('opacity') || 1) * groupOpacity;
+            const transparency = Math.round((1 - nodeOpacity) * 100);
             
-            // Save
-            pres.writeFile({ fileName: "GeneViz_Export.pptx" });
-        };
+            const fillRaw = node.getAttribute('fill') || node.style?.fill;
+            const strokeRaw = node.getAttribute('stroke') || node.style?.stroke;
+            const fill = cssColorToHex(fillRaw);
+            const lineCol = cssColorToHex(strokeRaw);
+            const sw = parseFloat(node.getAttribute('stroke-width') || 1) * 0.75 * scale;
+            
+            const tag = node.tagName.toLowerCase();
+            
+            if (tag === 'rect') {
+                const x = parseFloat(node.getAttribute('x') || 0) + nTx;
+                const y = parseFloat(node.getAttribute('y') || 0) + nTy;
+                const w = parseFloat(node.getAttribute('width') || 0);
+                const h = parseFloat(node.getAttribute('height') || 0);
+                if (w > 0 && h > 0 && fill !== 'FAFAFA') { // Skip background legend rect explicitly or it blocks clicks
+                    let opts = { x: ptX(x), y: ptY(y), w: ptS(w), h: ptS(h) };
+                    if (fill && fill !== 'none') opts.fill = { color: fill, transparency };
+                    if (lineCol && lineCol !== 'NONE' && lineCol !== 'none') opts.line = { color: lineCol, transparency, width: sw };
+                    slide.addShape(pres.shapes.RECTANGLE, opts);
+                }
+            }
+            else if (tag === 'circle') {
+                const cx = parseFloat(node.getAttribute('cx') || 0) + nTx;
+                const cy = parseFloat(node.getAttribute('cy') || 0) + nTy;
+                const r = parseFloat(node.getAttribute('r') || 0);
+                if (r > 0) {
+                    let opts = { x: ptX(cx - r), y: ptY(cy - r), w: ptS(r * 2), h: ptS(r * 2) };
+                    if (fill && fill !== 'none') opts.fill = { color: fill, transparency };
+                    if (lineCol && lineCol !== 'NONE' && lineCol !== 'none') opts.line = { color: lineCol, transparency, width: sw };
+                    slide.addShape(pres.shapes.OVAL, opts);
+                }
+            }
+            else if (tag === 'line') {
+                const x1 = parseFloat(node.getAttribute('x1') || 0) + nTx;
+                const y1 = parseFloat(node.getAttribute('y1') || 0) + nTy;
+                const x2 = parseFloat(node.getAttribute('x2') || 0) + nTx;
+                const y2 = parseFloat(node.getAttribute('y2') || 0) + nTy;
+                const origSw = parseFloat(node.getAttribute('stroke-width') || 1);
+                
+                // Represent straight SVG lines as thin rectangles in PPT for reliable sizing & positioning
+                if (Math.abs(x1 - x2) < 0.1) {
+                    let opts = { x: ptX(x1 - origSw/2), y: ptY(Math.min(y1, y2)), w: ptS(origSw), h: ptS(Math.abs(y2 - y1)) };
+                    if (lineCol && lineCol !== 'none') opts.fill = { color: lineCol, transparency };
+                    slide.addShape(pres.shapes.RECTANGLE, opts);
+                } else if (Math.abs(y1 - y2) < 0.1) {
+                    let opts = { x: ptX(Math.min(x1, x2)), y: ptY(y1 - origSw/2), w: ptS(Math.abs(x2 - x1)), h: ptS(origSw) };
+                    if (lineCol && lineCol !== 'none') opts.fill = { color: lineCol, transparency };
+                    slide.addShape(pres.shapes.RECTANGLE, opts);
+                }
+            }
+            else if (tag === 'path') {
+                const d = node.getAttribute('d');
+                const shape = getShapeTypeFromD(d, pres);
+                const w = 12, h = 12; // Mapped size constraints corresponding directly to d3 size(80) 
+                let opts = { x: ptX(nTx - w/2), y: ptY(nTy - h/2), w: ptS(w), h: ptS(h) };
+                if (fill && fill !== 'none') opts.fill = { color: fill, transparency };
+                if (lineCol && lineCol !== 'NONE' && lineCol !== 'FFFFFF' && lineCol !== 'none') opts.line = { color: lineCol, transparency, width: sw };
+                slide.addShape(shape, opts);
+            }
+            else if (tag === 'text') {
+                const x = parseFloat(node.getAttribute('x') || 0) + nTx;
+                const y = parseFloat(node.getAttribute('y') || 0) + nTy;
+                const anchor = node.getAttribute('text-anchor');
+                const fsStr = node.getAttribute('font-size') || '12px';
+                const fs = parseFloat(fsStr);
+                const isBold = node.getAttribute('font-weight') === '700' || node.getAttribute('font-weight') === '800' || node.getAttribute('font-weight') === 'bold';
+                
+                const tspans = node.querySelectorAll('tspan');
+                if (tspans.length > 0) {
+                    let currentY = y;
+                    tspans.forEach(ts => {
+                        let tX = ts.hasAttribute('x') ? parseFloat(ts.getAttribute('x')) + nTx : x;
+                        let tDy = ts.getAttribute('dy');
+                        let tFs = parseFloat(ts.getAttribute('font-size') || fsStr);
+                        let tBold = ts.getAttribute('font-weight') === '700' || ts.getAttribute('font-weight') === '800' || ts.getAttribute('font-weight') === 'bold' || isBold;
+                        let tColor = cssColorToHex(ts.getAttribute('fill')) || fill || '000000';
+                        
+                        if (tDy && tDy.includes('em')) currentY += parseFloat(tDy) * tFs;
+                        else if (tDy) currentY += parseFloat(tDy);
+                        
+                        let align = 'left', pX = ptX(tX);
+                        if (anchor === 'middle') { align = 'center'; pX = ptX(tX) - ptS(1000)/2; }
+                        
+                        slide.addText(ts.textContent, {
+                            x: pX, y: ptY(currentY - tFs * 0.8), w: anchor === 'middle' ? ptS(1000) : ptS(300), h: ptS(tFs * 1.5),
+                            fontSize: tFs * 0.75 * scale, color: tColor, bold: tBold, align, transparency, fontFace: "Arial"
+                        });
+                    });
+                } else {
+                    let align = 'left', pX = ptX(x);
+                    if (anchor === 'middle') { align = 'center'; pX = ptX(x) - ptS(1000)/2; }
+                    const isStrikethrough = node.getAttribute('text-decoration') === 'line-through';
+                    
+                    slide.addText(node.textContent, {
+                        x: pX, y: ptY(y - fs * 0.8), w: anchor === 'middle' ? ptS(1000) : ptS(300), h: ptS(fs * 1.5),
+                        fontSize: fs * 0.75 * scale, color: fill || '000000', bold: isBold, align, transparency, strike: isStrikethrough, fontFace: "Arial"
+                    });
+                }
+            }
+            
+            if (tag === 'g' || tag === 'svg') {
+                Array.from(node.childNodes).forEach(child => parseNode(child, nTx, nTy, nodeOpacity));
+            }
+        }
         
-        img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
+        parseNode(svg, 0, 0, 1);
+        pres.writeFile({ fileName: "QuickLolli_Export.pptx" });
     }
     
     function toggleFeatureType(cb) {
