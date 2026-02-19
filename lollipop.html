@@ -862,7 +862,7 @@
         const palette = d3.scaleOrdinal(d3.schemeSet3);
         const variantPalette = d3.scaleOrdinal(CUSTOM_PALETTE_ARRAY).domain(Object.keys(shapeMap));
 
-        // Render Backbone Features (Solid rounded rects, 1/3 height, stacked beneath backbone)
+        // Render Backbone Features (Solid rounded rects, 2/3 height, stacked beneath backbone)
         const activeFeatures = geneInfo.features
             .filter(f => selectedFeatureTypes.has(f.type))
             .sort((a, b) => a.begin - b.begin);
@@ -881,7 +881,7 @@
             f.lane = laneIdx;
         });
 
-        const featureHeight = BACKBONE_HEIGHT / 3; 
+        const featureHeight = BACKBONE_HEIGHT * (2 / 3); 
         const featureMargin = 2;
         const baseFeatureY = centerY + (BACKBONE_HEIGHT / 2) + 4; // Start just below backbone
 
@@ -889,27 +889,71 @@
             const baseColor = palette(f.type);
             const darkLabelColor = d3.color(baseColor).darker(2.5).toString();
             const fY = baseFeatureY + f.lane * (featureHeight + featureMargin);
+            const posLength = f.end - f.begin;
+            const isSmallFeature = posLength <= 3;
             const fWidth = Math.max(2, rescaledX(f.end) - rescaledX(f.begin));
+            const mid = rescaledX((f.begin + f.end) / 2);
 
-            g.append("rect")
-                .attr("x", rescaledX(f.begin))
-                .attr("y", fY)
-                .attr("width", fWidth)
-                .attr("height", featureHeight)
-                .attr("rx", 2)
-                .attr("fill", baseColor)
-                .attr("opacity", 1) // Solid color
-                .on("mouseover", (e) => showFeatureTooltip(e, f))
-                .on("mousemove", moveTooltip)
-                .on("mouseout", hideTooltip);
+            if (isSmallFeature) {
+                g.append("circle")
+                    .attr("cx", mid)
+                    .attr("cy", fY + featureHeight / 2)
+                    .attr("r", featureHeight / 2)
+                    .attr("fill", baseColor)
+                    .attr("opacity", 1) // Solid color
+                    .on("mouseover", (e) => showFeatureTooltip(e, f))
+                    .on("mousemove", moveTooltip)
+                    .on("mouseout", hideTooltip);
+            } else {
+                g.append("rect")
+                    .attr("x", rescaledX(f.begin))
+                    .attr("y", fY)
+                    .attr("width", fWidth)
+                    .attr("height", featureHeight)
+                    .attr("rx", 2)
+                    .attr("fill", baseColor)
+                    .attr("opacity", 1) // Solid color
+                    .on("mouseover", (e) => showFeatureTooltip(e, f))
+                    .on("mousemove", moveTooltip)
+                    .on("mouseout", hideTooltip);
+            }
 
             if (f.description) {
-                const mid = rescaledX((f.begin + f.end) / 2);
-                const textStartY = baseFeatureY + lanes.length * (featureHeight + featureMargin) + 15;
-                const labelY = textStartY + (i % 12 * CALLOUT_STAGGER_HEIGHT);
-                
-                g.append("line").attr("x1", mid).attr("y1", fY + featureHeight).attr("x2", mid).attr("y2", labelY - 8).attr("stroke", "#d2d2d7").attr("stroke-width", 0.5);
-                g.append("text").attr("x", mid).attr("y", labelY).attr("text-anchor", "middle").attr("font-size", CALLOUT_FONT_SIZE).attr("font-weight", "bold").attr("fill", darkLabelColor).text(f.description.substring(0, 32));
+                const textStr = f.description.substring(0, 32);
+                const textWidthApprox = textStr.length * 6.5; // Approx width for 10px Arial
+
+                if (!isSmallFeature && fWidth >= textWidthApprox + 6) {
+                    // Draw inside the rectangle
+                    g.append("text")
+                        .attr("x", mid)
+                        .attr("y", fY + featureHeight / 2 + 3.5) // Vertically center
+                        .attr("text-anchor", "middle")
+                        .attr("font-size", "10px")
+                        .attr("font-weight", "bold")
+                        .attr("fill", darkLabelColor)
+                        .style("pointer-events", "none") // Prevent tooltip block
+                        .text(textStr);
+                } else {
+                    // Draw callout
+                    const textStartY = baseFeatureY + lanes.length * (featureHeight + featureMargin) + 15;
+                    const labelY = textStartY + (i % 12 * CALLOUT_STAGGER_HEIGHT);
+                    
+                    g.append("line")
+                        .attr("x1", mid)
+                        .attr("y1", fY + featureHeight)
+                        .attr("x2", mid)
+                        .attr("y2", labelY - 8)
+                        .attr("stroke", "#d2d2d7")
+                        .attr("stroke-width", 0.5);
+                    g.append("text")
+                        .attr("x", mid)
+                        .attr("y", labelY)
+                        .attr("text-anchor", "middle")
+                        .attr("font-size", CALLOUT_FONT_SIZE)
+                        .attr("font-weight", "bold")
+                        .attr("fill", darkLabelColor)
+                        .text(textStr);
+                }
             }
         });
 
