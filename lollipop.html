@@ -264,11 +264,24 @@
         </div>
         <div class="control-item">
             <label>Variant Options</label>
-            <div style="display:flex; flex-direction: column; gap: 8px; margin-top: 4px;">
-                <label style="display:flex; align-items:center; gap:4px; font-size:11px; font-weight:normal; cursor:pointer;">
-                    <input type="checkbox" id="showVariantLabels" onchange="render()"> Show Labels (HGVS)
-                </label>
-                <input type="text" id="highlightFilter" placeholder="Highlight: Sig, Type..." oninput="render()" style="padding: 4px; font-size: 11px;">
+            <div style="display:flex; flex-direction: column; gap: 6px; margin-top: 4px; font-size: 11px;">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <span style="font-weight:bold; color:#86868b;">Labels (HGVS)</span>
+                    <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+                        <input type="radio" name="labelMode" value="none" checked onchange="toggleLabelSlider(); render();"> None
+                    </label>
+                    <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+                        <input type="radio" name="labelMode" value="all" onchange="toggleLabelSlider(); render();"> Show All
+                    </label>
+                    <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+                        <input type="radio" name="labelMode" value="top" onchange="toggleLabelSlider(); render();"> Show Top N
+                    </label>
+                    <div id="topNContainer" style="display:none; flex-direction:column; gap:2px; margin-left: 18px;">
+                        <span>Top <span id="topNValDisplay">10</span></span>
+                        <input type="range" id="topNLabels" min="1" max="50" value="10" oninput="document.getElementById('topNValDisplay').innerText = this.value; render();" style="width: 100px;">
+                    </div>
+                </div>
+                <input type="text" id="highlightFilter" placeholder="Highlight: Sig, Type..." oninput="render()" style="padding: 4px; font-size: 11px; margin-top: 4px;">
             </div>
         </div>
         <div class="control-item">
@@ -384,6 +397,12 @@
     const mediaQuery = window.matchMedia("(max-width: 1000px)");
     function handleScreenResize(e) { toggleLegend(e.matches ? true : false); }
     mediaQuery.addListener(handleScreenResize);
+    
+    function toggleLabelSlider() {
+        const mode = document.querySelector('input[name="labelMode"]:checked')?.value;
+        const container = document.getElementById('topNContainer');
+        if (container) container.style.display = mode === 'top' ? 'flex' : 'none';
+    }
 
     function updateLegend(dataForLegend = rawData) {
         const legendArea = d3.select("#legend-area");
@@ -755,7 +774,9 @@
         const searching = searchInput.length > 3;
         const bbColor = document.getElementById('backboneColor')?.value || '#e8e8ed';
         const maxHeightVal = +document.getElementById('yScale')?.value || 200;
-        const showVariantLabels = document.getElementById('showVariantLabels')?.checked;
+        
+        const labelMode = document.querySelector('input[name="labelMode"]:checked')?.value || 'none';
+        const topN = parseInt(document.getElementById('topNLabels')?.value || 10);
 
         const getSelectedValues = id => {
             const el = document.getElementById(id);
@@ -776,6 +797,26 @@
             if (colorMode === 'condition') return !hiddenCategories.has(d.primaryCondition);
             return !hiddenCategories.has(d.type);
         });
+
+        // Determine Top N variants for labels
+        let topNVariantObjs = new Set();
+        if (labelMode === 'top') {
+            const getSigRank = (sig) => {
+                const s = (sig || '').toLowerCase();
+                if (s === 'pathogenic' || (s.includes('pathogenic') && !s.includes('likely'))) return 6;
+                if (s.includes('likely pathogenic')) return 5;
+                if (s.includes('uncertain') || s === 'vus') return 4;
+                if (s.includes('conflicting')) return 3;
+                if (s.includes('likely benign')) return 2;
+                if (s === 'benign' || (s.includes('benign') && !s.includes('likely'))) return 1;
+                return 0;
+            };
+            const sortedVisible = [...visible].sort((a, b) => {
+                if (b.submissions !== a.submissions) return b.submissions - a.submissions;
+                return getSigRank(b.significance) - getSigRank(a.significance);
+            });
+            topNVariantObjs = new Set(sortedVisible.slice(0, topN));
+        }
 
         // Dynamic Title
         const geneSymbolText = (document.getElementById('geneSearch')?.value || "FGFR3").toUpperCase();
@@ -884,9 +925,16 @@
             node.append("path").attr("transform", `translate(${rescaledX(d.pos)}, ${centerY + h})`).attr("d", d3.symbol().type(shapeMap[d.type] || d3.symbolCircle).size(LOLLIPOP_HEAD_SIZE)()).attr("fill", getColor(d, variantPalette)).attr("stroke", match ? "black" : "white").attr("stroke-width", match ? 2.5 : 1).attr("opacity", op).style("cursor", "pointer")
                 .on("mouseover", (e) => showTooltip(e, d)).on("mousemove", moveTooltip).on("mouseout", hideTooltip).on("click", () => showDetails(d));
             
-            if (showVariantLabels && d.hgvs_p && d.hgvs_p !== "N/A" && (!searching || match)) {
+            const shouldShowLabel = (labelMode === 'all') || (labelMode === 'top' && topNVariantObjs.has(d));
+            if (shouldShowLabel && d.hgvs_p && d.hgvs_p !== "N/A" && (!searching || match)) {
+                let labelText = d.hgvs_p;
+                if (labelText.includes("p.")) {
+                    labelText = labelText.split("p.")[1];
+                }
+                labelText = labelText.replace(/\)$/, '').replace(/^\(/, '');
+
                 variantLabelData.push({
-                    text: d.hgvs_p,
+                    text: labelText,
                     x: rescaledX(d.pos),
                     y: centerY + h - (Math.sqrt(LOLLIPOP_HEAD_SIZE)/2) - 4, // start just above symbol
                     color: getColor(d, variantPalette)
@@ -895,7 +943,7 @@
         });
         
         // Render and resolve collisions for Variant Labels
-        if (showVariantLabels && variantLabelData.length > 0) {
+        if (labelMode !== 'none' && variantLabelData.length > 0) {
             variantLabelData.sort((a, b) => a.x - b.x); // Sweep left to right
             const placedBoxes = [];
             
