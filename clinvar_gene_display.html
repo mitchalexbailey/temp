@@ -90,25 +90,15 @@
     .brand {
       display:flex; flex-direction:column; gap:4px;
       min-width:0;
-      padding-left: 0; /* Removed padding since burger moved */
+      padding-left: 0;
     }
     .brand h1{
-      margin:0;
-      font-size:15px;
-      font-weight:950;
-      color:var(--c3);
-      letter-spacing:.2px;
-      line-height:1.2;
+      margin:0; font-size:15px; font-weight:950; color:var(--c3);
+      letter-spacing:.2px; line-height:1.2;
     }
     .brand .sub{
-      margin:0;
-      font-size:12px;
-      color:#444;
-      line-height:1.25;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      max-width: 980px;
+      margin:0; font-size:12px; color:#444; line-height:1.25;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 980px;
     }
     @media (max-width: 600px) {
       .brand h1 { font-size: 13px; }
@@ -116,50 +106,44 @@
     }
     .top-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .pill{
-      font-size:11px;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid rgba(0,0,0,0.14);
-      background:rgba(40,80,156,0.05);
-      color:var(--c3);
-      font-weight:850;
-      white-space:nowrap;
+      font-size:11px; padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(0,0,0,0.14); background:rgba(40,80,156,0.05);
+      color:var(--c3); font-weight:850; white-space:nowrap;
     }
     .top-actions button{
-      width:auto;
-      padding:8px 10px;
-      border-radius:999px;
-      font-weight:950;
-      cursor:pointer;
-      border:1px solid rgba(0,0,0,0.16);
-      background:#fff;
-      color:var(--c3);
-      box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+      width:auto; padding:8px 10px; border-radius:999px; font-weight:950;
+      cursor:pointer; border:1px solid rgba(0,0,0,0.16);
+      background:#fff; color:var(--c3); box-shadow: 0 10px 24px rgba(0,0,0,0.06);
     }
+    
+    /* Status Light */
+    .status-light {
+      width: 12px; height: 12px; border-radius: 50%;
+      display: inline-block; margin-left: 8px;
+      transition: background 0.3s;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+    .status-light.red { background: #ff4d4d; }
+    .status-light.yellow { background: #ffcc00; }
+    .status-light.green { background: #00cc66; }
+    .status-light.off { background: #ccc; }
 
     /* App layout */
     .app{
-      display:grid;
-      grid-template-columns: var(--sidebarW) 1fr;
-      min-height: calc(100vh - 0px);
-      transition: grid-template-columns .18s ease;
-      visibility: hidden; /* Hide until gene selected */
+      display:grid; grid-template-columns: var(--sidebarW) 1fr;
+      min-height: calc(100vh - 0px); transition: grid-template-columns .18s ease;
+      visibility: hidden;
     }
     .app.sidebar-collapsed{ grid-template-columns: 0px 1fr; }
 
-    /* Mobile sidebar overlay behavior (added; does not affect desktop) */
     @media (max-width: 980px){
       .app{ display:block; min-height:auto; }
       .app .sidebar{
-        display:none;
-        position:fixed !important;
-        left:0; top: var(--topbarH);
-        width: 100%; max-width: 320px;
-        height: calc(100% - var(--topbarH));
-        background:#fff;
-        z-index:1000;
-        transform: translateX(-100%);
-        transition: transform .3s ease;
+        display:none; position:fixed !important;
+        left:0; top: var(--topbarH); width: 100%; max-width: 320px;
+        height: calc(100% - var(--topbarH)); background:#fff;
+        z-index:1000; transform: translateX(-100%); transition: transform .3s ease;
       }
       .app.sidebar-open .sidebar{ display:block; transform: translateX(0); box-shadow: 20px 0 50px rgba(0,0,0,0.2); }
       .backdrop.show{ display:block; position:fixed; inset:0; background: rgba(0,0,0,0.3); z-index:900; }
@@ -169,11 +153,8 @@
     .sidebar{
       position:sticky; top:var(--topbarH); align-self:start;
       height: calc(100vh - var(--topbarH)); overflow:auto;
-      border-right:1px solid var(--border);
-      background: #fff; 
-      padding:14px; 
-      /* Add top padding to clear the floating filter label */
-      padding-top: 50px; 
+      border-right:1px solid var(--border); background: #fff; 
+      padding:14px; padding-top: 50px; 
       transition: transform .18s ease, opacity .18s ease; z-index:60;
     }
     .app.sidebar-collapsed .sidebar{ transform: translateX(calc(-1 * var(--sidebarW))); opacity: 0; pointer-events: none; }
@@ -213,99 +194,35 @@
 
     /* Sidebar toggle */
     .sidebarToggle{ 
-      position:fixed; 
-      left:16px; 
-      top:calc(var(--topbarH) + 16px); 
-      z-index:95; 
-      display:flex; 
-      gap:10px; 
-      align-items:center; 
-      pointer-events:none; 
+      position:fixed; left:16px; top:calc(var(--topbarH) + 16px); z-index:95; 
+      display:flex; gap:10px; align-items:center; pointer-events:none; 
     }
     
     .hamburger{ 
-      pointer-events:auto; 
-      padding: 8px 16px;
-      border-radius: 99px; /* Pill shape */
-      border:1px solid rgba(0,0,0,0.12); 
-      background: rgba(255,255,255,0.85); /* Semi-transparent */
-      backdrop-filter: blur(8px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-      cursor:pointer; 
-      
-      /* Font styling */
-      font-size: 11px;
-      font-weight: 900;
-      color: var(--c3);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      pointer-events:auto; padding: 8px 16px; border-radius: 99px; 
+      border:1px solid rgba(0,0,0,0.12); background: rgba(255,255,255,0.85); 
+      backdrop-filter: blur(8px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+      cursor:pointer; font-size: 11px; font-weight: 900; color: var(--c3); 
+      text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s ease;
+      display: flex; align-items: center; justify-content: center;
     }
-    .hamburger:hover {
-        background: #fff;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-    }
-    .hamburger svg{ display: none; } /* Hide old SVG if present */
+    .hamburger:hover { background: #fff; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+    .hamburger svg{ display: none; }
 
     /* Layout grid for analytics squares */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 24px;
-    }
+    .dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
     @media (max-width: 1200px) { .dashboard-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 600px)  { .dashboard-grid { grid-template-columns: 1fr; margin-bottom: 16px; } }
 
     .dashboard-square {
-      aspect-ratio: 2 / 1;
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      padding: 10px;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-      overflow: hidden;
+      aspect-ratio: 2 / 1; background: #fff; border: 1px solid var(--border); border-radius: 18px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s ease; padding: 10px; text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03); overflow: hidden;
     }
-    .dashboard-square:hover {
-      border-color: var(--c1);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-    }
-    .dashboard-square.active {
-      border-color: var(--c1);
-      background: rgba(40,80,156,0.05);
-      border-width: 2px;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-    }
-    .dashboard-square h3 {
-      margin: 0;
-      font-size: 11px;
-      font-weight: 900;
-      color: var(--c3);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-top: 4px;
-    }
-    .dashboard-square .preview-icon {
-      width: 100%;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      object-fit: contain;
-    }
+    .dashboard-square:hover { border-color: var(--c1); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    .dashboard-square.active { border-color: var(--c1); background: rgba(40,80,156,0.05); border-width: 2px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+    .dashboard-square h3 { margin: 0; font-size: 11px; font-weight: 900; color: var(--c3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
     .dashboard-square .icon-placeholder { font-size: 24px; opacity: 0.3; }
 
     /* Detail expansion container */
@@ -340,7 +257,6 @@
     table#tbl{ width:100%; border-collapse:collapse; font-size:12px; min-width: 980px; table-layout: fixed; }
     #tbl thead th{ position:sticky; top:0; z-index:2; background:#fafafa; border-bottom:1px solid var(--border); padding:10px; text-align:left; font-weight:950; color:var(--c3); }
 
-    /* Column Widths (from attached version) */
     #tbl th:nth-child(1) { width: 30%; }
     #tbl th:nth-child(2) { width: 14%; }
     #tbl th:nth-child(3) { width: 14%; }
@@ -375,17 +291,9 @@
     .scroll-btn { position: fixed; bottom: 24px; right: 24px; z-index: 9000; background: var(--c1); color: #fff; border: 0; padding: 10px 16px; border-radius: 999px; cursor: pointer; font-size: 12px; font-weight: 800; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 
     .count-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 10px;
-      font-weight: 800;
-      background: rgba(40,80,156,0.08);
-      color: var(--c1);
-      border: 1px solid rgba(40,80,156,0.15);
-      white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px;
+      font-size: 10px; font-weight: 800; background: rgba(40,80,156,0.08); color: var(--c1);
+      border: 1px solid rgba(40,80,156,0.15); white-space: nowrap;
     }
     .scv-pill { background: rgba(237,3,124,0.06); color: var(--c2); border-color: rgba(237,3,124,0.15); }
 
@@ -400,123 +308,36 @@
       .modalbody { padding: 12px; }
     }
 
-    /* LOLLIPOP OVERLAY (New) */
-    .lollipop-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 2000; /* Above modal overlay */
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(2px);
-    }
+    /* LOLLIPOP OVERLAY */
+    .lollipop-overlay { display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
     .lollipop-overlay.show { display: block; }
 
-    /* Modal container: fixed 2% margin on all sides */
     .lollipop-modal {
-      position: absolute;
-      top: 2%; bottom: 2%; left: 2%; right: 2%;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      position: absolute; top: 2%; bottom: 2%; left: 2%; right: 2%;
+      background: #fff; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      display: flex; flex-direction: column; overflow: hidden;
     }
 
-    .lollipop-header {
-      height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
-      background: #f8f9fa;
-      border-bottom: 1px solid var(--border);
-    }
-    .lollipop-title {
-      font-weight: 950;
-      color: var(--c3);
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .lollipop-header { height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: #f8f9fa; border-bottom: 1px solid var(--border); }
+    .lollipop-title { font-weight: 950; color: var(--c3); font-size: 14px; display: flex; align-items: center; gap: 8px; }
     .lollipop-actions { display: flex; gap: 8px; }
 
-    .lollipop-btn {
-      background: transparent;
-      border: 1px solid transparent;
-      cursor: pointer;
-      padding: 6px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--c3);
-      transition: all 0.2s;
-    }
-    .lollipop-btn:hover {
-      background: rgba(0,0,0,0.05);
-      border-color: var(--border2);
-    }
-    .lollipop-btn svg {
-      width: 18px;
-      height: 18px;
-      fill: currentColor;
-    }
+    .lollipop-btn { background: transparent; border: 1px solid transparent; cursor: pointer; padding: 6px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--c3); transition: all 0.2s; }
+    .lollipop-btn:hover { background: rgba(0,0,0,0.05); border-color: var(--border2); }
+    .lollipop-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
-    /* Example Genes Styles */
     .example-genes { margin-top: 24px; display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; }
     .example-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-    .example-btn {
-      background: #f0f4ff; border: 1px solid rgba(40,80,156,0.2);
-      color: var(--c3); padding: 8px 16px; border-radius: 99px;
-      font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
-    }
+    .example-btn { background: #f0f4ff; border: 1px solid rgba(40,80,156,0.2); color: var(--c3); padding: 8px 16px; border-radius: 99px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
     .example-btn:hover { background: #e0eaff; border-color: var(--c1); transform: translateY(-1px); }
 
-    #lollipopFrame {
-      flex: 1;
-      width: 100%;
-      height: 100%;
-      border: none;
-      background: #fff;
-    }
+    #lollipopFrame { flex: 1; width: 100%; height: 100%; border: none; background: #fff; }
 
-    /* Condition Buttons (New) */
-    .condition-buttons-row {
-      display: flex;
-      gap: 10px;
-      padding: 10px 16px;
-      background: #fff;
-      border-bottom: 1px solid var(--border);
-      flex-wrap: wrap; 
-    }
-    .cond-btn {
-      flex: 1;
-      min-width: 120px;
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: none;
-      color: #fff;
-      font-weight: 700;
-      font-size: 12px;
-      cursor: pointer;
-      text-align: center;
-      transition: opacity 0.2s;
-      text-decoration: none; /* acts as link */
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
+    .condition-buttons-row { display: flex; gap: 10px; padding: 10px 16px; background: #fff; border-bottom: 1px solid var(--border); flex-wrap: wrap;  }
+    .cond-btn { flex: 1; min-width: 120px; padding: 8px 12px; border-radius: 8px; border: none; color: #fff; font-weight: 700; font-size: 12px; cursor: pointer; text-align: center; transition: opacity 0.2s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
     .cond-btn:hover { opacity: 0.9; text-decoration: none; }
 
-    #conditionFrame iframe {
-      width: 125%;          /* 100 / 0.8 = 125% */
-      height: 125%;
-      transform: scale(0.8);
-      transform-origin: top left;
-      border: 0;
-    }
+    #conditionFrame iframe { width: 125%; height: 125%; transform: scale(0.8); transform-origin: top left; border: 0; }
   </style>
 </head>
 <body>
@@ -528,7 +349,6 @@
       <p style="color: #666;">Enter a HGNC gene symbol to begin analysis of evaluation history and phenotypes.</p>
     </div>
     <div class="gene-search-box">
-      <!-- Form added so Enter submits (and still works with button) -->
       <form id="geneForm" style="margin:0;">
         <input type="text" id="geneSearchInput" placeholder="e.g. FGFR3, BRCA1, TP53..." autocomplete="off">
         <div id="geneAutocomplete" class="autocomplete-list"></div>
@@ -554,14 +374,13 @@
         <span class="pill">Showing <span class="mono" id="topShowing">—</span></span>
         <button id="btnTopRefresh" type="button">Refresh</button>
         <button id="btnChangeGene" class="secondary" style="width: auto; padding: 6px 12px; border-radius: 999px; margin-left: 8px;">Change Gene</button>
+        <div id="statusLight" class="status-light off" title="Ready"></div>
       </div>
     </div>
   </header>
 
   <div class="sidebarToggle">
-    <button class="hamburger" id="btnHamburger" type="button" aria-label="Toggle filters">
-      FILTERS
-    </button>
+    <button class="hamburger" id="btnHamburger" type="button" aria-label="Toggle filters">FILTERS</button>
   </div>
 
   <!-- App now collapsed by default -->
@@ -591,7 +410,7 @@
           </div>
         </div>
 
-        <!-- Export panel expanded to include PDF modal -->
+        <!-- Export panel -->
         <div class="panel">
           <h2>Export</h2>
           <div style="display:flex; flex-direction: column; gap:8px;">
@@ -618,21 +437,17 @@
       <!-- Section Grid Row -->
       <div class="dashboard-grid">
         <div class="dashboard-square" id="sqCount" onclick="toggleSection('chartDetails')">
-          <!-- <img class="preview-icon" id="previewCount" alt="Count Preview" style="display:none;"> -->
           <div class="icon-placeholder" id="iconCount">📈</div>
           <h3>Variant Count Over Time</h3>
         </div>
         <div class="dashboard-square" id="sqTimeline" onclick="toggleSection('variantTimelineDetails')">
-          <!-- <img class="preview-icon" id="previewTimeline" alt="Timeline Preview" style="display:none;"> -->
           <div class="icon-placeholder" id="iconTimeline">⌛</div>
           <h3>Variant Timelines</h3>
         </div>
         <div class="dashboard-square" id="sqMatrix" onclick="toggleSection('matrixDetails')">
-          <!-- <div class="preview-icon" id="previewMatrix" style="display:none; font-size:10px; overflow:hidden;"></div> -->
           <div class="icon-placeholder" id="iconMatrix">📋</div>
           <h3>Clinical Matrix</h3>
         </div>
-        <!-- Added from attached version: Lollipop external -->
         <div class="dashboard-square" id="sqLollipop" onclick="openLollipop()">
           <div class="icon-placeholder">🍭</div>
           <h3>Lollipop</h3>
@@ -641,7 +456,7 @@
 
       <!-- Expansion Row -->
       <div id="expansionArea" class="expansion-container">
-        <!-- Section 1: Cumulative Variants Over Time -->
+        <!-- Section 1 -->
         <div class="matrixCard detail-view" id="chartDetails" style="display:none;">
           <div class="matrixHead">
             <div><h2>Cumulative Variant Count Over Time</h2></div>
@@ -654,7 +469,7 @@
           <div class="matrixWrap"><div id="plotlyChart" style="width:100%; height:400px; padding:10px;"></div></div>
         </div>
 
-        <!-- Section 2: Variant Timelines -->
+        <!-- Section 2 -->
         <div class="matrixCard detail-view" id="variantTimelineDetails" style="display:none;">
           <div class="matrixHead">
             <div><h2>Variant Timelines</h2></div>
@@ -663,7 +478,7 @@
           <div class="matrixWrap"><div id="variantTimelineChart" style="width:100%; min-height:400px; padding:10px;"></div></div>
         </div>
 
-        <!-- Section 3: Condition x Clinical Significance Matrix -->
+        <!-- Section 3 -->
         <div class="matrixCard detail-view" id="matrixDetails" style="display:none;">
           <div class="matrixHead">
             <div><h2>Condition × Clinical significance</h2></div>
@@ -680,7 +495,7 @@
         </div>
       </div>
 
-      <!-- Section 4: Main Variant Table (Always Expanded) -->
+      <!-- Section 4 -->
       <div class="mainTableContainer">
         <div class="mainTableHead">
           <h2>Full Variant Table</h2>
@@ -704,13 +519,11 @@
         </div>
         <button class="secondary" id="closeModal" style="width:auto; padding:6px 12px;">Close</button>
       </div>
-      <div id="modalBody" class="modalbody">
-        <!-- Rebuilt on openDetails() (keeps existing functionality + adds SCV filtering links) -->
-      </div>
+      <div id="modalBody" class="modalbody"></div>
     </div>
   </div>
 
-  <!-- EXPORT MODAL (added) -->
+  <!-- EXPORT MODAL -->
   <div id="exportOverlay" class="overlay">
     <div class="modal" style="width: min(500px, 90vw);">
       <div class="modalhead">
@@ -733,7 +546,7 @@
     </div>
   </div>
 
-  <!-- CONTRIBUTE MODAL (New) -->
+  <!-- CONTRIBUTE MODAL -->
   <div id="contributeOverlay" class="overlay">
     <div class="modal" style="width: min(600px, 90vw);">
       <div class="modalhead">
@@ -768,7 +581,7 @@
     </div>
   </div>
 
-  <!-- LOLLIPOP OVERLAY (New) -->
+  <!-- LOLLIPOP OVERLAY -->
   <div id="lollipopOverlay" class="lollipop-overlay">
     <div class="lollipop-modal">
       <div class="lollipop-header">
@@ -777,11 +590,9 @@
         </div>
         <div class="lollipop-actions">
           <button id="btnLollipopNewTab" class="lollipop-btn" title="Open in New Tab">
-            <!-- Vector icon: Open New Window -->
             <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
           </button>
           <button id="btnLollipopClose" class="lollipop-btn" title="Close">
-            <!-- Vector icon: Close -->
             <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
           </button>
         </div>
@@ -790,7 +601,7 @@
     </div>
   </div>
 
-  <!-- CONDITION VIEWER OVERLAY (New - Cloned from Lollipop style) -->
+  <!-- CONDITION VIEWER OVERLAY -->
   <div id="conditionOverlay" class="lollipop-overlay">
     <div class="lollipop-modal">
       <div class="lollipop-header">
@@ -827,6 +638,7 @@
     let activeSectionId = null;
     let selectedGene = null;
     let hgncData = [];
+    let isScvLoading = false;
 
     const statusEl = document.getElementById("status");
     const filterEl = document.getElementById("filter");
@@ -840,20 +652,17 @@
     const selectionScreen = document.getElementById("geneSelectionScreen");
     const geneForm = document.getElementById("geneForm");
 
-    // Lollipop elements
     const lollipopOverlay = document.getElementById('lollipopOverlay');
     const lollipopFrame = document.getElementById('lollipopFrame');
     const btnLollipopNewTab = document.getElementById('btnLollipopNewTab');
     const btnLollipopClose = document.getElementById('btnLollipopClose');
 
-    // Condition viewer elements
     const conditionOverlay = document.getElementById('conditionOverlay');
     const conditionFrame = document.getElementById('conditionFrame');
     const conditionTitleText = document.getElementById('conditionTitleText');
     const btnConditionNewTab = document.getElementById('btnConditionNewTab');
     const btnConditionClose = document.getElementById('btnConditionClose');
 
-    // Multi-select elements (make explicit to avoid implicit globals)
     const sigSearch = document.getElementById("sigSearch");
     const sigPills  = document.getElementById("sigPills");
     const sigList   = document.getElementById("sigList");
@@ -861,371 +670,17 @@
     const condPills = document.getElementById("condPills");
     const condList  = document.getElementById("condList");
 
-    /**
-     * Logic for the Condition Modal Viewer
-     */
-    function openConditionView(url, title, idsEncoded) {
-      if(!url) return;
-      conditionFrame.src = url;
-      if(title) conditionTitleText.textContent = title;
-      else conditionTitleText.textContent = "Condition View";
-      
-      // Handle buttons
-      const btnContainer = document.getElementById('conditionButtons');
-      if (btnContainer) {
-          btnContainer.innerHTML = '';
-          let ids = {};
-          try {
-              if(idsEncoded) ids = JSON.parse(decodeURIComponent(idsEncoded));
-          } catch(e) { console.error(e); }
-
-          const configs = [
-              { key: 'mondo', color: 'var(--c1)', urlFn: (v) => `https://monarchinitiative.org/${v}` },
-              { key: 'omim', color: 'var(--c2)', urlFn: (v) => `https://www.omim.org/entry/${v}` },
-              { key: 'orphanet', color: 'var(--c5)', urlFn: (v) => `https://www.orpha.net/en/disease/detail/${v}` }
-          ];
-
-          // Check if we have any valid keys
-          const hasKeys = configs.some(c => ids[c.key]);
-
-          if (hasKeys) {
-              btnContainer.style.display = 'flex';
-              configs.forEach(c => {
-                  if (ids[c.key]) {
-                      const val = ids[c.key];
-                      const link = c.urlFn(val);
-                      const label = `${String(val).toUpperCase()} (${c.key.toUpperCase()})`;
-                      
-                      const btn = document.createElement('a');
-                      btn.className = 'cond-btn';
-                      btn.style.backgroundColor = c.color;
-                      btn.href = link;
-                      btn.target = '_blank';
-                      btn.rel = 'noopener noreferrer';
-                      btn.textContent = label;
-                      btnContainer.appendChild(btn);
-                  }
-              });
-          } else {
-              // Hide container if empty to save space
-              btnContainer.style.display = 'none';
-          }
-      }
-
-      conditionOverlay.classList.add('show');
-    }
-
-    function closeConditionView() {
-      conditionOverlay.classList.remove('show');
-      conditionFrame.src = "";
-    }
-
-    function openConditionNewTab() {
-      if (conditionFrame.src && conditionFrame.src !== "about:blank") {
-        window.open(conditionFrame.src, '_blank');
+    // ---------- UI Helpers ----------
+    function setStatus(msg){ if (statusEl) statusEl.textContent = msg; }
+    function setLight(color, tooltip) {
+      const light = document.getElementById("statusLight");
+      if (light) {
+        light.className = `status-light ${color}`;
+        light.title = tooltip || "";
       }
     }
-
-    // Attach condition viewer events
-    btnConditionClose.addEventListener('click', closeConditionView);
-    btnConditionNewTab.addEventListener('click', openConditionNewTab);
-    conditionOverlay.addEventListener('click', (e) => {
-      if(e.target === conditionOverlay) closeConditionView();
-    });
-
-
-    /**
-     * Generates a clickable link for a ClinVar condition.
-     * Triggers the internal modal viewer (openConditionView) instead of a direct new tab.
-     */
-    function getConditionLink(condition) {
-      if (!condition || !condition.name) return '';
-      
-      const identifiers = condition.identifiers || {};
-      const name = condition.name;
-      let url = '';
-
-      // 1. Check for OMIM Phenotype Number (Preferred)
-      if (identifiers.mondo) {
-        url = `https://monarchinitiative.org/${identifiers.mondo}`;
-      }
-      else if (identifiers.omim) {
-        url = `https://www.omim.org/entry/${identifiers.omim}`;
-      }
-      else if (identifiers.orphanet) {
-        url = `https://www.orpha.net/en/disease/detail/${identifiers.orphanet}`;
-      }
-      // 3. Fallback: Search OMIM by condition name
-      else {
-        url = `https://google.com`;
-      }
-
-      // Return link with onclick handler for modal
-      const safeName = escapeHtml(name);
-      const safeUrl = url.replace(/'/g, "\\'"); 
-      // Serialize identifiers safely for passing to modal
-      const idsJson = encodeURIComponent(JSON.stringify(identifiers));
-      const jsCall = `openConditionView('${safeUrl}', '${safeName.replace(/'/g, "\\'")}', '${idsJson}')`;
-      
-      return `<a href="javascript:void(0)" onclick="event.stopPropagation(); ${jsCall}">${safeName}</a>`;
-    }
-
-    // ---------- Mobile Sidebar Toggle (added, without breaking desktop collapse) ----------
-    function toggleSidebarMobile(force) {
-      const open = typeof force === 'boolean' ? force : !app.classList.contains('sidebar-open');
-      const backdrop = document.getElementById('backdrop');
-      if (open) {
-        app.classList.add('sidebar-open');
-        // Remove collapsed class so opacity becomes 1 and pointer-events auto
-        app.classList.remove('sidebar-collapsed'); 
-        backdrop.classList.add('show');
-        document.body.style.overflow = 'hidden';
-        backdrop.setAttribute('aria-hidden', 'false');
-      } else {
-        app.classList.remove('sidebar-open');
-        // Re-add collapsed class to reset state (and ensure it stays collapsed if resized to desktop)
-        app.classList.add('sidebar-collapsed');
-        backdrop.classList.remove('show');
-        document.body.style.overflow = '';
-        backdrop.setAttribute('aria-hidden', 'true');
-      }
-    }
-    document.getElementById("backdrop").addEventListener("click", () => toggleSidebarMobile(false));
-
-    // ---------- Plotly mobile handling (added) ----------
-    function getResponsivePlotlyLayout(baseLayout) {
-      const isMobile = window.innerWidth < 600;
-      const updated = { ...baseLayout };
-      if (isMobile) {
-        updated.font = { ...(updated.font || {}), size: 9 };
-        if (updated.margin) updated.margin = { ...updated.margin, l: Math.min(updated.margin.l ?? 50, 100), r: 10 };
-        if (updated.legend && updated.legend.font) updated.legend = { ...updated.legend, font: { ...updated.legend.font, size: 10 } };
-      }
-      return updated;
-    }
-
-    // ---------- URL persistence for gene (added; does not force reload) ----------
-    function setGeneInUrl(geneRaw) {
-      const gene = String(geneRaw || "").trim().toUpperCase();
-      if (!gene) return;
-      const url = new URL(window.location.href);
-      // Only push state if different to allow back button navigation without loops
-      if (url.searchParams.get("gene") === gene) return;
-      url.searchParams.set("gene", gene);
-      url.hash = "";
-      window.history.pushState({}, "", url.toString());
-    }
-
-    function getGeneFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      let gene = params.get('gene');
-      if (!gene && window.location.hash) gene = window.location.hash.substring(1);
-      return gene ? decodeURIComponent(gene).trim().toUpperCase() : null;
-    }
-
-    function startGene(geneValue, geneLabel) {
-      if (!geneValue) return;
-      selectedGene = geneValue;
-      setGeneInUrl(geneValue);
-      selectionScreen.style.display = "none";
-      app.style.visibility = "visible";
-      
-      const displayLabel = geneLabel || geneValue;
-      document.getElementById("brandTitle").textContent = `${geneValue} Variant Dashboard`;
-      
-      // Update input just in case
-      geneInput.value = displayLabel;
-      
-      loadAllData();
-    }
-
-    // Handle back/forward navigation
-    window.addEventListener("popstate", () => {
-      const g = getGeneFromUrl();
-      if (g) {
-        // Restore gene view
-        // Look up label from HGNC data if available, otherwise use symbol
-        const match = hgncData.find(item => item.value === g);
-        startGene(g, match ? match.label : g);
-      } else {
-        // Return to selection screen
-        selectionScreen.style.display = "flex";
-        app.style.visibility = "hidden";
-        if (controller) controller.abort();
-        toggleSidebarMobile(false);
-      }
-    });
-
-    // Form submit = Enter + button click
-    geneForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      // If user typed manually, we might not have a separate value/label
-      // In that case, use the input value for both
-      const gene = selectedGene || geneInput.value.trim().toUpperCase();
-      startGene(gene, gene);
-    });
-
-    // Optional: Enter picks first autocomplete item if open
-    geneInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        const first = geneList.querySelector(".autocomplete-item");
-        if (first && geneList.style.display === "block") {
-          e.preventDefault();
-          // Simulate click on first item
-          first.click();
-        }
-      }
-    });
-
-    // ---------- HGNC Dataset Logic ----------
-    async function fetchHGNC() {
-      try {
-        const response = await fetch(HGNC_JSON_URL);
-        hgncData = await response.json(); // Now expects JSON
-
-        document.getElementById("hgncStatus").textContent = `Loaded ${hgncData.length} genes. Ready.`;
-        
-        // Populate Example Genes
-        const exContainer = document.getElementById("exampleGenes");
-        const fixed = ["FGFR3", "GALNS", "ARSB", "TPP1"];
-        const randoms = [];
-        if (hgncData.length > 0) {
-          // Shuffle or pick random indices
-          for(let i=0; i<4; i++) {
-             const r = hgncData[Math.floor(Math.random() * hgncData.length)];
-             if(r && r.value) randoms.push(r.value);
-          }
-        }
-        
-        const mkBtn = (g) => `<button class="example-btn" onclick="selectGene('${g}', '${g}')">${g}</button>`;
-        
-        exContainer.innerHTML = `
-          <div class="example-row">${fixed.map(mkBtn).join('')}</div>
-          <div class="example-row">${randoms.map(mkBtn).join('')}</div>
-        `;
-        exContainer.style.display = "flex";
-
-      } catch (e) {
-        document.getElementById("hgncStatus").textContent = "Error loading HGNC data. Gene autocomplete disabled.";
-      }
-
-      // If URL has gene, auto-load
-      const g = getGeneFromUrl();
-      if (g) {
-        // Try to find label if possible
-        const match = hgncData.find(item => item.value === g);
-        startGene(g, match ? match.label : g);
-      }
-    }
-
-    geneInput.addEventListener("input", () => {
-      const q = geneInput.value.trim().toUpperCase();
-      if (q.length < 1) { geneList.style.display = "none"; return; }
-      
-      // Match against label, limit 10
-      const matches = hgncData.filter(g => g.label.toUpperCase().startsWith(q) || g.label.toUpperCase().includes(q)).slice(0, 10);
-      
-      if (!matches.length) { geneList.style.display = "none"; return; }
-      
-      geneList.innerHTML = matches.map(g => `
-        <div class="autocomplete-item" onclick="selectGene('${g.value}', '${g.label}')">
-          <span class="sym">${g.label}</span>
-        </div>`).join('');
-      geneList.style.display = "block";
-    });
-
-    function selectGene(value, label) {
-      geneInput.value = label;
-      geneList.style.display = "none";
-      selectedGene = value;
-      startGene(value, label);
-    }
-
-    document.getElementById("btnChangeGene").onclick = () => {
-      // Clear URL parameter so state is clean
-      const url = new URL(window.location.href);
-      if (url.searchParams.has("gene")) {
-        url.searchParams.delete("gene");
-        window.history.pushState({}, "", url.toString());
-      }
-
-      selectionScreen.style.display = "flex";
-      app.style.visibility = "hidden";
-      if (controller) controller.abort();
-      toggleSidebarMobile(false);
-    };
-
-    // ---------- Layout Logic ----------
-    function toggleSection(id) {
-      const expansionArea = document.getElementById("expansionArea");
-      const squares = document.querySelectorAll(".dashboard-square");
-      const details = document.querySelectorAll(".detail-view");
-      squares.forEach(sq => sq.classList.remove("active"));
-
-      // Identify the triggering square
-      const sqMap = {'chartDetails':'sqCount', 'variantTimelineDetails':'sqTimeline', 'matrixDetails':'sqMatrix'};
-      const sqId = sqMap[id];
-      const sqEl = document.getElementById(sqId);
-
-      if (activeSectionId === id) {
-        // Collapse
-        expansionArea.classList.remove("show");
-        activeSectionId = null;
-        // Scroll back to square
-        if(sqEl) sqEl.scrollIntoView({behavior: 'smooth', block: 'center'});
-      } else {
-        // Expand
-        expansionArea.classList.add("show");
-        details.forEach(d => d.style.display = "none");
-        const sec = document.getElementById(id);
-        sec.style.display = "block";
-        activeSectionId = id;
-        
-        if(sqEl) sqEl.classList.add("active");
-        
-        if (id === 'chartDetails') renderCumulativeChart();
-        if (id === 'variantTimelineDetails') renderVariantTimelineChart(lastFilteredRows);
-        if (id === 'matrixDetails') renderMatrix();
-
-        // Scroll to section
-        setTimeout(() => {
-            const top = sec.getBoundingClientRect().top + window.scrollY - 80; // 80px margin for header
-            window.scrollTo({top: top, behavior: 'smooth'});
-        }, 50);
-      }
-    }
-
-    // ---------- Lollipop Logic (Updated) ----------
-    function openLollipop() {
-      if (!selectedGene) return;
-      const url = `https://raw.githack.com/mitchalexbailey/temp/main/lollipop.html?gene=${encodeURIComponent(selectedGene)}`;
-      lollipopFrame.src = url;
-      lollipopOverlay.classList.add('show');
-    }
-
-    function closeLollipop() {
-      lollipopOverlay.classList.remove('show');
-      lollipopFrame.src = ""; // Clear src to stop playing/loading
-    }
-
-    function openLollipopNewTab() {
-      // Use the current src of the iframe
-      if (lollipopFrame.src && lollipopFrame.src !== "about:blank") {
-        window.open(lollipopFrame.src, '_blank');
-      }
-    }
-    
-    // Attach event listeners for Lollipop actions
-    btnLollipopClose.addEventListener('click', closeLollipop);
-    btnLollipopNewTab.addEventListener('click', openLollipopNewTab);
-
-    // Also close on click outside (backdrop)
-    lollipopOverlay.addEventListener('click', (e) => {
-      if(e.target === lollipopOverlay) closeLollipop();
-    });
 
     // ---------- Data Processing Helpers ----------
-    function setStatus(msg){ if (statusEl) statusEl.textContent = msg; }
     function asArray(x){ return x == null ? [] : (Array.isArray(x) ? x : [x]); }
     function safeGet(obj, path, fallback=null){
       try{ return path.split(".").reduce((o,k)=> (o && (k in o)) ? o[k] : undefined, obj) ?? fallback; }
@@ -1247,7 +702,6 @@
       return out;
     }
 
-    // New helper to extract full object for linking
     function extractConditionObjectsFromRcv(rcv) {
       const out = [];
       asArray(safeGet(rcv, "conditions")).forEach(c => {
@@ -1265,36 +719,120 @@
       return sorted.find(s => s.name)?.name || null;
     }
 
-    function summarizeClinVar(hit){
+    // Apply global selections directly to the SCV collection
+    function getFilteredSCVs(row) {
+        if (!row.allScvs) return [];
+        const selSigs = Array.from(sigSelected);
+        const selConds = Array.from(condSelected);
+
+        return row.allScvs.filter(s => {
+            const matchSig = selSigs.includes("__ALL__") || selSigs.includes(s.significance);
+            const matchCond = selConds.includes("__ALL__") || selConds.some(c => norm(s.condition).includes(norm(c)));
+            return matchSig && matchCond;
+        });
+    }
+
+    // --- Bulk SCV Fetching via NCBI E-utilities ---
+    async function fetchSCVBatch(rcvIds) {
+      const scvMap = new Map();
+      if (!rcvIds || !rcvIds.length) return scvMap;
+      const uniqueIds = [...new Set(rcvIds)];
+      const chunkSize = 200; // Batch sizes to keep URL length safe
+
+      for (let i = 0; i < uniqueIds.length; i += chunkSize) {
+        const chunk = uniqueIds.slice(i, i + chunkSize);
+        try {
+          const url = new URL("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi");
+          url.searchParams.append("db", "clinvar");
+          url.searchParams.append("rettype", "clinvarset");
+          url.searchParams.append("id", chunk.join(","));
+          url.searchParams.append("tool", "gene_explorer");
+          url.searchParams.append("email", "research@example.org");
+
+          const response = await fetch(url);
+          const xmlText = await response.text();
+          const doc = new DOMParser().parseFromString(xmlText, "application/xml");
+          const sets = doc.querySelectorAll("ClinVarSet");
+
+          sets.forEach(set => {
+            const rcvAccNode = set.querySelector("ReferenceClinVarAssertion > ClinVarAccession");
+            if (!rcvAccNode) return;
+            const rcvAcc = rcvAccNode.getAttribute("Acc");
+            const scvs = [];
+
+            set.querySelectorAll("ClinVarAssertion").forEach(node => {
+              const accNode = node.querySelector("ClinVarAccession");
+              const scvAcc = accNode?.getAttribute("Acc");
+              if (!scvAcc || !scvAcc.startsWith("SCV")) return;
+
+              const classif = node.querySelector("Classification");
+              
+              // Extract detailed traits/conditions for this specific SCV
+              const traitNames = Array.from(node.querySelectorAll("TraitSet Trait Name ElementValue"))
+                                      .map(n => n.textContent).filter(Boolean);
+              const condition = traitNames.length ? traitNames.join(' | ') : "Not provided";
+
+              scvs.push({
+                parentRcv: rcvAcc,
+                accession: `${scvAcc}.${accNode.getAttribute("Version") || "1"}`,
+                submitter: node.querySelector("ClinVarSubmissionID")?.getAttribute("submitter") || "N/A",
+                significance: classif?.querySelector("GermlineClassification")?.textContent || "N/A",
+                date: classif?.getAttribute("DateLastEvaluated") || "N/A",
+                condition: condition
+              });
+            });
+
+            scvMap.set(rcvAcc, scvs);
+            if (rcvAcc.includes('.')) scvMap.set(rcvAcc.split('.')[0], scvs); // Map versionless as fallback
+          });
+        } catch (e) {
+          console.warn("Batch SCV fetch failed for chunk", e);
+        }
+      }
+      return scvMap;
+    }
+
+    // --- Core Model Hydration ---
+    function summarizeClinVar(hit, scvMap){
       const cv = hit?.clinvar || {};
       const rcvs = asArray(cv.rcv);
       const name = pickPreferredName(rcvs);
       const coords = cv.chrom ? `chr${cv.chrom}:${cv.pos}${cv.ref}>${cv.alt}` : null;
       const dates = rcvs.map(r => parseDateToMs(r.last_evaluated)).filter(Boolean).sort((a,b) => b-a);
 
+      const allScvs = [];
       const phenotypeMap = new Map();
+      
       rcvs.forEach(r => {
-        const subCount = parseInt(r.number_submitters) || 1;
+        // Hydrate Phenotypes
         const conds = extractConditionObjectsFromRcv(r);
         const uniqueNamesInRcv = new Set();
-        
         conds.forEach(cObj => {
           if (!cObj.name) return;
           if (uniqueNamesInRcv.has(cObj.name)) return;
           uniqueNamesInRcv.add(cObj.name);
-          
-          if (!phenotypeMap.has(cObj.name)) {
-            phenotypeMap.set(cObj.name, { count: 0, identifiers: {} });
-          }
+          if (!phenotypeMap.has(cObj.name)) phenotypeMap.set(cObj.name, { count: 0, identifiers: {} });
           const entry = phenotypeMap.get(cObj.name);
-          entry.count += subCount;
-          // Merge identifiers logic: if we find identifiers in any RCV for this name, add them
+          entry.count += (parseInt(r.number_submitters) || 1);
           if(cObj.identifiers && cObj.identifiers.medgen) entry.identifiers.medgen = cObj.identifiers.medgen;
           if(cObj.identifiers && cObj.identifiers.omim) entry.identifiers.omim = cObj.identifiers.omim;
           if(cObj.identifiers && cObj.identifiers.mondo) entry.identifiers.mondo = cObj.identifiers.mondo;
           if(cObj.identifiers && cObj.identifiers.orphanet) entry.identifiers.orphanet = cObj.identifiers.orphanet;
         });
+
+        // Map SCVs if scvMap exists (Phase 2)
+        const rcvAcc = r.accession || r.id;
+        let scvsForRcv = [];
+        if (scvMap && rcvAcc) {
+            scvsForRcv = scvMap.get(rcvAcc) || scvMap.get(rcvAcc.split('.')[0]) || [];
+        }
+        r.submissions = scvsForRcv; // Automatically puts it into Raw JSON viewer + Exports
+        allScvs.push(...scvsForRcv);
       });
+
+      // Use newly discovered precise SCV totals instead of rough estimates if fetched
+      const actualScvTotal = scvMap ? (allScvs.length > 0 ? allScvs.length : rcvs.reduce((acc, r) => acc + (parseInt(r.number_submitters) || 0), 0))
+                                    : rcvs.reduce((acc, r) => acc + (parseInt(r.number_submitters) || 0), 0);
 
       return {
         id: hit._id,
@@ -1306,18 +844,299 @@
         review: uniq(rcvs.map(r => r.review_status)),
         lastEval: dates.length ? new Date(dates[0]).toISOString().split('T')[0] : "—",
         rcvCount: rcvs.length,
-        scvTotal: rcvs.reduce((acc, r) => acc + (parseInt(r.number_submitters) || 0), 0),
+        scvTotal: actualScvTotal,
+        allScvs: allScvs,
         rawClinvar: cv
       };
     }
-
-    function conditionAssociationScore(row, conditionLabel){
-      const rcvs = asArray(row.rawClinvar?.rcv).filter(r => extractConditionsFromRcv(r).some(c => norm(c).includes(norm(conditionLabel))));
-      if (!rcvs.length) return { score: 0 };
-      const totalSubs = rcvs.reduce((acc, r) => acc + (parseInt(r.number_submitters) || 1), 0);
-      const exclusivity = rcvs.reduce((acc, r) => acc + (1 / asArray(r.conditions).length), 0);
-      return { score: (rcvs.length * 1000) + (totalSubs * 10) + exclusivity };
+    
+    function hydrateRowWithSCVs(row, scvMap) {
+      const allScvs = [];
+      const rcvs = asArray(row.rawClinvar?.rcv);
+      rcvs.forEach(r => {
+        const rcvAcc = r.accession || r.id;
+        let scvsForRcv = [];
+        if (scvMap && rcvAcc) {
+            scvsForRcv = scvMap.get(rcvAcc) || scvMap.get(rcvAcc.split('.')[0]) || [];
+        }
+        r.submissions = scvsForRcv; // Maps deeper nested JSON tree
+        allScvs.push(...scvsForRcv);
+      });
+      row.allScvs = allScvs;
+      row.scvTotal = allScvs.length > 0 ? allScvs.length : rcvs.reduce((acc, r) => acc + (parseInt(r.number_submitters) || 0), 0);
     }
+
+    /** Condition Modal Logic */
+    function openConditionView(url, title, idsEncoded) {
+      if(!url) return;
+      conditionFrame.src = url;
+      if(title) conditionTitleText.textContent = title;
+      else conditionTitleText.textContent = "Condition View";
+      
+      const btnContainer = document.getElementById('conditionButtons');
+      if (btnContainer) {
+          btnContainer.innerHTML = '';
+          let ids = {};
+          try { if(idsEncoded) ids = JSON.parse(decodeURIComponent(idsEncoded)); } catch(e) {}
+
+          const configs = [
+              { key: 'mondo', color: 'var(--c1)', urlFn: (v) => `https://monarchinitiative.org/${v}` },
+              { key: 'omim', color: 'var(--c2)', urlFn: (v) => `https://www.omim.org/entry/${v}` },
+              { key: 'orphanet', color: 'var(--c5)', urlFn: (v) => `https://www.orpha.net/en/disease/detail/${v}` }
+          ];
+
+          const hasKeys = configs.some(c => ids[c.key]);
+
+          if (hasKeys) {
+              btnContainer.style.display = 'flex';
+              configs.forEach(c => {
+                  if (ids[c.key]) {
+                      const val = ids[c.key];
+                      const btn = document.createElement('a');
+                      btn.className = 'cond-btn';
+                      btn.style.backgroundColor = c.color;
+                      btn.href = c.urlFn(val);
+                      btn.target = '_blank';
+                      btn.rel = 'noopener noreferrer';
+                      btn.textContent = `${String(val).toUpperCase()} (${c.key.toUpperCase()})`;
+                      btnContainer.appendChild(btn);
+                  }
+              });
+          } else {
+              btnContainer.style.display = 'none';
+          }
+      }
+      conditionOverlay.classList.add('show');
+    }
+
+    function closeConditionView() {
+      conditionOverlay.classList.remove('show');
+      conditionFrame.src = "";
+    }
+
+    function openConditionNewTab() {
+      if (conditionFrame.src && conditionFrame.src !== "about:blank") window.open(conditionFrame.src, '_blank');
+    }
+
+    btnConditionClose.addEventListener('click', closeConditionView);
+    btnConditionNewTab.addEventListener('click', openConditionNewTab);
+    conditionOverlay.addEventListener('click', (e) => { if(e.target === conditionOverlay) closeConditionView(); });
+
+    function getConditionLink(condition) {
+      if (!condition || !condition.name) return '';
+      const identifiers = condition.identifiers || {};
+      const name = condition.name;
+      let url = '';
+
+      if (identifiers.mondo) url = `https://monarchinitiative.org/${identifiers.mondo}`;
+      else if (identifiers.omim) url = `https://www.omim.org/entry/${identifiers.omim}`;
+      else if (identifiers.orphanet) url = `https://www.orpha.net/en/disease/detail/${identifiers.orphanet}`;
+      else url = `https://google.com`;
+
+      const safeName = escapeHtml(name);
+      const safeUrl = url.replace(/'/g, "\\'"); 
+      const idsJson = encodeURIComponent(JSON.stringify(identifiers));
+      const jsCall = `openConditionView('${safeUrl}', '${safeName.replace(/'/g, "\\'")}', '${idsJson}')`;
+      return `<a href="javascript:void(0)" onclick="event.stopPropagation(); ${jsCall}">${safeName}</a>`;
+    }
+
+    // ---------- Layout Toggles ----------
+    function toggleSidebarMobile(force) {
+      const open = typeof force === 'boolean' ? force : !app.classList.contains('sidebar-open');
+      const backdrop = document.getElementById('backdrop');
+      if (open) {
+        app.classList.add('sidebar-open');
+        app.classList.remove('sidebar-collapsed'); 
+        backdrop.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        backdrop.setAttribute('aria-hidden', 'false');
+      } else {
+        app.classList.remove('sidebar-open');
+        app.classList.add('sidebar-collapsed');
+        backdrop.classList.remove('show');
+        document.body.style.overflow = '';
+        backdrop.setAttribute('aria-hidden', 'true');
+      }
+    }
+    document.getElementById("backdrop").addEventListener("click", () => toggleSidebarMobile(false));
+
+    function getResponsivePlotlyLayout(baseLayout) {
+      const isMobile = window.innerWidth < 600;
+      const updated = { ...baseLayout };
+      if (isMobile) {
+        updated.font = { ...(updated.font || {}), size: 9 };
+        if (updated.margin) updated.margin = { ...updated.margin, l: Math.min(updated.margin.l ?? 50, 100), r: 10 };
+        if (updated.legend && updated.legend.font) updated.legend = { ...updated.legend, font: { ...updated.legend.font, size: 10 } };
+      }
+      return updated;
+    }
+
+    function setGeneInUrl(geneRaw) {
+      const gene = String(geneRaw || "").trim().toUpperCase();
+      if (!gene) return;
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("gene") === gene) return;
+      url.searchParams.set("gene", gene);
+      url.hash = "";
+      window.history.pushState({}, "", url.toString());
+    }
+
+    function getGeneFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      let gene = params.get('gene');
+      if (!gene && window.location.hash) gene = window.location.hash.substring(1);
+      return gene ? decodeURIComponent(gene).trim().toUpperCase() : null;
+    }
+
+    function startGene(geneValue, geneLabel) {
+      if (!geneValue) return;
+      selectedGene = geneValue;
+      setGeneInUrl(geneValue);
+      selectionScreen.style.display = "none";
+      app.style.visibility = "visible";
+      document.getElementById("brandTitle").textContent = `${geneValue} Variant Dashboard`;
+      geneInput.value = geneLabel || geneValue;
+      loadAllData();
+    }
+
+    window.addEventListener("popstate", () => {
+      const g = getGeneFromUrl();
+      if (g) {
+        const match = hgncData.find(item => item.value === g);
+        startGene(g, match ? match.label : g);
+      } else {
+        selectionScreen.style.display = "flex";
+        app.style.visibility = "hidden";
+        if (controller) controller.abort();
+        toggleSidebarMobile(false);
+      }
+    });
+
+    geneForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const gene = selectedGene || geneInput.value.trim().toUpperCase();
+      startGene(gene, gene);
+    });
+
+    geneInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const first = geneList.querySelector(".autocomplete-item");
+        if (first && geneList.style.display === "block") { e.preventDefault(); first.click(); }
+      }
+    });
+
+    async function fetchHGNC() {
+      try {
+        const response = await fetch(HGNC_JSON_URL);
+        hgncData = await response.json(); 
+        document.getElementById("hgncStatus").textContent = `Loaded ${hgncData.length} genes. Ready.`;
+        
+        const exContainer = document.getElementById("exampleGenes");
+        const fixed = ["FGFR3", "GALNS", "ARSB", "TPP1"];
+        const randoms = [];
+        if (hgncData.length > 0) {
+          for(let i=0; i<4; i++) {
+             const r = hgncData[Math.floor(Math.random() * hgncData.length)];
+             if(r && r.value) randoms.push(r.value);
+          }
+        }
+        
+        const mkBtn = (g) => `<button type="button" class="example-btn" onclick="selectGene('${g}', '${g}')">${g}</button>`;
+        exContainer.innerHTML = `
+          <div class="example-row">${fixed.map(mkBtn).join('')}</div>
+          <div class="example-row">${randoms.map(mkBtn).join('')}</div>
+        `;
+        exContainer.style.display = "flex";
+
+      } catch (e) {
+        document.getElementById("hgncStatus").textContent = "Error loading HGNC data. Gene autocomplete disabled.";
+      }
+      const g = getGeneFromUrl();
+      if (g) {
+        const match = hgncData.find(item => item.value === g);
+        startGene(g, match ? match.label : g);
+      }
+    }
+
+    geneInput.addEventListener("input", () => {
+      const q = geneInput.value.trim().toUpperCase();
+      if (q.length < 1) { geneList.style.display = "none"; return; }
+      const matches = hgncData.filter(g => g.label.toUpperCase().startsWith(q) || g.label.toUpperCase().includes(q)).slice(0, 10);
+      if (!matches.length) { geneList.style.display = "none"; return; }
+      geneList.innerHTML = matches.map(g => `<div class="autocomplete-item" onclick="selectGene('${g.value}', '${g.label}')"><span class="sym">${g.label}</span></div>`).join('');
+      geneList.style.display = "block";
+    });
+
+    function selectGene(value, label) {
+      geneInput.value = label;
+      geneList.style.display = "none";
+      selectedGene = value;
+      startGene(value, label);
+    }
+
+    document.getElementById("btnChangeGene").onclick = () => {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has("gene")) {
+        url.searchParams.delete("gene");
+        window.history.pushState({}, "", url.toString());
+      }
+      selectionScreen.style.display = "flex";
+      app.style.visibility = "hidden";
+      if (controller) controller.abort();
+      toggleSidebarMobile(false);
+    };
+
+    function toggleSection(id) {
+      const expansionArea = document.getElementById("expansionArea");
+      const squares = document.querySelectorAll(".dashboard-square");
+      const details = document.querySelectorAll(".detail-view");
+      squares.forEach(sq => sq.classList.remove("active"));
+
+      const sqMap = {'chartDetails':'sqCount', 'variantTimelineDetails':'sqTimeline', 'matrixDetails':'sqMatrix'};
+      const sqId = sqMap[id];
+      const sqEl = document.getElementById(sqId);
+
+      if (activeSectionId === id) {
+        expansionArea.classList.remove("show");
+        activeSectionId = null;
+        if(sqEl) sqEl.scrollIntoView({behavior: 'smooth', block: 'center'});
+      } else {
+        expansionArea.classList.add("show");
+        details.forEach(d => d.style.display = "none");
+        const sec = document.getElementById(id);
+        sec.style.display = "block";
+        activeSectionId = id;
+        
+        if(sqEl) sqEl.classList.add("active");
+        
+        if (id === 'chartDetails') renderCumulativeChart();
+        if (id === 'variantTimelineDetails') renderVariantTimelineChart(lastFilteredRows);
+        if (id === 'matrixDetails') renderMatrix();
+
+        setTimeout(() => {
+            const top = sec.getBoundingClientRect().top + window.scrollY - 80;
+            window.scrollTo({top: top, behavior: 'smooth'});
+        }, 50);
+      }
+    }
+
+    // ---------- Lollipop Logic ----------
+    function openLollipop() {
+      if (!selectedGene) return;
+      const url = `https://raw.githack.com/mitchalexbailey/temp/main/lollipop.html?gene=${encodeURIComponent(selectedGene)}`;
+      lollipopFrame.src = url;
+      lollipopOverlay.classList.add('show');
+    }
+    function closeLollipop() {
+      lollipopOverlay.classList.remove('show');
+      lollipopFrame.src = "";
+    }
+    function openLollipopNewTab() {
+      if (lollipopFrame.src && lollipopFrame.src !== "about:blank") window.open(lollipopFrame.src, '_blank');
+    }
+    btnLollipopClose.addEventListener('click', closeLollipop);
+    btnLollipopNewTab.addEventListener('click', openLollipopNewTab);
+    lollipopOverlay.addEventListener('click', (e) => { if(e.target === lollipopOverlay) closeLollipop(); });
 
     // --- Multi-select UI Helpers ---
     function setAllRule(set, val){
@@ -1380,7 +1199,15 @@
       }
     }
 
-    // --- Main Table Render ---
+    function conditionAssociationScore(row, conditionLabel){
+      const rcvs = asArray(row.rawClinvar?.rcv).filter(r => extractConditionsFromRcv(r).some(c => norm(c).includes(norm(conditionLabel))));
+      if (!rcvs.length) return { score: 0 };
+      const totalSubs = rcvs.reduce((acc, r) => acc + (parseInt(r.number_submitters) || 1), 0);
+      const exclusivity = rcvs.reduce((acc, r) => acc + (1 / Math.max(1, asArray(r.conditions).length)), 0);
+      return { score: (rcvs.length * 1000) + (totalSubs * 10) + exclusivity };
+    }
+
+    // --- Renders ---
     function renderTable(rows){
       tbody.innerHTML = rows.length ? "" : "<tr><td colspan='6'>No matching variants.</td></tr>";
       rows.forEach(r => {
@@ -1395,7 +1222,7 @@
             <div class="v-id-label">${escapeHtml(r.id)}</div>
           </td>
           <td>
-            ${r.variationId !== "—" ? `<a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${r.variationId}/" target="_blank" rel="noopener">${escapeHtml(r.variationId)}</a>` : "—"}
+            ${r.variationId !== "—" ? `<a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${r.variationId}/" target="_blank" rel="noopener" onclick="event.stopPropagation()">${escapeHtml(r.variationId)}</a>` : "—"}
             <div style="margin-top:4px">
               <span class="count-pill">${r.rcvCount} RCVs</span>
               <span class="count-pill scv-pill">${r.scvTotal} SCVs</span>
@@ -1410,7 +1237,6 @@
       });
     }
 
-    // Helper to avoid inline JS complexity in Matrix
     function openDetailsById(id) {
         const row = allRows.find(x => x.id === id);
         if (row) openDetails(row);
@@ -1427,7 +1253,6 @@
         }
     }
 
-    // --- Matrix Render (updated with stopwords) ---
     function renderMatrix(){
       matrixBody.innerHTML = "";
       const stopWords = ["not specified", "not provided", "none provided", "no phenotypic information", "not available", "unknown", "-", "not provided"];
@@ -1435,15 +1260,11 @@
       const sortedConds = filteredConds.slice(0, 4).map(c => c.value);
 
       sortedConds.forEach(rowLabel => {
-        // Construct link for Matrix Header
         const ids = condMeta.get(rowLabel) || {};
         const headerLink = getConditionLink({ name: rowLabel, identifiers: ids });
 
         const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <th class="rowHead">
-            ${headerLink}
-          </th>`;
+        tr.innerHTML = `<th class="rowHead">${headerLink}</th>`;
 
         MATRIX_COLS.forEach(col => {
           const matches = allRows.filter(r => {
@@ -1455,7 +1276,6 @@
           }).map(r => ({ r, score: conditionAssociationScore(r, rowLabel).score }))
             .sort((a,b) => b.score - a.score);
 
-          // NEW LOGIC: Toggle hidden items
           const visibleCount = 6;
           const visible = matches.slice(0, visibleCount);
           const hidden = matches.slice(visibleCount);
@@ -1486,9 +1306,7 @@
               <div class="cell">
                 <div class="cellCount">${matches.length}</div>
                 <div class="cellMeta">variants</div>
-                <div class="cellVariants">
-                  ${variantsHtml}
-                </div>
+                <div class="cellVariants">${variantsHtml}</div>
               </div>
             </td>`;
         });
@@ -1496,7 +1314,6 @@
       });
     }
 
-    // --- Cumulative Chart Logic (updated: stopwords + responsive layout) ---
     function renderCumulativeChart(rows){
       const dataRows = rows || lastFilteredRows;
       const chartDiv = document.getElementById("plotlyChart");
@@ -1520,10 +1337,7 @@
         cats.forEach(cat => {
           let count = 0; const x = [], y = [];
           dates.forEach(d => { if (norm(d.sig).includes(cat.match)) count++; x.push(new Date(d.ms)); y.push(count); });
-          traces.push({ x, y, name: cat.name, type: 'scatter', mode: 'lines', line: { color: cat.color }, 
-            stackgroup: 'one',
-            // fill: 'tozeroy'
-          });
+          traces.push({ x, y, name: cat.name, type: 'scatter', mode: 'lines', line: { color: cat.color }, stackgroup: 'one' });
         });
       } else {
         const stopWords = ["not specified", "not provided", "none provided", "no phenotypic information", "not available", "unknown", "-"];
@@ -1531,13 +1345,7 @@
         topConds.forEach(row => {
           let count = 0; const x = [], y = [];
           dates.forEach(d => { if (d.conds.some(c => norm(c).includes(norm(row)))) count++; x.push(new Date(d.ms)); y.push(count); });
-          traces.push({ x, y,
-            name: row,
-            type: 'scatter',
-            mode: 'lines',
-            stackgroup: 'one',
-            // fill: 'tozeroy' 
-          });
+          traces.push({ x, y, name: row, type: 'scatter', mode: 'lines', stackgroup: 'one' });
         });
       }
 
@@ -1550,11 +1358,9 @@
         legend: { x: 0.02, y: 0.98, xanchor: 'left', yanchor: 'top', bgcolor: 'rgba(255,255,255,0.8)', font: { family: 'var(--mono)', size: 10 } }
       });
 
-      Plotly.newPlot(chartDiv, traces, layout, { responsive: true, displayModeBar: false })
-        .catch(()=>{});
+      Plotly.newPlot(chartDiv, traces, layout, { responsive: true, displayModeBar: false }).catch(()=>{});
     }
 
-    // --- Variant Timelines Logic ---
     function getSeverity(sig) {
       const s = norm(sig);
       if (s.includes('pathogenic') && !s.includes('likely') && !s.includes('conflict')) return 6;
@@ -1567,9 +1373,6 @@
     }
 
     function getVariantScore(row) {
-      // Sort priority: P(6) > LP(5) > Conflicting(4) > VUS(3) > LB(2) > B(1)
-      // Use the MAXIMUM severity present in the variant's current unique sigs
-      // to determine its sort grouping.
       const sevs = (row.sigs || []).map(getSeverity);
       return sevs.length ? Math.max(...sevs) : 0;
     }
@@ -1577,21 +1380,24 @@
     function getMostRecentSeverity(row) {
       const rcvs = asArray(row.rawClinvar?.rcv);
       if (!rcvs.length) return 0;
-      // Sort by date descending to find most recent
-      // Note: Copying array to avoid mutating original order if it matters elsewhere
       const sorted = [...rcvs].sort((a, b) => (parseDateToMs(b.last_evaluated) || 0) - (parseDateToMs(a.last_evaluated) || 0));
       return getSeverity(sorted[0].clinical_significance);
     }
 
-async function renderVariantTimelineChart(rows) {
+    function renderVariantTimelineChart(rows) {
       const container = document.getElementById("variantTimelineChart");
       if (!container) return;
+
+      if (isScvLoading) {
+        container.innerHTML = '<div class="help" style="text-align:center; padding:50px;">Fetching detailed submission timelines...<br><small>This chart will render automatically once background loading completes.</small></div>';
+        return;
+      }
+
       if (typeof Plotly === 'undefined') {
           container.innerHTML = '<div class="help" style="text-align:center; padding:50px;">Chart library failed to load.</div>';
           return;
       }
 
-      // 1) Remove all variants with only one SCV right at the start
       const multiSubRows = (rows || []).filter(r => (r.scvTotal || 0) > 1);
 
       if (!multiSubRows.length) {
@@ -1599,8 +1405,6 @@ async function renderVariantTimelineChart(rows) {
         return;
       }
 
-      // Selection Logic (from previous requirements):
-      // Sort by Severity Score (Desc) then SCV Count (Desc) for selection priority
       const candidates = [...multiSubRows].sort((a, b) => {
         const scoreA = getVariantScore(a);
         const scoreB = getVariantScore(b);
@@ -1609,22 +1413,13 @@ async function renderVariantTimelineChart(rows) {
       });
 
       let displayRows = [];
-
-      // Logic Step 1: If <= 30, plot all
       if (candidates.length <= 30) {
         displayRows = candidates;
       } else {
-        // Logic Step 2: Filter for variants with > 2 unique classifications
         const complex = candidates.filter(r => (r.sigs || []).length >= 2);
-
-        if (complex.length === 0) {
-           // Fallback: If no complex variants exist, default to the top 30 sorted
-           displayRows = candidates.slice(0, 30);
-        } else if (complex.length <= 50) {
-           // Logic Step 3: If filtered count <= 50, plot all
-           displayRows = complex;
-        } else {
-           // Logic Step 4: If > 50, prioritize max severity difference
+        if (complex.length === 0) displayRows = candidates.slice(0, 30);
+        else if (complex.length <= 50) displayRows = complex;
+        else {
            displayRows = complex.map(r => {
              const sevs = (r.sigs || []).map(getSeverity);
              const minS = Math.min(...sevs);
@@ -1632,12 +1427,10 @@ async function renderVariantTimelineChart(rows) {
              return { row: r, range: maxS - minS, maxS, scv: r.scvTotal };
            })
            .sort((a, b) => {
-             if (a.range !== b.range) return b.range - a.range; // Biggest diff first
-             if (a.maxS !== b.maxS) return b.maxS - a.maxS;      // Higher severity first
-             return b.scv - a.scv;                              // More SCVs first
-           })
-           .slice(0, 50)
-           .map(x => x.row);
+             if (a.range !== b.range) return b.range - a.range;
+             if (a.maxS !== b.maxS) return b.maxS - a.maxS;
+             return b.scv - a.scv;
+           }).slice(0, 50).map(x => x.row);
         }
       }
 
@@ -1646,105 +1439,30 @@ async function renderVariantTimelineChart(rows) {
         return;
       }
 
-      // 2) Sort by severity of the most recent point right before plotting
       displayRows.sort((a, b) => {
         const sevA = getMostRecentSeverity(a);
         const sevB = getMostRecentSeverity(b);
-        if (sevA !== sevB) return sevB - sevA; // Descending
-        return (b.scvTotal || 0) - (a.scvTotal || 0); // Tie-break
+        if (sevA !== sevB) return sevB - sevA; 
+        return (b.scvTotal || 0) - (a.scvTotal || 0); 
       });
-
-      // --- NEW LOGIC: Fetch all SCVs for the displayed rows ---
-      container.innerHTML = '<div class="help" style="text-align:center; padding:50px;">Loading submission timelines...</div>';
-
-      const rcvIdMap = {}; 
-      const allRcvIds = [];
-      
-      displayRows.forEach((row, i) => {
-        const rcvs = asArray(row.rawClinvar?.rcv);
-        rcvs.forEach(r => {
-            const acc = r.accession || r.id; // Get RCV accession
-            if (acc) {
-                allRcvIds.push(acc);
-                rcvIdMap[acc] = i; 
-                if (acc.includes('.')) rcvIdMap[acc.split('.')[0]] = i; // Map versionless as well
-            }
-        });
-      });
-
-      // Array to hold the fetched SCVs for each row index
-      const rowScvs = Array.from({ length: displayRows.length }, () => []);
-
-      if (allRcvIds.length > 0) {
-        try {
-          const url = new URL("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi");
-          url.searchParams.append("db", "clinvar");
-          url.searchParams.append("rettype", "clinvarset");
-          url.searchParams.append("id", allRcvIds.join(","));
-          url.searchParams.append("tool", "gene_explorer");
-          url.searchParams.append("email", "research@example.org");
-
-          const response = await fetch(url);
-          const xmlText = await response.text();
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(xmlText, "application/xml");
-          const sets = doc.querySelectorAll("ClinVarSet");
-
-          sets.forEach(set => {
-            const rcvAccNode = set.querySelector("ReferenceClinVarAssertion > ClinVarAccession");
-            if (!rcvAccNode) return;
-            const rcvAcc = rcvAccNode.getAttribute("Acc");
-            
-            // Find which displayRow this belongs to
-            const rowIndex = rcvIdMap[rcvAcc];
-            if (rowIndex === undefined) return;
-
-            set.querySelectorAll("ClinVarAssertion").forEach(node => {
-              const accNode = node.querySelector("ClinVarAccession");
-              const scvAcc = accNode?.getAttribute("Acc");
-              if (!scvAcc || !scvAcc.startsWith("SCV")) return;
-              
-              const classif = node.querySelector("Classification");
-              rowScvs[rowIndex].push({
-                accession: `${scvAcc}.${accNode.getAttribute("Version")}`,
-                submitter: node.querySelector("ClinVarSubmissionID")?.getAttribute("submitter") || "N/A",
-                significance: classif?.querySelector("GermlineClassification")?.textContent || "N/A",
-                date: classif?.getAttribute("DateLastEvaluated") || "N/A"
-              });
-            });
-          });
-        } catch (err) {
-          console.error("Failed to fetch SCVs for timeline:", err);
-          // If fetch fails, we'll gracefully render empty timelines or fall back to error state
-        }
-      }
-
-      // Clear the loading message
-      container.innerHTML = '';
 
       const sigColorMap = {
-        'pathogenic': 'red',
-        'likely pathogenic': 'orange',
-        'uncertain significance': 'grey',
-        'vus': 'grey',
-        'likely benign': 'lightblue',
-        'benign': 'blue'
+        'pathogenic': 'red', 'likely pathogenic': 'orange',
+        'uncertain significance': 'grey', 'vus': 'grey',
+        'likely benign': 'lightblue', 'benign': 'blue'
       };
 
       const traces = [];
       displayRows.forEach((row, i) => {
-        // --- UPDATED LOGIC: Plot using the fetched SCVs instead of RCVs ---
-        const scvs = rowScvs[i].filter(s => s.date && s.date !== "N/A");
+        // Deep integration: only fetch SCVs that pass our global significance and condition filters
+        const scvs = getFilteredSCVs(row).filter(s => s.date && s.date !== "N/A");
         const dates = scvs.map(s => parseDateToMs(s.date)).filter(Boolean);
         if (!dates.length) return;
 
         traces.push({
           x: [new Date(Math.min(...dates)), new Date(Math.max(...dates))],
-          y: [i, i],
-          mode: 'lines',
-          line: { color: '#ccc', width: 2 },
-          showlegend: false,
-          hoverinfo: 'skip'
+          y: [i, i], mode: 'lines', line: { color: '#ccc', width: 2 },
+          showlegend: false, hoverinfo: 'skip'
         });
 
         scvs.forEach(scv => {
@@ -1753,28 +1471,22 @@ async function renderVariantTimelineChart(rows) {
           for (let k in sigColorMap) if (sig.includes(k)) color = sigColorMap[k];
           if (sig.includes('conflict')) { color = '#ff9900'; symbol = 'triangle-up'; }
 
+          let shortCond = scv.condition;
+          if (shortCond.length > 55) shortCond = shortCond.substring(0, 52) + '...';
+
           traces.push({
-            x: [new Date(parseDateToMs(scv.date))],
-            y: [i],
-            mode: 'markers',
+            x: [new Date(parseDateToMs(scv.date))], y: [i], mode: 'markers',
             marker: { color, size: 10, symbol, line: { width: 1, color: '#fff' } },
-            // Added SCV Accession and Submitter info to the hover text for extra detail
-            text: `${escapeHtml(stripPrefix(row.preferredName || row.id))}<br>SCV: ${escapeHtml(scv.accession)}<br>${escapeHtml(scv.significance || '')}<br>${escapeHtml(scv.date || '')}`,
-            hoverinfo: 'text',
-            name: scv.significance,
-            showlegend: false
+            text: `${escapeHtml(stripPrefix(row.preferredName || row.id))}<br>SCV: ${escapeHtml(scv.accession)}<br>${escapeHtml(scv.significance)}<br>Condition: ${escapeHtml(shortCond)}<br>${escapeHtml(scv.date)}`,
+            hoverinfo: 'text', name: scv.significance, showlegend: false
           });
         });
       });
 
-      // Dummy traces for legend
       const dummyCats = [
-        {name: 'Pathogenic', color: 'red'},
-        {name: 'Likely Pathogenic', color: 'orange'},
-        {name: 'VUS/Uncertain', color: 'grey'},
-        {name: 'Likely Benign', color: 'lightblue'},
-        {name: 'Benign', color: 'blue'},
-        {name: 'Conflicting', color: '#ff9900'}
+        {name: 'Pathogenic', color: 'red'}, {name: 'Likely Pathogenic', color: 'orange'},
+        {name: 'VUS/Uncertain', color: 'grey'}, {name: 'Likely Benign', color: 'lightblue'},
+        {name: 'Benign', color: 'blue'}, {name: 'Conflicting', color: '#ff9900'}
       ];
       dummyCats.forEach(c => traces.push({ x:[null], y:[null], mode:'markers', name:c.name, marker:{color:c.color} }));
 
@@ -1783,17 +1495,11 @@ async function renderVariantTimelineChart(rows) {
         margin: { l: 260, r: 40, t: 80, b: 60 },
         xaxis: { type: 'date', showgrid: false, zeroline: false },
         yaxis: {
-          tickmode: 'array',
-          tickvals: displayRows.map((_,i)=>i),
+          tickmode: 'array', tickvals: displayRows.map((_,i)=>i),
           ticktext: displayRows.map(r => stripPrefix(r.preferredName || r.variationId)),
-          autorange: 'reversed',
-          fixedrange: true,
-          showgrid: false,
-          zeroline: false
+          autorange: 'reversed', fixedrange: true, showgrid: false, zeroline: false
         },
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        font: { family: 'var(--mono)', size: 10 },
+        paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { family: 'var(--mono)', size: 10 },
         legend: { orientation: 'h', y: 1.1, x: 0, xanchor: 'left', yanchor: 'bottom' }
       });
 
@@ -1807,89 +1513,37 @@ async function renderVariantTimelineChart(rows) {
       }).catch(()=>{});
     }
 
-    // --- SCV Fetch + Filtering (added from attached version) ---
-    async function fetchAllSCVs(rcvIds) {
+    // Modal Interaction for SCVs 
+    function renderSCVTable(scvs, rcvFilter = null) {
       const body = document.getElementById("scvTableBody");
-      if (!body) return;
-      try {
-        if (!rcvIds || !rcvIds.length) {
-          body.innerHTML = '<tr><td colspan="5">No submissions found.</td></tr>';
-          return;
-        }
-        const url = new URL("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi");
-        url.searchParams.append("db", "clinvar");
-        url.searchParams.append("rettype", "clinvarset");
-        url.searchParams.append("id", rcvIds.join(","));
-        url.searchParams.append("tool", "gene_explorer");
-        url.searchParams.append("email", "research@example.org");
-
-        const response = await fetch(url);
-        const xmlText = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(xmlText, "application/xml");
-        const sets = doc.querySelectorAll("ClinVarSet");
-
-        const results = [];
-        sets.forEach(set => {
-          const rcvAcc = set.querySelector("ReferenceClinVarAssertion ClinVarAccession")?.getAttribute("Acc") || "Unknown";
-          set.querySelectorAll("ClinVarAssertion").forEach(node => {
-            const accNode = node.querySelector("ClinVarAccession");
-            const scvAcc = accNode?.getAttribute("Acc");
-            if (!scvAcc || !scvAcc.startsWith("SCV")) return;
-            const classif = node.querySelector("Classification");
-            results.push({
-              parentRcv: rcvAcc,
-              accession: `${scvAcc}.${accNode.getAttribute("Version")}`,
-              submitter: node.querySelector("ClinVarSubmissionID")?.getAttribute("submitter") || "N/A",
-              significance: classif?.querySelector("GermlineClassification")?.textContent || "N/A",
-              date: classif?.getAttribute("DateLastEvaluated") || "N/A"
-            });
-          });
-        });
-
-        results.sort((a, b) => (parseDateToMs(b.date) || 0) - (parseDateToMs(a.date) || 0));
-        body.innerHTML = results.length
-          ? results.map(s => `
-              <tr>
-                <td class="mono small" style="color:var(--gray); opacity:0.8;">${escapeHtml(s.parentRcv)}</td>
-                <td class="mono">${escapeHtml(s.accession)}</td>
-                <td>${escapeHtml(s.submitter)}</td>
-                <td><span class="sig warn">${escapeHtml(s.significance)}</span></td>
-                <td>${escapeHtml(s.date)}</td>
-              </tr>`).join('')
-          : '<tr><td colspan="5">No submissions found.</td></tr>';
-      } catch (e) {
-        body.innerHTML = '<tr><td colspan="5">Fetch error.</td></tr>';
+      const status = document.getElementById("scvStatus");
+      let toShow = scvs;
+      
+      if (rcvFilter) {
+          toShow = scvs.filter(s => s.parentRcv === rcvFilter || s.parentRcv.startsWith(rcvFilter));
+          status.innerHTML = `Showing <strong>${toShow.length}</strong> submissions for ${escapeHtml(rcvFilter)}. <a href="javascript:void(0)" onclick="resetSCVFilter()" style="font-size:11px; margin-left:10px;">Show all</a>`;
+      } else {
+          status.textContent = "Individual lab submissions for this variant.";
       }
+
+      toShow.sort((a,b) => (parseDateToMs(b.date)||0) - (parseDateToMs(a.date)||0));
+
+      body.innerHTML = toShow.length
+        ? toShow.map(s => `
+            <tr>
+              <td class="mono small" style="color:var(--gray); opacity:0.8;">${escapeHtml(s.parentRcv)}</td>
+              <td class="mono">${escapeHtml(s.accession)}</td>
+              <td>${escapeHtml(s.submitter)}</td>
+              <td><span class="sig warn">${escapeHtml(s.significance)}</span></td>
+              <td>${escapeHtml(s.date)}</td>
+            </tr>`).join('')
+        : '<tr><td colspan="5">No submissions found matching active filters.</td></tr>';
     }
 
-    function filterSCVs(rcvId) {
-      const rows = document.querySelectorAll("#scvTableBody tr");
-      let visibleCount = 0;
-      rows.forEach(row => {
-        const parentCell = row.cells?.[0];
-        if (parentCell && parentCell.textContent.trim() === rcvId) {
-          row.style.display = "";
-          visibleCount++;
-        } else {
-          row.style.display = "none";
-        }
-      });
-      const scvStatus = document.getElementById("scvStatus");
-      if (scvStatus) {
-        scvStatus.innerHTML = `Showing <strong>${visibleCount}</strong> submissions for ${escapeHtml(rcvId)}.
-          <a href="javascript:void(0)" onclick="resetSCVFilter()" style="font-size:11px; margin-left:10px;">Show all</a>`;
-      }
-    }
+    window.resetSCVFilter = () => renderSCVTable(getFilteredSCVs(currentModalRow));
+    window.filterSCVs = (rcvId) => renderSCVTable(getFilteredSCVs(currentModalRow), rcvId);
 
-    function resetSCVFilter() {
-      const rows = document.querySelectorAll("#scvTableBody tr");
-      rows.forEach(row => row.style.display = "");
-      const scvStatus = document.getElementById("scvStatus");
-      if (scvStatus) scvStatus.textContent = "Individual lab submissions for this variant.";
-    }
-
-    // --- Modal Logic (rebuilt to include clickable RCV rows for SCV filter) ---
+    // --- Modal Logic ---
     function openDetails(row){
       currentModalRow = row;
       const variationId = row.variationId && row.variationId !== "—" ? row.variationId : null;
@@ -1909,10 +1563,9 @@ async function renderVariantTimelineChart(rows) {
         ["Conditions", row.conditions.map(c => `<span class="tag">${getConditionLink(c)} (${c.count})</span>`).join(' ')]
       ];
 
-      // --- NEW LOGIC: Check for Uncertain/Conflicting Significance ---
       const isUncertainOrConflict = (row.sigs || []).some(s => {
-          const ls = String(s).toLowerCase();
-          return ls.includes("uncertain") || ls.includes("conflict") || ls.includes("vus");
+        const ls = String(s).toLowerCase();
+        return ls.includes("uncertain") || ls.includes("conflict") || ls.includes("vus");
       });
       
       const contributeBtnHTML = isUncertainOrConflict
@@ -1952,7 +1605,7 @@ async function renderVariantTimelineChart(rows) {
 
         <details class="card">
           <summary style="padding:10px 12px; font-size:13px; font-weight:950; color:var(--c3); background:rgba(40,80,156,0.05); cursor:pointer; list-style:none;">
-            Raw ClinVar JSON
+            Raw ClinVar JSON (Includes fetched SCVs)
           </summary>
           <div class="inner">
             <pre id="rawJson" style="background:#f4f4f4; padding:10px; border-radius:8px; font-size:11px; overflow:auto; max-height:300px;"></pre>
@@ -1960,7 +1613,6 @@ async function renderVariantTimelineChart(rows) {
         </details>
       `;
 
-      // Attach listener for new contribute button if it exists
       if (isUncertainOrConflict) {
           document.getElementById("btnOpenContribute").onclick = () => {
               document.getElementById("contributeOverlay").classList.add("show");
@@ -1986,10 +1638,13 @@ async function renderVariantTimelineChart(rows) {
         }).join('') +
         `</tbody>`;
 
-      fetchAllSCVs(rcvs.map(r => r.accession).filter(Boolean));
+      if (isScvLoading) {
+          document.getElementById("scvTableBody").innerHTML = '<tr><td colspan="5" class="help" style="text-align:center;">Background fetching in progress...</td></tr>';
+      } else {
+          renderSCVTable(getFilteredSCVs(row));
+      }
 
       document.getElementById("rawJson").textContent = JSON.stringify(row.rawClinvar, null, 2);
-      console.log(row);
       document.getElementById("overlay").classList.add("show");
     }
 
@@ -1998,7 +1653,7 @@ async function renderVariantTimelineChart(rows) {
       document.body.style.overflow = '';
     }
 
-    // --- Contribute Form Logic (New) ---
+    // --- Contribute Form ---
     document.getElementById("btnCancelContribute").onclick = () => document.getElementById("contributeOverlay").classList.remove("show");
     document.getElementById("btnCancelContributeTop").onclick = () => document.getElementById("contributeOverlay").classList.remove("show");
 
@@ -2014,8 +1669,7 @@ async function renderVariantTimelineChart(rows) {
         const row = currentModalRow;
         const subject = `[${row.geneSymbol}] Variant Contribution: ${row.preferredName || row.id}`;
         
-        const body = `
-Gene: ${row.geneSymbol}
+        const body = `Gene: ${row.geneSymbol}
 Variant: ${row.preferredName || "N/A"}
 HGVS/Coords: ${row.coords || "N/A"}
 MyVariant ID: ${row.id}
@@ -2027,19 +1681,14 @@ Affiliation: ${affil}
 Email: ${email}
 
 -- Details --
-${details}
-        `.trim();
+${details}`;
 
         const mailto = `mailto:example@example.xyz?cc=${encodeURIComponent(email)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        
-        // Open mail client
         window.location.href = mailto;
-        
-        // Close modal
         document.getElementById("contributeOverlay").classList.remove("show");
     };
 
-    // --- Export helpers (added) ---
+    // --- Exports ---
     function downloadText(filename, text) {
       const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
       const a = document.createElement("a");
@@ -2075,40 +1724,25 @@ ${details}
         const sigs = (r.sigs || []).join(" | ");
         const conds = (r.conditions || []).slice(0,5).map(c => `${c.name} (${c.count})`).join(" | ");
         const vals = [
-          r.id,
-          r.preferredName || "",
-          r.coords || "",
-          r.variationId || "",
-          r.lastEval || "",
-          sigs,
-          conds,
-          r.rcvCount ?? "",
-          r.scvTotal ?? ""
+          r.id, r.preferredName || "", r.coords || "", r.variationId || "",
+          r.lastEval || "", sigs, conds, r.rcvCount ?? "", r.scvTotal ?? ""
         ].map(v => `"${String(v ?? "").replace(/"/g,'""')}"`);
         lines.push(vals.join(","));
       });
-
       downloadText(`${selectedGene || "gene"}_variants.csv`, lines.join("\n"));
     }
 
-    function openExportModal() {
-      document.getElementById("exportOverlay").classList.add("show");
-    }
-    function closeExportModal() {
-      document.getElementById("exportOverlay").classList.remove("show");
-    }
+    function openExportModal() { document.getElementById("exportOverlay").classList.add("show"); }
+    function closeExportModal() { document.getElementById("exportOverlay").classList.remove("show"); }
 
     async function generatePDFReport() {
-      // Uses built-in print-to-PDF via new window; includes plot images if present
       const notes = document.getElementById("exportNotes").value || "";
       closeExportModal();
 
       const sigLabel = Array.from(sigSelected).includes("__ALL__") ? "All" : Array.from(sigSelected).join(", ");
       const condLabel = Array.from(condSelected).includes("__ALL__") ? "All" : Array.from(condSelected).join(", ");
 
-      // Try to capture images; if section not rendered, skip gracefully
-      let countImg = "";
-      let timelineImg = "";
+      let countImg = ""; let timelineImg = "";
       try {
         const gdCount = document.getElementById("plotlyChart");
         if (gdCount && gdCount.data) countImg = await Plotly.toImage(gdCount, {format:'png', width:1200, height:400});
@@ -2133,7 +1767,6 @@ ${details}
               th { background: #f9f9f9; font-weight: bold; }
               img { max-width: 100%; border: 1px solid #eee; margin-top: 10px; }
               .notes { background: #f4f4f4; padding: 15px; border-radius: 8px; font-style: italic; }
-              /* Link styling for print/pdf */
               a { color: #28509C; text-decoration: none; }
             </style>
           </head>
@@ -2195,7 +1828,7 @@ ${details}
       setTimeout(() => { printWindow.focus(); printWindow.print(); }, 700);
     }
 
-    // --- Interaction ---
+    // --- Core Operations ---
     function applyFiltersAndRender(){
       const q = filterEl.value.trim().toLowerCase();
       const selSigs = Array.from(sigSelected);
@@ -2208,7 +1841,6 @@ ${details}
         return matchSig && matchCond && (!q || hay.includes(q));
       });
 
-      // Keep existing sort behavior + attach version’s useful default: prioritize higher SCV totals
       filtered.sort((a, b) => (b.scvTotal || 0) - (a.scvTotal || 0));
 
       lastFilteredRows = filtered;
@@ -2226,9 +1858,10 @@ ${details}
     }
 
     async function loadAllData(){
-      allRows = [];
-      totalHits = null;
-      setStatus("Querying...");
+      allRows = []; totalHits = null;
+      isScvLoading = false;
+      setStatus("Querying myvariant.info...");
+      setLight("red", "Loading Base variants (Phase 1)...");
       document.getElementById("btnStop").disabled = false;
 
       const size = parseInt(pageSizeEl.value, 10);
@@ -2236,6 +1869,7 @@ ${details}
       controller = new AbortController();
 
       try {
+        // PHASE 1: Fetch Base RCV Data
         while(true){
           const url = `${API_BASE}?q=clinvar.gene.symbol:${encodeURIComponent(selectedGene)}&fields=${FIELDS}&from=${from}&size=${size}`;
           const res = await fetch(url, { signal: controller.signal });
@@ -2246,10 +1880,12 @@ ${details}
             document.getElementById("total").textContent = totalHits;
           }
           if (!data.hits?.length) break;
-
-          allRows.push(...data.hits.map(summarizeClinVar));
+          
+          allRows.push(...data.hits.map(hit => summarizeClinVar(hit, null)));
+          
           from += data.hits.length;
           document.getElementById("fetched").textContent = from;
+          setStatus(`Fetching base variants ${from}/${totalHits}...`);
 
           if (from >= totalHits) break;
         }
@@ -2258,28 +1894,58 @@ ${details}
         renderMatrix();
         renderMS({ options: sigOptions, selected: sigSelected, listEl: sigList, pillsEl: sigPills, searchText: "" });
         renderMS({ options: condOptions, selected: condSelected, listEl: condList, pillsEl: condPills, searchText: "" });
+        
+        // Signal early UI plotting (skips SCV heavy views)
+        isScvLoading = true;
         applyFiltersAndRender();
+        
+        // PHASE 2: Fetch detailed Submissions (SCVs) in background
+        setLight("yellow", "Base Data Rendered. Fetching detailed SCVs in background (Phase 2)...");
+        setStatus(`Fetching individual submissions (SCVs) for ${allRows.length} variants...`);
+        
+        const rcvIdsToFetch = [];
+        allRows.forEach(row => {
+           asArray(row.rawClinvar?.rcv).forEach(r => {
+               if (r.accession) rcvIdsToFetch.push(r.accession);
+               else if (r.id) rcvIdsToFetch.push(r.id);
+           });
+        });
+        
+        const scvMap = await fetchSCVBatch(rcvIdsToFetch);
+        allRows.forEach(row => hydrateRowWithSCVs(row, scvMap));
+        
+        // Finalize 
+        isScvLoading = false;
         setStatus("Ready");
+        setLight("green", "All data fully loaded.");
+        applyFiltersAndRender();
+
+        // Update active modal dynamically if left open
+        if (currentModalRow && document.getElementById("overlay").classList.contains("show")) {
+            renderSCVTable(getFilteredSCVs(currentModalRow));
+            document.getElementById("rawJson").textContent = JSON.stringify(currentModalRow.rawClinvar, null, 2);
+        }
+
       } catch(e) {
-        if (e.name !== "AbortError") setStatus("Error: " + (e.message || String(e)));
-        else setStatus("Stopped");
+        if (e.name !== "AbortError") {
+            setStatus("Error: " + (e.message || String(e)));
+            setLight("red", "Data Load Failure");
+        } else {
+            setStatus("Stopped");
+            setLight("off", "Data Load Stopped");
+        }
       } finally {
         document.getElementById("btnStop").disabled = true;
       }
     }
 
     function buildCounts(){
-      sigCounts.clear();
-      condCounts.clear();
-      condMeta.clear();
+      sigCounts.clear(); condCounts.clear(); condMeta.clear();
       
       allRows.forEach(r => {
         (r.sigs || []).forEach(s => sigCounts.set(s, (sigCounts.get(s)||0)+1));
         (r.conditions || []).forEach(c => {
           condCounts.set(c.name, (condCounts.get(c.name)||0)+1);
-          // Store identifiers globally for matrix headers (condMeta)
-          // Logic: If current identifiers has more keys, or if cached is empty, update it.
-          // This aggregates "best" identifiers for a given condition name across all variants.
           if (!condMeta.has(c.name) || (Object.keys(c.identifiers||{}).length > Object.keys(condMeta.get(c.name)||{}).length)) {
             condMeta.set(c.name, c.identifiers);
           }
@@ -2289,9 +1955,8 @@ ${details}
       condOptions = sortByFrequencyThenAlpha(condCounts);
     }
 
-    // ---------- Wire up events ----------
+    // ---------- Global Events ----------
     document.getElementById("btnHamburger").onclick = () => {
-      // Mobile: open filter drawer; Desktop: collapse sidebar (existing behavior)
       if (window.innerWidth <= 980) toggleSidebarMobile();
       else app.classList.toggle("sidebar-collapsed");
     };
@@ -2312,17 +1977,14 @@ ${details}
     document.getElementById("btnRefresh").onclick = loadAllData;
     document.getElementById("btnTopRefresh").onclick = loadAllData;
     document.getElementById("btnStop").onclick = () => { if (controller) controller.abort(); };
-
     document.getElementById("closeModal").onclick = closeModal;
 
     filterEl.oninput = applyFiltersAndRender;
     sigSearch.oninput = () => renderMS({ options: sigOptions, selected: sigSelected, listEl: sigList, pillsEl: sigPills, searchText: sigSearch.value });
     condSearch.oninput = () => renderMS({ options: condOptions, selected: condSelected, listEl: condList, pillsEl: condPills, searchText: condSearch.value });
 
-    document.getElementById('btnScrollBottom').onclick = () =>
-      document.querySelector(".mainTableContainer").scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('btnScrollBottom').onclick = () => document.querySelector(".mainTableContainer").scrollIntoView({ behavior: 'smooth' });
 
-    // Export buttons
     document.getElementById("btnExportJson").onclick = exportJSON;
     document.getElementById("btnExportCsv").onclick = exportCSV;
     document.getElementById("btnExportView").onclick = openExportModal;
@@ -2330,11 +1992,9 @@ ${details}
     document.getElementById("btnCancelExport").onclick = closeExportModal;
     document.getElementById("btnCancelExportTop").onclick = closeExportModal;
 
-    // Re-render plots on resize for responsive layout
     window.addEventListener('resize', () => {
       if (activeSectionId === 'chartDetails') renderCumulativeChart();
       if (activeSectionId === 'variantTimelineDetails') renderVariantTimelineChart(lastFilteredRows);
-      // close drawer if switching to desktop
       if (window.innerWidth > 980) toggleSidebarMobile(false);
     });
 
