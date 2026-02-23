@@ -1583,7 +1583,7 @@
       return getSeverity(sorted[0].clinical_significance);
     }
 
-    function renderVariantTimelineChart(rows) {
+async function renderVariantTimelineChart(rows) {
       const container = document.getElementById("variantTimelineChart");
       if (!container) return;
       if (typeof Plotly === 'undefined') {
@@ -1614,7 +1614,7 @@
       if (candidates.length <= 30) {
         displayRows = candidates;
       } else {
-        // Logic Step 2: Filter for variants with > 2 unique classifications (kept >= 2 from previous implementation logic)
+        // Logic Step 2: Filter for variants with > 2 unique classifications
         const complex = candidates.filter(r => (r.sigs || []).length >= 2);
 
         if (complex.length === 0) {
@@ -1654,6 +1654,74 @@
         return (b.scvTotal || 0) - (a.scvTotal || 0); // Tie-break
       });
 
+      // --- NEW LOGIC: Fetch all SCVs for the displayed rows ---
+      container.innerHTML = '<div class="help" style="text-align:center; padding:50px;">Loading submission timelines...</div>';
+
+      const rcvIdMap = {}; 
+      const allRcvIds = [];
+      
+      displayRows.forEach((row, i) => {
+        const rcvs = asArray(row.rawClinvar?.rcv);
+        rcvs.forEach(r => {
+            const acc = r.accession || r.id; // Get RCV accession
+            if (acc) {
+                allRcvIds.push(acc);
+                rcvIdMap[acc] = i; 
+                if (acc.includes('.')) rcvIdMap[acc.split('.')[0]] = i; // Map versionless as well
+            }
+        });
+      });
+
+      // Array to hold the fetched SCVs for each row index
+      const rowScvs = Array.from({ length: displayRows.length }, () => []);
+
+      if (allRcvIds.length > 0) {
+        try {
+          const url = new URL("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi");
+          url.searchParams.append("db", "clinvar");
+          url.searchParams.append("rettype", "clinvarset");
+          url.searchParams.append("id", allRcvIds.join(","));
+          url.searchParams.append("tool", "gene_explorer");
+          url.searchParams.append("email", "research@example.org");
+
+          const response = await fetch(url);
+          const xmlText = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(xmlText, "application/xml");
+          const sets = doc.querySelectorAll("ClinVarSet");
+
+          sets.forEach(set => {
+            const rcvAccNode = set.querySelector("ReferenceClinVarAssertion > ClinVarAccession");
+            if (!rcvAccNode) return;
+            const rcvAcc = rcvAccNode.getAttribute("Acc");
+            
+            // Find which displayRow this belongs to
+            const rowIndex = rcvIdMap[rcvAcc];
+            if (rowIndex === undefined) return;
+
+            set.querySelectorAll("ClinVarAssertion").forEach(node => {
+              const accNode = node.querySelector("ClinVarAccession");
+              const scvAcc = accNode?.getAttribute("Acc");
+              if (!scvAcc || !scvAcc.startsWith("SCV")) return;
+              
+              const classif = node.querySelector("Classification");
+              rowScvs[rowIndex].push({
+                accession: `${scvAcc}.${accNode.getAttribute("Version")}`,
+                submitter: node.querySelector("ClinVarSubmissionID")?.getAttribute("submitter") || "N/A",
+                significance: classif?.querySelector("GermlineClassification")?.textContent || "N/A",
+                date: classif?.getAttribute("DateLastEvaluated") || "N/A"
+              });
+            });
+          });
+        } catch (err) {
+          console.error("Failed to fetch SCVs for timeline:", err);
+          // If fetch fails, we'll gracefully render empty timelines or fall back to error state
+        }
+      }
+
+      // Clear the loading message
+      container.innerHTML = '';
+
       const sigColorMap = {
         'pathogenic': 'red',
         'likely pathogenic': 'orange',
@@ -1665,8 +1733,9 @@
 
       const traces = [];
       displayRows.forEach((row, i) => {
-        const rcvs = asArray(row.rawClinvar?.rcv).filter(r => r.last_evaluated);
-        const dates = rcvs.map(r => parseDateToMs(r.last_evaluated)).filter(Boolean);
+        // --- UPDATED LOGIC: Plot using the fetched SCVs instead of RCVs ---
+        const scvs = rowScvs[i].filter(s => s.date && s.date !== "N/A");
+        const dates = scvs.map(s => parseDateToMs(s.date)).filter(Boolean);
         if (!dates.length) return;
 
         traces.push({
@@ -1678,20 +1747,21 @@
           hoverinfo: 'skip'
         });
 
-        rcvs.forEach(rcv => {
-          const sig = norm(rcv.clinical_significance);
+        scvs.forEach(scv => {
+          const sig = norm(scv.significance);
           let color = 'grey', symbol = 'circle';
           for (let k in sigColorMap) if (sig.includes(k)) color = sigColorMap[k];
           if (sig.includes('conflict')) { color = '#ff9900'; symbol = 'triangle-up'; }
 
           traces.push({
-            x: [new Date(parseDateToMs(rcv.last_evaluated))],
+            x: [new Date(parseDateToMs(scv.date))],
             y: [i],
             mode: 'markers',
             marker: { color, size: 10, symbol, line: { width: 1, color: '#fff' } },
-            text: `${escapeHtml(stripPrefix(row.preferredName || row.id))}<br>${escapeHtml(rcv.clinical_significance || '')}<br>${escapeHtml(rcv.last_evaluated || '')}`,
+            // Added SCV Accession and Submitter info to the hover text for extra detail
+            text: `${escapeHtml(stripPrefix(row.preferredName || row.id))}<br>SCV: ${escapeHtml(scv.accession)}<br>${escapeHtml(scv.significance || '')}<br>${escapeHtml(scv.date || '')}`,
             hoverinfo: 'text',
-            name: rcv.clinical_significance,
+            name: scv.significance,
             showlegend: false
           });
         });
@@ -1917,8 +1987,9 @@
         `</tbody>`;
 
       fetchAllSCVs(rcvs.map(r => r.accession).filter(Boolean));
-      document.getElementById("rawJson").textContent = JSON.stringify(row.rawClinvar, null, 2);
 
+      document.getElementById("rawJson").textContent = JSON.stringify(row.rawClinvar, null, 2);
+      console.log(row);
       document.getElementById("overlay").classList.add("show");
     }
 
