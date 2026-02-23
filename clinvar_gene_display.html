@@ -642,6 +642,25 @@
       border: 1px solid var(--border2);
       border-radius: 8px;
       padding: 12px;
+      position: relative;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 36px;
+      right: 36px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 4px 6px;
+      font-size: 24px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.15s ease;
+    }
+
+    .copy-btn:hover {
+      opacity: 1;
     }
 
     .rcvtable { width: 100%; border-collapse: collapse; font-size: 11px; }
@@ -976,6 +995,9 @@
           <div class="matrixWrap">
             <div id="variantTimelineChart" style="width:100%; min-height:400px; padding:10px;"></div>
           </div>
+          <div class="help" style="margin: 0 12px 12px 12px; padding-top: 12px; border-top: 1px solid var(--border2); line-height: 1.4;">
+            <strong>Methodology:</strong> Only variants with multiple submissions are plotted. To highlight clinically evolving cases, if more than 30 variants exist, the chart filters for "complex" variants (those with at least two unique classification categories over time). If heavily populated, it caps at 50, prioritizing variants with the widest divergence in severity and highest submission counts. Rows are ordered top-to-bottom by the severity of their most recent evaluation.
+          </div>
         </div>
 
         <!-- Section 3 -->
@@ -995,6 +1017,9 @@
               </thead>
               <tbody id="matrixBody"></tbody>
             </table>
+          </div>
+          <div class="help" style="margin: 0 12px 12px 12px; padding-top: 12px; line-height: 1.4;">
+            <strong>Methodology:</strong> Rows represent the top four most frequent specific conditions (excluding generic terms). Variants are placed in a cell if they possess the column's classification and are explicitly linked to the row's condition. Within a cell, variants are prioritized based on association strength—heavily favoring variants with more submissions for that specific condition and fewer competing condition annotations.
           </div>
         </div>
       </div>
@@ -1408,11 +1433,14 @@
         rcvCount: rcvs.length,
         scvTotal: actualScvTotal,
         allScvs: allScvs,
+        scvsFetched: scvMap != null,
         rawClinvar: cv
       };
     }
     
     function hydrateRowWithSCVs(row, scvMap) {
+      if (row.scvsFetched) return; // Skip if already dynamically fetched
+
       const allScvs = [];
       const rcvs = asArray(row.rawClinvar?.rcv);
       
@@ -1428,6 +1456,31 @@
       
       row.allScvs = allScvs;
       row.scvTotal = allScvs.length > 0 ? allScvs.length : rcvs.reduce((acc, r) => acc + (parseInt(r.number_submitters) || 0), 0);
+      row.scvsFetched = true;
+    }
+
+    async function fetchSCVsForVariant(row) {
+      const rcvIds = [];
+      asArray(row.rawClinvar?.rcv).forEach(r => {
+          if (r.accession) rcvIds.push(r.accession);
+          else if (r.id) rcvIds.push(r.id);
+      });
+      
+      if (rcvIds.length > 0) {
+          const scvMap = await fetchSCVBatch(rcvIds);
+          // Only hydrate if the global fetch hasn't already done it in the background
+          if (!row.scvsFetched) {
+              hydrateRowWithSCVs(row, scvMap);
+          }
+      } else {
+          row.scvsFetched = true;
+      }
+
+      // If the modal is still open for this row, update it instantly
+      if (currentModalRow === row && document.getElementById("overlay").classList.contains("show")) {
+          renderSCVTable(getFilteredSCVs(row));
+          document.getElementById("rawJson").textContent = JSON.stringify(row.rawClinvar, null, 2);
+      }
     }
 
     /** Condition Modal Logic */
@@ -1490,6 +1543,24 @@
     btnConditionNewTab.addEventListener('click', openConditionNewTab);
     conditionOverlay.addEventListener('click', (e) => { 
       if(e.target === conditionOverlay) closeConditionView(); 
+    });
+    document.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".copy-btn");
+      if (!btn) return;
+
+      const pre = btn.parentElement.querySelector("pre");
+      if (!pre) return;
+
+      try {
+        await navigator.clipboard.writeText(pre.textContent);
+        
+        // Optional: temporary feedback
+        btn.textContent = "✓";
+        setTimeout(() => btn.textContent = "📋", 1200);
+
+      } catch (err) {
+        console.error("Copy failed:", err);
+      }
     });
 
     function getConditionLink(condition) {
@@ -2360,9 +2431,10 @@
 
         <details class="card">
           <summary style="padding:10px 12px; font-size:13px; font-weight:950; color:var(--c3); background:rgba(40,80,156,0.05); cursor:pointer; list-style:none;">
-            Raw ClinVar JSON (Includes fetched SCVs)
+            Raw JSON
           </summary>
           <div class="inner">
+          <button class="copy-btn" title="Copy to clipboard" aria-label="Copy JSON">📋</button>
             <pre id="rawJson" style="background:#f4f4f4; padding:10px; border-radius:8px; font-size:11px; overflow:auto; max-height:300px;"></pre>
           </div>
         </details>
@@ -2390,9 +2462,15 @@
           ${rcvs.map(r => {
             const rcvId = r.accession || r.id || "—";
             const condObjs = extractConditionObjectsFromRcv(r);
+            
+            // Create the clickable external link
+            const rcvLink = rcvId !== "—" 
+              ? `<a href="https://www.ncbi.nlm.nih.gov/clinvar/${escapeHtml(rcvId)}/" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Open ${escapeHtml(rcvId)} in ClinVar" style="color:inherit; text-decoration:underline;">${escapeHtml(rcvId)}</a>` 
+              : "—";
+
             return `
-              <tr class="rowclick" style="cursor:pointer;" onclick="filterSCVs('${String(rcvId).replace(/'/g,"\\'")}')">
-                <td><span class="mono" style="color:var(--c1); font-weight:800">${escapeHtml(rcvId)} ↳</span></td>
+              <tr class="rowclick" style="cursor:pointer;" title="Click row to filter submissions below" onclick="filterSCVs('${String(rcvId).replace(/'/g,"\\'")}')">
+                <td><span class="mono" style="color:var(--c1); font-weight:800">${rcvLink} ↳</span></td>
                 <td><span class="sig ${norm(r.clinical_significance).includes('patho')?'bad':norm(r.clinical_significance).includes('benign')?'good':'warn'}">${escapeHtml(r.clinical_significance || '—')}</span></td>
                 <td>${condObjs.map(c => getConditionLink(c)).join(', ') || '—'}</td>
                 <td class="small">${escapeHtml(r.last_evaluated || '—')}</td>
@@ -2402,8 +2480,9 @@
         </tbody>
       `;
 
-      if (isScvLoading) {
-          document.getElementById("scvTableBody").innerHTML = '<tr><td colspan="5" class="help" style="text-align:center;">Background fetching in progress...</td></tr>';
+      if (!row.scvsFetched) {
+          document.getElementById("scvTableBody").innerHTML = '<tr><td colspan="5" class="help" style="text-align:center;">Dynamically prioritizing & fetching detailed submissions...</td></tr>';
+          fetchSCVsForVariant(row);
       } else {
           renderSCVTable(getFilteredSCVs(row));
       }
